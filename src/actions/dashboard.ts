@@ -2,7 +2,14 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { documents, approvals, readConfirmations, users, activityLogs } from "@/lib/db/schema";
+import {
+  documents,
+  documentRevisions,
+  approvals,
+  readConfirmations,
+  users,
+  activityLogs,
+} from "@/lib/db/schema";
 import { eq, and, count, isNull, desc } from "drizzle-orm";
 import { headers } from "next/headers";
 
@@ -55,13 +62,14 @@ export async function getPendingTasks() {
   const pendingApprovalsList = await db
     .select({
       id: approvals.id,
-      documentId: approvals.documentId,
-      documentTitle: documents.title,
+      documentId: documentRevisions.documentId,
+      documentTitle: documentRevisions.title,
       documentCode: documents.documentCode,
       createdAt: approvals.createdAt,
     })
     .from(approvals)
-    .innerJoin(documents, eq(approvals.documentId, documents.id))
+    .innerJoin(documentRevisions, eq(approvals.revisionId, documentRevisions.id))
+    .innerJoin(documents, eq(documentRevisions.documentId, documents.id))
     .where(
       and(
         eq(approvals.status, "PENDING"),
@@ -74,13 +82,14 @@ export async function getPendingTasks() {
   const unreadDocumentsList = await db
     .select({
       id: readConfirmations.id,
-      documentId: readConfirmations.documentId,
-      documentTitle: documents.title,
+      documentId: documentRevisions.documentId,
+      documentTitle: documentRevisions.title,
       documentCode: documents.documentCode,
       createdAt: readConfirmations.createdAt,
     })
     .from(readConfirmations)
-    .innerJoin(documents, eq(readConfirmations.documentId, documents.id))
+    .innerJoin(documentRevisions, eq(readConfirmations.revisionId, documentRevisions.id))
+    .innerJoin(documents, eq(documentRevisions.documentId, documents.id))
     .where(
       and(
         eq(readConfirmations.userId, session.user.id),
@@ -103,12 +112,13 @@ export async function getRecentActivity(limit: number = 10) {
       action: activityLogs.action,
       createdAt: activityLogs.createdAt,
       userName: users.name,
-      documentTitle: documents.title,
       documentCode: documents.documentCode,
+      documentTitle: documentRevisions.title,
     })
     .from(activityLogs)
     .innerJoin(users, eq(activityLogs.userId, users.id))
     .innerJoin(documents, eq(activityLogs.documentId, documents.id))
+    .leftJoin(documentRevisions, eq(activityLogs.revisionId, documentRevisions.id))
     .orderBy(desc(activityLogs.createdAt))
     .limit(limit);
 

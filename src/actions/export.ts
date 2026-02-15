@@ -2,9 +2,14 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { documents, departments, users } from "@/lib/db/schema";
-import { and, eq, or, ilike, inArray, desc } from "drizzle-orm";
-import { distributionLists } from "@/lib/db/schema";
+import {
+  documents,
+  documentRevisions,
+  departments,
+  users,
+  distributionLists,
+} from "@/lib/db/schema";
+import { and, eq, or, ilike, inArray, desc, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import * as XLSX from "xlsx";
 
@@ -16,40 +21,42 @@ export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
 
   const { search, departmentId, documentType, status } = filters;
 
+  const rev = documentRevisions;
   const conditions = [eq(documents.isDeleted, false)];
 
   if (search) {
     conditions.push(
       or(
-        ilike(documents.title, `%${search}%`),
+        ilike(rev.title, `%${search}%`),
         ilike(documents.documentCode, `%${search}%`),
       )!,
     );
   }
 
   if (documentType) {
-    conditions.push(eq(documents.documentType, documentType as "PROCEDURE" | "INSTRUCTION" | "FORM"));
+    conditions.push(eq(rev.documentType, documentType as "PROCEDURE" | "INSTRUCTION" | "FORM"));
   }
 
   if (status) {
     conditions.push(
       eq(
-        documents.status,
-        status as "DRAFT" | "PENDING_APPROVAL" | "INTERMEDIATE_APPROVAL" | "APPROVED" | "PUBLISHED" | "REVISION" | "PASSIVE" | "CANCELLED",
+        rev.status,
+        status as "DRAFT" | "PENDING_APPROVAL" | "PREPARER_APPROVED" | "PREPARER_REJECTED" | "APPROVED" | "APPROVER_REJECTED" | "PUBLISHED" | "CANCELLED",
       ),
     );
   }
 
   if (departmentId) {
-    const distributedDocIds = db
-      .select({ documentId: distributionLists.documentId })
+    const distributedRevisionDocIds = db
+      .select({ documentId: rev.documentId })
       .from(distributionLists)
+      .innerJoin(rev, eq(distributionLists.revisionId, rev.id))
       .where(eq(distributionLists.departmentId, departmentId));
 
     conditions.push(
       or(
-        eq(documents.departmentId, departmentId),
-        inArray(documents.id, distributedDocIds),
+        eq(rev.departmentId, departmentId),
+        inArray(documents.id, distributedRevisionDocIds),
       )!,
     );
   }
@@ -57,18 +64,27 @@ export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
   const rows = await db
     .select({
       documentCode: documents.documentCode,
-      title: documents.title,
-      documentType: documents.documentType,
-      status: documents.status,
+      title: rev.title,
+      documentType: rev.documentType,
+      status: rev.status,
       currentRevisionNo: documents.currentRevisionNo,
-      publishedAt: documents.publishedAt,
+      publishedAt: rev.publishedAt,
       createdAt: documents.createdAt,
       departmentName: departments.name,
-      uploaderName: users.name,
+      preparerName: sql<string>`preparer.name`.as("preparer_name"),
+      approverName: sql<string>`approver_user.name`.as("approver_name"),
     })
     .from(documents)
-    .leftJoin(departments, eq(documents.departmentId, departments.id))
-    .leftJoin(users, eq(documents.uploadedById, users.id))
+    .innerJoin(rev, eq(documents.currentRevisionId, rev.id))
+    .leftJoin(departments, eq(rev.departmentId, departments.id))
+    .leftJoin(
+      sql`"user" as preparer`,
+      sql`preparer.id = ${rev.preparerId}`,
+    )
+    .leftJoin(
+      sql`"user" as approver_user`,
+      sql`approver_user.id = ${rev.approverId}`,
+    )
     .where(and(...conditions))
     .orderBy(desc(documents.createdAt));
 
@@ -77,7 +93,8 @@ export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
     Title: row.title,
     Type: row.documentType,
     Department: row.departmentName ?? "",
-    "Uploaded By": row.uploaderName ?? "",
+    Preparer: row.preparerName ?? "",
+    Approver: row.approverName ?? "",
     Status: row.status,
     "Revision No": row.currentRevisionNo,
     "Published At": row.publishedAt?.toISOString() ?? "",

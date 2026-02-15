@@ -87,9 +87,11 @@ export function DocumentFilters({ departments }: DocumentFiltersProps) {
         <SelectContent>
           <SelectItem value="DRAFT">{t("documents.status.draft")}</SelectItem>
           <SelectItem value="PENDING_APPROVAL">{t("documents.status.pendingApproval")}</SelectItem>
+          <SelectItem value="PREPARER_APPROVED">{t("documents.status.preparerApproved")}</SelectItem>
           <SelectItem value="APPROVED">{t("documents.status.approved")}</SelectItem>
           <SelectItem value="PUBLISHED">{t("documents.status.published")}</SelectItem>
-          <SelectItem value="REVISION">{t("documents.status.revision")}</SelectItem>
+          <SelectItem value="PREPARER_REJECTED">{t("documents.status.preparerRejected")}</SelectItem>
+          <SelectItem value="APPROVER_REJECTED">{t("documents.status.approverRejected")}</SelectItem>
           <SelectItem value="CANCELLED">{t("documents.status.cancelled")}</SelectItem>
         </SelectContent>
       </Select>

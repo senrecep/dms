@@ -24,9 +24,12 @@ const createDocumentSchema = z.object({
   documentType: z.enum(["PROCEDURE", "INSTRUCTION", "FORM"]),
   departmentId: z.string().min(1, "Department is required"),
   preparerDepartmentId: z.string().optional(),
+  preparerId: z.string().min(1, "Preparer is required"),
   approverId: z.string().optional(),
   distributionDepartmentIds: z.string().optional(),
   distributionUserIds: z.string().optional(),
+  startingRevisionNo: z.coerce.number().int().min(0).optional(),
+  action: z.enum(["save", "submit"]).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -46,63 +49,71 @@ export async function POST(request: NextRequest) {
       departmentId: formData.get("departmentId") as string,
       preparerDepartmentId:
         (formData.get("preparerDepartmentId") as string) || undefined,
+      preparerId: (formData.get("preparerId") as string) || session.user.id,
       approverId: (formData.get("approverId") as string) || undefined,
       distributionDepartmentIds:
         (formData.get("distributionDepartmentIds") as string) || undefined,
       distributionUserIds:
         (formData.get("distributionUserIds") as string) || undefined,
+      startingRevisionNo: (formData.get("startingRevisionNo") as string) || "0",
+      action: (formData.get("action") as string) || "save",
     };
 
     const parsed = createDocumentSchema.parse(raw);
     const file = formData.get("file") as File | null;
 
-    // Create the document
+    if (!file || file.size === 0) {
+      return NextResponse.json({ error: "File is required" }, { status: 400 });
+    }
+
+    const startingRevNo = parsed.startingRevisionNo ?? 0;
+    const actionType = parsed.action ?? "save";
+    const initialStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
+
+    // 1. Create master document
     const [doc] = await db
       .insert(documents)
       .values({
         documentCode: parsed.documentCode,
-        title: parsed.title,
-        description: parsed.description,
-        documentType: parsed.documentType as
-          | "PROCEDURE"
-          | "INSTRUCTION"
-          | "FORM",
-        departmentId: parsed.departmentId,
-        preparerDepartmentId: parsed.preparerDepartmentId || null,
-        approverId: parsed.approverId || null,
-        uploadedById: session.user.id,
-        status: parsed.approverId ? "PENDING_APPROVAL" : "DRAFT",
       })
       .returning();
 
-    // Save file if provided
-    if (file && file.size > 0) {
-      const fileMeta = await saveFile(file, doc.id);
-      await db
-        .update(documents)
-        .set({
-          filePath: fileMeta.path,
-          fileName: fileMeta.fileName,
-          fileSize: fileMeta.size,
-          mimeType: fileMeta.mimeType,
-        })
-        .where(eq(documents.id, doc.id));
+    // 2. Save file
+    const fileMeta = await saveFile(file, doc.id);
 
-      // Create initial revision record (Rev.01)
-      await db.insert(documentRevisions).values({
+    // 3. Create first revision
+    const [revision] = await db
+      .insert(documentRevisions)
+      .values({
         documentId: doc.id,
-        revisionNo: 1,
+        revisionNo: startingRevNo,
+        title: parsed.title,
+        description: parsed.description,
+        documentType: parsed.documentType as "PROCEDURE" | "INSTRUCTION" | "FORM",
+        status: initialStatus,
+        departmentId: parsed.departmentId,
+        preparerDepartmentId: parsed.preparerDepartmentId || null,
+        preparerId: parsed.preparerId,
+        approverId: parsed.approverId || null,
+        createdById: session.user.id,
         filePath: fileMeta.path,
         fileName: fileMeta.fileName,
         fileSize: fileMeta.size,
         mimeType: fileMeta.mimeType,
         changes: "Initial upload",
-        status: doc.status,
-        createdById: session.user.id,
-      });
-    }
+      })
+      .returning();
 
-    // Create distribution list entries
+    // 4. Update master document with currentRevisionId
+    await db
+      .update(documents)
+      .set({
+        currentRevisionId: revision.id,
+        currentRevisionNo: startingRevNo,
+      })
+      .where(eq(documents.id, doc.id));
+
+    // 5. Create distribution lists with revisionId
     if (parsed.distributionDepartmentIds) {
       const deptIds = parsed.distributionDepartmentIds
         .split(",")
@@ -110,85 +121,129 @@ export async function POST(request: NextRequest) {
       if (deptIds.length > 0) {
         await db.insert(distributionLists).values(
           deptIds.map((deptId) => ({
-            documentId: doc.id,
+            revisionId: revision.id,
             departmentId: deptId,
           })),
         );
       }
     }
 
-    // Create distribution user entries (individual users)
+    // 6. Create distribution user entries with revisionId
     if (parsed.distributionUserIds) {
       const userIds = parsed.distributionUserIds.split(",").filter(Boolean);
       if (userIds.length > 0) {
         await db.insert(distributionUsers).values(
           userIds.map((userId) => ({
-            documentId: doc.id,
+            revisionId: revision.id,
             userId,
           })),
         );
       }
     }
 
-    // Create approval record if approver specified
-    if (parsed.approverId) {
-      await db.insert(approvals).values({
-        documentId: doc.id,
-        approverId: parsed.approverId,
-        approvalType: "FINAL",
-        status: "PENDING",
-      });
+    // 7. Handle approval flow if submitting
+    if (actionType === "submit" && parsed.approverId) {
+      if (parsed.preparerId !== parsed.approverId) {
+        // Two-step: PREPARER first
+        await db.insert(approvals).values({
+          revisionId: revision.id,
+          approverId: parsed.preparerId,
+          approvalType: "PREPARER",
+          status: "PENDING",
+        });
+
+        // Notify preparer
+        try {
+          const preparer = await db.query.users.findFirst({
+            where: eq(users.id, parsed.preparerId),
+            columns: { name: true, email: true },
+          });
+
+          if (preparer) {
+            await Promise.allSettled([
+              enqueueNotification({
+                userId: parsed.preparerId,
+                type: "APPROVAL_REQUEST",
+                titleKey: "newApprovalRequest",
+                messageParams: { docTitle: parsed.title, docCode: parsed.documentCode },
+                relatedDocumentId: doc.id,
+                relatedRevisionId: revision.id,
+              }),
+              enqueueEmail({
+                to: preparer.email,
+                subjectKey: "approvalRequest",
+                subjectParams: { title: parsed.title },
+                templateName: "approval-request",
+                templateProps: {
+                  approverName: preparer.name,
+                  documentTitle: parsed.title,
+                  documentCode: parsed.documentCode,
+                  uploaderName: session.user.name,
+                  approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${doc.id}`,
+                },
+              }),
+            ]);
+          }
+        } catch (error) {
+          console.error("[upload] Failed to notify preparer:", error);
+        }
+      } else {
+        // Single step: preparerId === approverId
+        await db.insert(approvals).values({
+          revisionId: revision.id,
+          approverId: parsed.approverId,
+          approvalType: "APPROVER",
+          status: "PENDING",
+        });
+
+        // Notify approver
+        try {
+          const approver = await db.query.users.findFirst({
+            where: eq(users.id, parsed.approverId),
+            columns: { name: true, email: true },
+          });
+
+          if (approver) {
+            await Promise.allSettled([
+              enqueueNotification({
+                userId: parsed.approverId,
+                type: "APPROVAL_REQUEST",
+                titleKey: "newApprovalRequest",
+                messageParams: { docTitle: parsed.title, docCode: parsed.documentCode },
+                relatedDocumentId: doc.id,
+                relatedRevisionId: revision.id,
+              }),
+              enqueueEmail({
+                to: approver.email,
+                subjectKey: "approvalRequest",
+                subjectParams: { title: parsed.title },
+                templateName: "approval-request",
+                templateProps: {
+                  approverName: approver.name,
+                  documentTitle: parsed.title,
+                  documentCode: parsed.documentCode,
+                  uploaderName: session.user.name,
+                  approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${doc.id}`,
+                },
+              }),
+            ]);
+          }
+        } catch (error) {
+          console.error("[upload] Failed to notify approver:", error);
+        }
+      }
     }
 
-    // Log activity
+    // 8. Log activity
     await db.insert(activityLogs).values({
       documentId: doc.id,
+      revisionId: revision.id,
       userId: session.user.id,
       action: "UPLOADED",
-      details: { title: parsed.title, documentCode: parsed.documentCode },
+      details: { title: parsed.title, documentCode: parsed.documentCode, revisionNo: startingRevNo },
     });
 
     revalidatePath("/documents");
-
-    // Async notifications (non-critical)
-    if (parsed.approverId) {
-      try {
-        const approver = await db.query.users.findFirst({
-          where: eq(users.id, parsed.approverId),
-          columns: { name: true, email: true },
-        });
-
-        const jobs: Promise<unknown>[] = [];
-
-        if (approver) {
-          jobs.push(enqueueEmail({
-            to: approver.email,
-            subjectKey: "approvalRequest",
-            subjectParams: { title: parsed.title },
-            templateName: "approval-request",
-            templateProps: {
-              approverName: approver.name,
-              documentTitle: parsed.title,
-              documentCode: parsed.documentCode,
-              uploaderName: session.user.name,
-              approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${doc.id}`,
-            },
-          }));
-        }
-
-        jobs.push(enqueueNotification({
-          userId: parsed.approverId,
-          type: "APPROVAL_REQUEST",
-          titleKey: "newApprovalRequest",
-          messageParams: { docTitle: parsed.title, docCode: parsed.documentCode },
-          relatedDocumentId: doc.id,
-        }));
-
-        await Promise.allSettled(jobs);
-      } catch (error) {
-        console.error("[upload] Failed to enqueue notifications:", error);
-      }
-    }
 
     return NextResponse.json({ success: true, id: doc.id });
   } catch (error) {

@@ -1,10 +1,10 @@
 import { pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 import { approvalStatusEnum } from "./enums";
-import { documents } from "./documents";
+import { documentRevisions } from "./document-revisions";
 import { users } from "./users";
 
-export const approvalTypeEnum = ["INTERMEDIATE", "FINAL"] as const;
+export const approvalTypeEnum = ["PREPARER", "APPROVER"] as const;
 
 export const approvals = pgTable(
   "approvals",
@@ -12,9 +12,9 @@ export const approvals = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => nanoid()),
-    documentId: text("document_id")
+    revisionId: text("revision_id")
       .notNull()
-      .references(() => documents.id),
+      .references(() => documentRevisions.id),
     approverId: text("approver_id")
       .notNull()
       .references(() => users.id),
@@ -31,7 +31,7 @@ export const approvals = pgTable(
       .defaultNow(),
   },
   (table) => [
-    index("approvals_document_id_idx").on(table.documentId),
+    index("approvals_revision_id_idx").on(table.revisionId),
     index("approvals_approver_id_idx").on(table.approverId),
     index("approvals_status_idx").on(table.status),
   ],

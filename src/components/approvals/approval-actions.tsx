@@ -25,9 +25,9 @@ export function ApprovalActions({ approval }: ApprovalActionsProps) {
   }
 
   return (
-    <div className="flex items-center gap-1.5">
-      <Button asChild size="sm" variant="outline" className="size-8 p-0">
-        <Link href={`/documents/${approval.documentId}`} title={t("common.actions.viewDetails")}>
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Button asChild size="sm" variant="outline" className="size-9 p-0">
+        <Link href={`/documents/${approval.revision.documentId}`} title={t("common.actions.viewDetails")}>
           <ExternalLink className="size-3.5" />
         </Link>
       </Button>
@@ -52,7 +52,7 @@ export function ApprovalActions({ approval }: ApprovalActionsProps) {
         open={showRejectDialog}
         onOpenChange={setShowRejectDialog}
         approvalId={approval.id}
-        documentTitle={approval.document.title}
+        documentTitle={approval.revision.title}
       />
     </div>
   );

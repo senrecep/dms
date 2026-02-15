@@ -24,8 +24,13 @@ export async function getNotifications(page = 1, limit = 20) {
         relatedDocument: {
           columns: {
             id: true,
-            title: true,
             documentCode: true,
+          },
+        },
+        relatedRevision: {
+          columns: {
+            id: true,
+            title: true,
           },
         },
       },
@@ -95,6 +100,7 @@ export async function createNotification(data: {
   titleKey: string;
   messageParams?: Record<string, string | number>;
   relatedDocumentId?: string;
+  relatedRevisionId?: string;
 }) {
   const params = data.messageParams ?? {};
   const [notification] = await db
@@ -105,6 +111,7 @@ export async function createNotification(data: {
       title: data.titleKey,
       message: JSON.stringify(params),
       relatedDocumentId: data.relatedDocumentId,
+      relatedRevisionId: data.relatedRevisionId,
     })
     .returning();
 
@@ -116,6 +123,7 @@ export async function createNotification(data: {
       title: data.titleKey,
       message: JSON.stringify(params),
       relatedDocumentId: data.relatedDocumentId,
+      relatedRevisionId: data.relatedRevisionId,
     },
   });
 

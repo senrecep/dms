@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { approvals, users, documents, systemSettings } from "@/lib/db/schema";
+import { approvals, users, documentRevisions, systemSettings } from "@/lib/db/schema";
 import { eq, and, lt, isNull, or } from "drizzle-orm";
 import { enqueueEmail, enqueueNotification } from "@/lib/queue";
 import { env } from "@/lib/env";
@@ -32,11 +32,11 @@ export async function runApprovalReminders() {
       .select({
         approval: approvals,
         approver: users,
-        document: documents,
+        revision: documentRevisions,
       })
       .from(approvals)
       .innerJoin(users, eq(approvals.approverId, users.id))
-      .innerJoin(documents, eq(approvals.documentId, documents.id))
+      .innerJoin(documentRevisions, eq(approvals.revisionId, documentRevisions.id))
       .where(
         and(
           eq(approvals.status, "PENDING"),
@@ -53,7 +53,7 @@ export async function runApprovalReminders() {
     );
 
     // 4. Process each approval
-    for (const { approval, approver, document } of pendingApprovals) {
+    for (const { approval, approver, revision } of pendingApprovals) {
       results.processed++;
 
       try {
@@ -65,16 +65,19 @@ export async function runApprovalReminders() {
 
         const approvalUrl = `${env.NEXT_PUBLIC_APP_URL}/approvals/${approval.id}`;
 
+        // Get document code from revision
+        const docCode = `${revision.title}-Rev${revision.revisionNo}`;
+
         // Enqueue email
         await enqueueEmail({
           to: approver.email,
           subjectKey: "approvalReminder",
-          subjectParams: { title: document.title },
+          subjectParams: { title: revision.title },
           templateName: "approval-reminder",
           templateProps: {
             approverName: approver.name,
-            documentTitle: document.title,
-            documentCode: document.documentCode,
+            documentTitle: revision.title,
+            documentCode: docCode,
             daysPending,
             approvalUrl,
           },
@@ -85,8 +88,9 @@ export async function runApprovalReminders() {
           userId: approver.id,
           type: "REMINDER",
           titleKey: "approvalReminder",
-          messageParams: { docTitle: document.title, docCode: document.documentCode, days: daysPending },
-          relatedDocumentId: document.id,
+          messageParams: { docTitle: revision.title, docCode, days: daysPending },
+          relatedDocumentId: revision.documentId,
+          relatedRevisionId: revision.id,
         });
 
         // Update reminderSentAt

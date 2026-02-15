@@ -99,11 +99,11 @@
     "status": {
       "draft": "Draft",
       "pendingApproval": "Pending Approval",
-      "intermediateApproval": "Intermediate Approval",
+      "preparerApproved": "Preparer Approved",
       "approved": "Approved",
       "published": "Published",
-      "revision": "Revision",
-      "passive": "Passive",
+      "preparerRejected": "Preparer Rejected",
+      "approverRejected": "Approver Rejected",
       "cancelled": "Cancelled"
     },
     "type": {
@@ -125,7 +125,15 @@
       "revisionNotes": "Revision Notes",
       "preparerDepartment": "Preparer Department",
       "selectPreparerDepartment": "Select preparer department",
-      "proxyUpload": "Upload on behalf of another department"
+      "proxyUpload": "Upload on behalf of another department",
+      "preparer": "Preparer",
+      "approver": "Approver",
+      "selectPreparer": "Select Preparer",
+      "startingRevisionNo": "Starting Revision Number",
+      "saveAsDraft": "Save as Draft",
+      "submitForApproval": "Submit for Approval",
+      "overwriteWarning": "This will overwrite the current draft revision",
+      "changes": "Changes / Notes"
     },
     "detail": {
       "title": "Document Details",
@@ -141,8 +149,18 @@
       "noDistribution": "No departments set.",
       "noActivity": "No activity yet.",
       "currentRevision": "Current revision",
-      "newRevision": "New revision will be",
-      "revisionChangesPlaceholder": "Describe the changes in this revision..."
+      "newRevision": "New Revision",
+      "revisionChangesPlaceholder": "Describe the changes in this revision...",
+      "preparer": "Preparer",
+      "approver": "Approver",
+      "waitingForPreparer": "Waiting for preparer approval",
+      "waitingForApprover": "Waiting for approver approval",
+      "rejectedBy": "Rejected by",
+      "previousStatus": "Previous",
+      "revisionTimeline": "Revision Timeline",
+      "rejectionReason": "Rejection Reason",
+      "fileInfo": "File",
+      "revisionInfo": "Revision Info"
     },
     "upload": {
       "title": "Upload Document",
@@ -194,7 +212,9 @@
     },
     "type": {
       "intermediate": "Intermediate",
-      "final": "Final"
+      "final": "Final",
+      "preparer": "Preparer",
+      "approver": "Approver"
     }
   },
   "notifications": {
@@ -216,6 +236,11 @@
       "documentPublished": "Document Published",
       "documentRevised": "Document Revised",
       "newFinalApprovalRequest": "New Final Approval Request",
+      "preparerApprovalRequest": "Preparer Approval Required",
+      "approverApprovalRequest": "Approver Approval Required",
+      "preparerApproved": "Preparer Approved",
+      "preparerRejected": "Preparer Rejected",
+      "approverRejected": "Approver Rejected",
       "documentApproved": "Document Approved",
       "documentRejected": "Document Rejected",
       "newReadAssignment": "New Read Assignment",
@@ -357,44 +382,74 @@
     "creation": {
       "title": "Creating a Document",
       "step1Title": "Basic Information",
-      "step1Desc": "Enter a unique document code (e.g., DOC-001) and document name. Optionally add a description to explain the document's purpose.",
+      "step1Desc": "Enter a unique document code (e.g., DOC-001), document title and optionally a description to explain the document's purpose.",
       "step2Title": "Classification",
       "step2Desc": "Select the document type (Procedure, Instruction, or Form) and the department that owns the document.",
       "step3Title": "Preparer Department (Optional)",
       "step3Desc": "If you are uploading on behalf of another department, select the preparer department. Otherwise, leave it empty.",
-      "step4Title": "Select Approver",
-      "step4Desc": "Choose who will review and approve the document. Only users with Manager or Admin roles are listed.",
-      "step5Title": "Distribution List",
-      "step5Desc": "Choose which departments and/or individual users should receive the document after it is published. You can select both.",
-      "step6Title": "Upload File",
-      "step6Desc": "Upload the document file by dragging and dropping or clicking to browse. Then submit the form."
+      "step4Title": "Select Preparer",
+      "step4Desc": "Choose who will prepare and initially review the document. Defaults to the person uploading, but can be changed.",
+      "step5Title": "Select Approver",
+      "step5Desc": "Choose who will give the final approval. Only users with Manager or Admin roles are listed.",
+      "step6Title": "Distribution List",
+      "step6Desc": "Choose which departments and/or individual users should receive the document after it is published.",
+      "step7Title": "Revision Number",
+      "step7Desc": "Set the starting revision number (default is 0). After the first revision, this number increments automatically.",
+      "step8Title": "Upload File",
+      "step8Desc": "Upload the document file by dragging and dropping or clicking to browse.",
+      "step9Title": "Save or Submit",
+      "step9Desc": "Save as Draft to continue editing later, or Submit to send the document directly into the approval workflow."
+    },
+    "approval": {
+      "title": "Approval Workflow",
+      "subtitle": "Documents go through a two-step approval process before publishing.",
+      "twoPerson": "Two-person approval (Preparer ≠ Approver):",
+      "samePerson": "Same-person approval (Preparer = Approver):",
+      "samePersonNote": "When the preparer and approver are the same person, the preparer step is skipped automatically.",
+      "rejection": "Rejection flow:",
+      "newRevisionRequired": "New Revision Required",
+      "rejectionNote": "Rejected documents are locked. A new revision must be created to continue."
     },
     "lifecycle": {
       "title": "Document Lifecycle",
-      "subtitle": "Every document goes through these stages:",
-      "draft": "Document is created as a draft and submitted for approval.",
-      "pendingApproval": "The assigned approver receives an email notification and reviews the document.",
-      "intermediateApproval": "If there are multiple approval levels, the first approver has approved. Waiting for final approval.",
-      "approved": "The document has been approved and is ready to be published by the document owner.",
-      "published": "The document is distributed to all users in the distribution list. Read tasks are created automatically.",
-      "revision": "A new version is uploaded. The document goes through the approval process again.",
-      "passive": "Previous revisions become passive when a new revision is published.",
+      "subtitle": "Every document revision goes through these stages:",
+      "draft": "The revision is created as a draft. It can be edited and saved multiple times before submitting.",
+      "pendingApproval": "The document has been submitted for approval. The assigned preparer receives a notification to review.",
+      "preparerApproved": "The preparer has approved the document. The approver is notified for final review.",
+      "approved": "The document has been fully approved. The approver can now publish it or request a revision.",
+      "published": "The document is distributed to all users in the distribution list. Read tasks are created for managers.",
+      "preparerRejected": "The preparer has rejected the document. The revision is locked and a new revision must be created.",
+      "approverRejected": "The approver has rejected the document. The revision is locked and a new revision must be created.",
       "cancelled": "The document is cancelled. All related parties are notified."
+    },
+    "revision": {
+      "title": "Revision System",
+      "subtitle": "How document revisions work:",
+      "draftOverwriteTitle": "Draft Overwrite",
+      "draftOverwriteDesc": "If the current revision is still in Draft status, saving changes will overwrite it instead of creating a new revision.",
+      "newRevisionTitle": "New Revision",
+      "newRevisionDesc": "For published or approved revisions, a new revision is created with an incremented revision number. A new file upload is required.",
+      "rejectedRevisionTitle": "After Rejection",
+      "rejectedRevisionDesc": "Rejected revisions are permanently locked. You must create a new revision with updated content to continue the workflow.",
+      "revisionNumberTitle": "Revision Numbering",
+      "revisionNumberDesc": "The first revision number can be set manually. All subsequent revisions are automatically numbered (+1)."
     },
     "afterPublish": {
       "title": "What Happens After Publishing?",
       "notifications": "All users in the distribution list receive an email notification about the new document.",
-      "readTasks": "Each user gets a read task. They must open the document and confirm they have read and understood it.",
+      "readTasks": "Managers in the distribution list get a read task. They must open the document and confirm they have read it.",
       "tracking": "The document owner can track read status in real time — who has read and who hasn't.",
-      "reminders": "Automatic reminder emails are sent to users who haven't read the document within the configured period.",
-      "escalation": "If a user still hasn't read after the reminder period, the task is escalated to their manager."
+      "reminders": "Automatic reminder emails are sent to managers who haven't confirmed reading within the configured period.",
+      "escalation": "If a manager still hasn't confirmed after the reminder period, the task is escalated to upper management."
     },
     "tips": {
       "title": "Tips",
       "tip1": "Use meaningful document codes that follow your organization's naming convention.",
       "tip2": "Add a description to help users understand the document's purpose before opening it.",
       "tip3": "Select both departments and individual users in the distribution list when needed — duplicates are handled automatically.",
-      "tip4": "After approval, review the document one more time before publishing, as publishing triggers distribution immediately."
+      "tip4": "After approval, review the document one more time before publishing, as publishing triggers distribution immediately.",
+      "tip5": "Only managers need to confirm reading. Regular users can view published documents without confirmation.",
+      "tip6": "When the preparer and approver are the same person, the approval process is streamlined to a single step."
     }
   }
 }

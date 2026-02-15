@@ -1,7 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { readConfirmations, activityLogs } from "@/lib/db/schema";
+import {
+  readConfirmations,
+  activityLogs,
+  documentRevisions,
+  documents,
+} from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, and, isNull, isNotNull, count } from "drizzle-orm";
@@ -13,23 +18,34 @@ export async function getPendingReadTasks() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
 
+  // Only MANAGER role users can have read tasks
+  if (session.user.role === "USER") {
+    return [];
+  }
+
   const items = await db.query.readConfirmations.findMany({
     where: and(
       eq(readConfirmations.userId, session.user.id),
       isNull(readConfirmations.confirmedAt),
     ),
     with: {
-      document: {
+      revision: {
         columns: {
           id: true,
           title: true,
-          documentCode: true,
           documentType: true,
           publishedAt: true,
-          uploadedById: true,
+          createdById: true,
+          documentId: true,
         },
         with: {
-          uploadedBy: {
+          document: {
+            columns: {
+              id: true,
+              documentCode: true,
+            },
+          },
+          createdBy: {
             columns: {
               id: true,
               name: true,
@@ -50,23 +66,34 @@ export async function getCompletedReadTasks() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
 
+  // Only MANAGER role users can have read tasks
+  if (session.user.role === "USER") {
+    return [];
+  }
+
   const items = await db.query.readConfirmations.findMany({
     where: and(
       eq(readConfirmations.userId, session.user.id),
       isNotNull(readConfirmations.confirmedAt),
     ),
     with: {
-      document: {
+      revision: {
         columns: {
           id: true,
           title: true,
-          documentCode: true,
           documentType: true,
           publishedAt: true,
-          uploadedById: true,
+          createdById: true,
+          documentId: true,
         },
         with: {
-          uploadedBy: {
+          document: {
+            columns: {
+              id: true,
+              documentCode: true,
+            },
+          },
+          createdBy: {
             columns: {
               id: true,
               name: true,
@@ -83,29 +110,45 @@ export async function getCompletedReadTasks() {
   return items;
 }
 
-export async function confirmRead(documentId: string) {
+export async function confirmRead(revisionId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
 
+  // Only MANAGER role users can confirm read
+  if (session.user.role === "USER") {
+    throw new Error("Only managers can confirm document reading");
+  }
+
   const confirmation = await db.query.readConfirmations.findFirst({
     where: and(
-      eq(readConfirmations.documentId, documentId),
+      eq(readConfirmations.revisionId, revisionId),
       eq(readConfirmations.userId, session.user.id),
       isNull(readConfirmations.confirmedAt),
     ),
     with: {
-      document: {
+      revision: {
         columns: {
           id: true,
           title: true,
-          documentCode: true,
-          uploadedById: true,
+          createdById: true,
+          documentId: true,
+        },
+        with: {
+          document: {
+            columns: {
+              id: true,
+              documentCode: true,
+            },
+          },
         },
       },
     },
   });
 
   if (!confirmation) throw new Error("Read task not found or already confirmed");
+
+  const revision = confirmation.revision;
+  const documentId = revision.documentId;
 
   await db
     .update(readConfirmations)
@@ -114,15 +157,17 @@ export async function confirmRead(documentId: string) {
 
   await db.insert(activityLogs).values({
     documentId,
+    revisionId,
     userId: session.user.id,
     action: "READ",
     details: { confirmedAt: new Date().toISOString() },
   });
 
-  await publish(CHANNELS.notifications(confirmation.document.uploadedById), {
+  await publish(CHANNELS.notifications(revision.createdById), {
     event: "READ_CONFIRMATION",
     data: {
       documentId,
+      revisionId,
       userId: session.user.id,
       userName: session.user.name,
     },
@@ -131,35 +176,40 @@ export async function confirmRead(documentId: string) {
   revalidatePath("/read-tasks");
   revalidatePath("/documents");
 
-  // Async notification (non-critical)
+  // Async notification
   try {
     await enqueueNotification({
-      userId: confirmation.document.uploadedById,
+      userId: revision.createdById,
       type: "READ_ASSIGNMENT",
       titleKey: "documentReadConfirmed",
-      messageParams: { userName: session.user.name, docTitle: confirmation.document.title, docCode: confirmation.document.documentCode },
+      messageParams: {
+        userName: session.user.name,
+        docTitle: revision.title,
+        docCode: revision.document.documentCode,
+      },
       relatedDocumentId: documentId,
+      relatedRevisionId: revisionId,
     });
   } catch (error) {
     console.error("[confirmRead] Failed to enqueue notification:", error);
   }
 }
 
-export async function getReadStatus(documentId: string) {
+export async function getReadStatus(revisionId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
 
   const [totalResult] = await db
     .select({ count: count() })
     .from(readConfirmations)
-    .where(eq(readConfirmations.documentId, documentId));
+    .where(eq(readConfirmations.revisionId, revisionId));
 
   const [confirmedResult] = await db
     .select({ count: count() })
     .from(readConfirmations)
     .where(
       and(
-        eq(readConfirmations.documentId, documentId),
+        eq(readConfirmations.revisionId, revisionId),
         isNotNull(readConfirmations.confirmedAt),
       ),
     );

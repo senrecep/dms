@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import {
   readConfirmations,
   users,
-  documents,
+  documentRevisions,
   systemSettings,
 } from "@/lib/db/schema";
 import { eq, and, lt, isNull, or } from "drizzle-orm";
@@ -32,17 +32,19 @@ export async function runReadReminders() {
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
     // 3. Find unconfirmed read confirmations that need reminders
+    // IMPORTANT: Only query for MANAGER role users
     const unconfirmedReads = await db
       .select({
         readConfirmation: readConfirmations,
         user: users,
-        document: documents,
+        revision: documentRevisions,
       })
       .from(readConfirmations)
       .innerJoin(users, eq(readConfirmations.userId, users.id))
-      .innerJoin(documents, eq(readConfirmations.documentId, documents.id))
+      .innerJoin(documentRevisions, eq(readConfirmations.revisionId, documentRevisions.id))
       .where(
         and(
+          eq(users.role, "MANAGER"),
           isNull(readConfirmations.confirmedAt),
           lt(readConfirmations.createdAt, cutoffDate),
           or(
@@ -57,7 +59,7 @@ export async function runReadReminders() {
     );
 
     // 4. Process each read confirmation
-    for (const { readConfirmation, user, document } of unconfirmedReads) {
+    for (const { readConfirmation, user, revision } of unconfirmedReads) {
       results.processed++;
 
       try {
@@ -68,17 +70,18 @@ export async function runReadReminders() {
         );
 
         const readUrl = `${env.NEXT_PUBLIC_APP_URL}/read-tasks`;
+        const docCode = `${revision.title}-Rev${revision.revisionNo}`;
 
         // Enqueue email
         await enqueueEmail({
           to: user.email,
           subjectKey: "readReminder",
-          subjectParams: { title: document.title },
+          subjectParams: { title: revision.title },
           templateName: "read-reminder",
           templateProps: {
             userName: user.name,
-            documentTitle: document.title,
-            documentCode: document.documentCode,
+            documentTitle: revision.title,
+            documentCode: docCode,
             daysPending,
             readUrl,
           },
@@ -89,8 +92,9 @@ export async function runReadReminders() {
           userId: user.id,
           type: "REMINDER",
           titleKey: "readReminder",
-          messageParams: { docTitle: document.title, docCode: document.documentCode, days: daysPending },
-          relatedDocumentId: document.id,
+          messageParams: { docTitle: revision.title, docCode, days: daysPending },
+          relatedDocumentId: revision.documentId,
+          relatedRevisionId: revision.id,
         });
 
         // Update reminderSentAt

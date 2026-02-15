@@ -17,9 +17,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.departmentId],
     references: [departments.id],
   }),
-  uploadedDocuments: many(documents, { relationName: "uploadedBy" }),
-  approvedDocuments: many(documents, { relationName: "approver" }),
-  documentRevisions: many(documentRevisions),
+  preparedRevisions: many(documentRevisions, { relationName: "preparer" }),
+  approvedRevisions: many(documentRevisions, { relationName: "approver" }),
+  createdRevisions: many(documentRevisions, { relationName: "createdBy" }),
   approvals: many(approvals),
   readConfirmations: many(readConfirmations),
   notifications: many(notifications),
@@ -35,62 +35,69 @@ export const departmentsRelations = relations(departments, ({ one, many }) => ({
     references: [users.id],
   }),
   members: many(users),
-  documents: many(documents, { relationName: "department" }),
-  preparerDocuments: many(documents, { relationName: "preparerDepartment" }),
+  revisions: many(documentRevisions, { relationName: "department" }),
+  preparerRevisions: many(documentRevisions, { relationName: "preparerDepartment" }),
   distributionLists: many(distributionLists),
 }));
 
-// Documents relations
+// Documents relations (simplified master table)
 export const documentsRelations = relations(documents, ({ one, many }) => ({
-  department: one(departments, {
-    fields: [documents.departmentId],
-    references: [departments.id],
-    relationName: "department",
+  currentRevision: one(documentRevisions, {
+    fields: [documents.currentRevisionId],
+    references: [documentRevisions.id],
+    relationName: "currentRevision",
   }),
-  uploadedBy: one(users, {
-    fields: [documents.uploadedById],
-    references: [users.id],
-    relationName: "uploadedBy",
-  }),
-  preparerDepartment: one(departments, {
-    fields: [documents.preparerDepartmentId],
-    references: [departments.id],
-    relationName: "preparerDepartment",
-  }),
-  approver: one(users, {
-    fields: [documents.approverId],
-    references: [users.id],
-    relationName: "approver",
-  }),
-  revisions: many(documentRevisions),
-  approvals: many(approvals),
-  distributionLists: many(distributionLists),
-  distributionUsers: many(distributionUsers),
-  readConfirmations: many(readConfirmations),
+  revisions: many(documentRevisions, { relationName: "documentRevisions" }),
   notifications: many(notifications),
   activityLogs: many(activityLogs),
 }));
 
-// Document Revisions relations
+// Document Revisions relations (enhanced with all mutable data)
 export const documentRevisionsRelations = relations(
   documentRevisions,
-  ({ one }) => ({
+  ({ one, many }) => ({
     document: one(documents, {
       fields: [documentRevisions.documentId],
       references: [documents.id],
+      relationName: "documentRevisions",
+    }),
+    department: one(departments, {
+      fields: [documentRevisions.departmentId],
+      references: [departments.id],
+      relationName: "department",
+    }),
+    preparerDepartment: one(departments, {
+      fields: [documentRevisions.preparerDepartmentId],
+      references: [departments.id],
+      relationName: "preparerDepartment",
+    }),
+    preparer: one(users, {
+      fields: [documentRevisions.preparerId],
+      references: [users.id],
+      relationName: "preparer",
+    }),
+    approver: one(users, {
+      fields: [documentRevisions.approverId],
+      references: [users.id],
+      relationName: "approver",
     }),
     createdBy: one(users, {
       fields: [documentRevisions.createdById],
       references: [users.id],
+      relationName: "createdBy",
     }),
+    approvals: many(approvals),
+    distributionLists: many(distributionLists),
+    distributionUsers: many(distributionUsers),
+    readConfirmations: many(readConfirmations),
   }),
 );
 
 // Approvals relations
 export const approvalsRelations = relations(approvals, ({ one }) => ({
-  document: one(documents, {
-    fields: [approvals.documentId],
-    references: [documents.id],
+  revision: one(documentRevisions, {
+    fields: [approvals.revisionId],
+    references: [documentRevisions.id],
   }),
   approver: one(users, {
     fields: [approvals.approverId],
@@ -102,9 +109,9 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
 export const distributionListsRelations = relations(
   distributionLists,
   ({ one }) => ({
-    document: one(documents, {
-      fields: [distributionLists.documentId],
-      references: [documents.id],
+    revision: one(documentRevisions, {
+      fields: [distributionLists.revisionId],
+      references: [documentRevisions.id],
     }),
     department: one(departments, {
       fields: [distributionLists.departmentId],
@@ -117,9 +124,9 @@ export const distributionListsRelations = relations(
 export const distributionUsersRelations = relations(
   distributionUsers,
   ({ one }) => ({
-    document: one(documents, {
-      fields: [distributionUsers.documentId],
-      references: [documents.id],
+    revision: one(documentRevisions, {
+      fields: [distributionUsers.revisionId],
+      references: [documentRevisions.id],
     }),
     user: one(users, {
       fields: [distributionUsers.userId],
@@ -132,9 +139,9 @@ export const distributionUsersRelations = relations(
 export const readConfirmationsRelations = relations(
   readConfirmations,
   ({ one }) => ({
-    document: one(documents, {
-      fields: [readConfirmations.documentId],
-      references: [documents.id],
+    revision: one(documentRevisions, {
+      fields: [readConfirmations.revisionId],
+      references: [documentRevisions.id],
     }),
     user: one(users, {
       fields: [readConfirmations.userId],
@@ -153,6 +160,10 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
     fields: [notifications.relatedDocumentId],
     references: [documents.id],
   }),
+  relatedRevision: one(documentRevisions, {
+    fields: [notifications.relatedRevisionId],
+    references: [documentRevisions.id],
+  }),
 }));
 
 // Activity Logs relations
@@ -160,6 +171,10 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   document: one(documents, {
     fields: [activityLogs.documentId],
     references: [documents.id],
+  }),
+  revision: one(documentRevisions, {
+    fields: [activityLogs.revisionId],
+    references: [documentRevisions.id],
   }),
   user: one(users, {
     fields: [activityLogs.userId],

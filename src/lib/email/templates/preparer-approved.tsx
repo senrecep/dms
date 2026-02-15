@@ -2,57 +2,42 @@ import { Button, Heading, Text, Section } from "@react-email/components";
 import { EmailLayout, colors } from "./layout";
 import { emailStrings, type EmailLocale } from "../translations";
 
-interface DocumentRevisedEmailProps {
-  recipientName: string;
+interface PreparerApprovedEmailProps {
+  approverName: string;
+  preparerName: string;
   documentTitle: string;
   documentCode: string;
-  revisedBy: string;
-  revisionNotes?: string;
-  revisionNo?: number;
-  documentUrl: string;
+  actionUrl: string;
   locale?: EmailLocale;
 }
 
-export function DocumentRevisedEmail({
-  recipientName,
+export function PreparerApprovedEmail({
+  approverName,
+  preparerName,
   documentTitle,
   documentCode,
-  revisedBy,
-  revisionNotes,
-  revisionNo,
-  documentUrl,
+  actionUrl,
   locale = "tr",
-}: DocumentRevisedEmailProps) {
-  const t = emailStrings[locale].documentRevised;
+}: PreparerApprovedEmailProps) {
+  const t = emailStrings[locale].preparerApproved;
   const tc = emailStrings[locale].common;
 
   return (
     <EmailLayout preview={t.preview.replace("{title}", documentTitle)} locale={locale}>
       <Heading style={heading}>{t.heading}</Heading>
-      <Text style={text}>{tc.greeting.replace("{name}", recipientName)}</Text>
+      <Text style={text}>{tc.greeting.replace("{name}", approverName)}</Text>
       <Text style={text}>
         {t.body
+          .replace("{preparerName}", preparerName)
           .replace("{documentTitle}", documentTitle)
-          .replace("{documentCode}", documentCode)
-          .replace("{revisedBy}", revisedBy)}
+          .replace("{documentCode}", documentCode)}
       </Text>
-      {revisionNo && (
-        <Section style={infoBox}>
-          <Text style={infoLabel}>{t.revisionLabel}</Text>
-          <Text style={infoValue}>Rev {revisionNo}</Text>
-        </Section>
-      )}
-      {revisionNotes && (
-        <Section style={notesBox}>
-          <Text style={notesLabel}>{t.notesLabel}</Text>
-          <Text style={notesText}>{revisionNotes}</Text>
-        </Section>
-      )}
       <Section style={infoBox}>
-        <Text style={infoText}>{t.info}</Text>
+        <Text style={infoLabel}>{t.documentCodeLabel}</Text>
+        <Text style={infoValue}>{documentCode}</Text>
       </Section>
       <Section style={buttonContainer}>
-        <Button style={button} href={documentUrl}>
+        <Button style={button} href={actionUrl}>
           {t.button}
         </Button>
       </Section>
@@ -61,7 +46,7 @@ export function DocumentRevisedEmail({
 }
 
 const heading = {
-  color: colors.accent,
+  color: colors.success,
   fontSize: "24px",
   fontWeight: "600" as const,
   margin: "0 0 16px",
@@ -74,29 +59,10 @@ const text = {
   margin: "0 0 12px",
 };
 
-const notesBox = {
-  backgroundColor: "#F3F4F6",
-  borderRadius: "6px",
-  padding: "12px 16px",
-  margin: "16px 0",
-};
-
-const notesLabel = {
-  color: colors.muted,
-  fontSize: "12px",
-  fontWeight: "600" as const,
-  margin: "0 0 4px",
-};
-
-const notesText = {
-  color: "#374151",
-  fontSize: "14px",
-  margin: "0",
-};
-
 const infoBox = {
-  backgroundColor: "#F3F4F6",
-  borderRadius: "6px",
+  backgroundColor: "#F0FDF4",
+  borderLeft: `4px solid ${colors.success}`,
+  borderRadius: "0 6px 6px 0",
   padding: "12px 16px",
   margin: "16px 0",
 };
@@ -115,12 +81,6 @@ const infoValue = {
   margin: "0",
 };
 
-const infoText = {
-  color: "#1E40AF",
-  fontSize: "14px",
-  margin: "0",
-};
-
 const buttonContainer = {
   textAlign: "center" as const,
   margin: "24px 0 0",
@@ -136,4 +96,4 @@ const button = {
   textDecoration: "none",
 };
 
-export default DocumentRevisedEmail;
+export default PreparerApprovedEmail;

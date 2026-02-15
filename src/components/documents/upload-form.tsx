@@ -26,7 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Save, Send } from "lucide-react";
 
 type Department = { id: string; name: string };
 type Approver = { id: string; name: string; role: string; departmentName: string | null };
@@ -36,6 +36,7 @@ type UploadFormProps = {
   departments: Department[];
   approvers: Approver[];
   allUsers: UserItem[];
+  currentUserId: string;
 };
 
 const uploadSchema = z.object({
@@ -45,14 +46,16 @@ const uploadSchema = z.object({
   documentType: z.enum(["PROCEDURE", "INSTRUCTION", "FORM"]),
   departmentId: z.string().min(1, "Department is required"),
   preparerDepartmentId: z.string().optional(),
+  preparerId: z.string().min(1, "Preparer is required"),
   approverId: z.string().optional(),
   distributionDepartmentIds: z.array(z.string()).optional(),
   distributionUserIds: z.array(z.string()).optional(),
+  startingRevisionNo: z.coerce.number().int().min(0).default(0),
 });
 
 type UploadFormValues = z.infer<typeof uploadSchema>;
 
-export function UploadForm({ departments, approvers, allUsers }: UploadFormProps) {
+export function UploadForm({ departments, approvers, allUsers, currentUserId }: UploadFormProps) {
   const t = useTranslations();
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -62,7 +65,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UploadFormValues>({
-    resolver: zodResolver(uploadSchema),
+    resolver: zodResolver(uploadSchema) as never,
     defaultValues: {
       documentCode: "",
       title: "",
@@ -70,9 +73,11 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
       documentType: undefined,
       departmentId: "",
       preparerDepartmentId: "",
+      preparerId: currentUserId,
       approverId: "",
       distributionDepartmentIds: [],
       distributionUserIds: [],
+      startingRevisionNo: 0,
     },
   });
 
@@ -101,7 +106,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
     }
   };
 
-  const onSubmit = async (values: UploadFormValues) => {
+  const doSubmit = async (values: UploadFormValues, action: "save" | "submit") => {
     setIsSubmitting(true);
     setUploadProgress(0);
     try {
@@ -114,6 +119,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
       if (values.preparerDepartmentId) {
         formData.set("preparerDepartmentId", values.preparerDepartmentId);
       }
+      formData.set("preparerId", values.preparerId);
       if (values.approverId) formData.set("approverId", values.approverId);
       if (values.distributionDepartmentIds?.length) {
         formData.set(
@@ -127,6 +133,8 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
           values.distributionUserIds.join(","),
         );
       }
+      formData.set("startingRevisionNo", String(values.startingRevisionNo));
+      formData.set("action", action);
       if (file) formData.set("file", file);
 
       const result = await new Promise<{
@@ -179,6 +187,9 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
     }
   };
 
+  const handleSave = form.handleSubmit((values) => doSubmit(values, "save"));
+  const handleSubmitForApproval = form.handleSubmit((values) => doSubmit(values, "submit"));
+
   const toggleDistributionDept = (deptId: string) => {
     const current = form.getValues("distributionDepartmentIds") ?? [];
     if (current.includes(deptId)) {
@@ -220,7 +231,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -339,6 +350,31 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
 
           <FormField
             control={form.control}
+            name="preparerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("documents.form.preparer")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("documents.form.selectPreparer")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {allUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}{user.departmentName ? ` - ${user.departmentName}` : ""} ({user.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="approverId"
             render={({ field }) => (
               <FormItem>
@@ -357,6 +393,25 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="startingRevisionNo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("documents.form.startingRevisionNo")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -392,7 +447,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
             className="mb-2"
           />
           {selectedDistUsers.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1">
+            <div className="mb-2 flex flex-wrap gap-2">
               {selectedDistUsers.map((uid) => {
                 const user = allUsers.find((u) => u.id === uid);
                 return user ? (
@@ -445,7 +500,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
         <div className="space-y-2">
           <label className="text-sm font-medium">{t("documents.form.uploadFile")}</label>
           <div
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
+            className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 sm:p-8 transition-colors ${
               dragActive
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25 hover:border-primary/50"
@@ -504,8 +559,24 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
           <Button type="button" variant="outline" onClick={() => router.back()}>
             {t("common.actions.cancel")}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t("documents.upload.uploading") : t("common.actions.submit")}
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={isSubmitting}
+            onClick={handleSave}
+            className="gap-1"
+          >
+            <Save className="size-4" />
+            {t("documents.form.saveAsDraft")}
+          </Button>
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmitForApproval}
+            className="gap-1"
+          >
+            <Send className="size-4" />
+            {t("documents.form.submitForApproval")}
           </Button>
         </div>
       </form>

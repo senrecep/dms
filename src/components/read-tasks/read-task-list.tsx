@@ -8,26 +8,30 @@ import { Button } from "@/components/ui/button";
 import { ReadConfirmButton } from "@/components/read-tasks/read-confirm-button";
 import { useTranslations } from "next-intl";
 
-interface ReadTaskDocument {
+interface ReadTaskRevision {
   id: string;
   title: string;
-  documentCode: string;
   documentType: "PROCEDURE" | "INSTRUCTION" | "FORM";
   publishedAt: Date | null;
-  uploadedById: string;
-  uploadedBy: {
+  createdById: string;
+  documentId: string;
+  document: {
+    id: string;
+    documentCode: string;
+  };
+  createdBy: {
     id: string;
     name: string;
   };
 }
 
-interface ReadTask {
+export interface ReadTask {
   id: string;
-  documentId: string;
+  revisionId: string;
   userId: string;
   confirmedAt: Date | null;
   createdAt: Date;
-  document: ReadTaskDocument;
+  revision: ReadTaskRevision;
 }
 
 interface ReadTaskListProps {
@@ -71,14 +75,14 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
             <div className="flex items-start justify-between gap-2">
               <CardTitle className="text-base leading-tight">
                 <Link
-                  href={`/documents/${task.document.id}`}
+                  href={`/documents/${task.revision.documentId}`}
                   className="hover:underline"
                 >
-                  {task.document.title}
+                  {task.revision.title}
                 </Link>
               </CardTitle>
-              <Badge variant={typeVariants[task.document.documentType]}>
-                {t(`documents.type.${task.document.documentType.toLowerCase()}`)}
+              <Badge variant={typeVariants[task.revision.documentType]}>
+                {t(`documents.type.${task.revision.documentType.toLowerCase()}`)}
               </Badge>
             </div>
           </CardHeader>
@@ -86,15 +90,15 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
                 <span>{t("documents.form.documentCode")}</span>
-                <span className="font-mono">{task.document.documentCode}</span>
+                <span className="font-mono">{task.revision.document.documentCode}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("common.labels.publishedBy")}</span>
-                <span>{task.document.uploadedBy.name}</span>
+                <span>{task.revision.createdBy.name}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("common.labels.date")}</span>
-                <span>{formatDate(task.document.publishedAt ?? task.createdAt)}</span>
+                <span>{formatDate(task.revision.publishedAt ?? task.createdAt)}</span>
               </div>
               {task.confirmedAt && (
                 <div className="flex items-center justify-between text-green-600">
@@ -108,12 +112,12 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
               <Button asChild variant="outline" size="sm" className="gap-1">
-                <Link href={`/documents/${task.document.id}`}>
+                <Link href={`/documents/${task.revision.documentId}`}>
                   <ExternalLink className="size-3.5" />
                   {t("common.actions.view")}
                 </Link>
               </Button>
-              {showConfirmButton && <ReadConfirmButton documentId={task.documentId} />}
+              {showConfirmButton && <ReadConfirmButton revisionId={task.revisionId} />}
             </div>
           </CardContent>
         </Card>

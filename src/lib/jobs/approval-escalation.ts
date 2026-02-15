@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import {
   approvals,
   users,
-  documents,
+  documentRevisions,
   departments,
   systemSettings,
 } from "@/lib/db/schema";
@@ -35,11 +35,11 @@ export async function runApprovalEscalations() {
       .select({
         approval: approvals,
         approver: users,
-        document: documents,
+        revision: documentRevisions,
       })
       .from(approvals)
       .innerJoin(users, eq(approvals.approverId, users.id))
-      .innerJoin(documents, eq(approvals.documentId, documents.id))
+      .innerJoin(documentRevisions, eq(approvals.revisionId, documentRevisions.id))
       .where(
         and(
           eq(approvals.status, "PENDING"),
@@ -53,7 +53,7 @@ export async function runApprovalEscalations() {
     );
 
     // 4. Process each approval
-    for (const { approval, approver, document } of pendingApprovals) {
+    for (const { approval, approver, revision } of pendingApprovals) {
       results.processed++;
 
       try {
@@ -97,17 +97,18 @@ export async function runApprovalEscalations() {
         );
 
         const approvalUrl = `${env.NEXT_PUBLIC_APP_URL}/approvals/${approval.id}`;
+        const docCode = `${revision.title}-Rev${revision.revisionNo}`;
 
         // Enqueue escalation email
         await enqueueEmail({
           to: escalationTarget.email,
           subjectKey: "escalation",
-          subjectParams: { title: document.title },
+          subjectParams: { title: revision.title },
           templateName: "escalation-notice",
           templateProps: {
             managerName: escalationTarget.name,
-            documentTitle: document.title,
-            documentCode: document.documentCode,
+            documentTitle: revision.title,
+            documentCode: docCode,
             originalApprover: approver.name,
             daysPending,
             approvalUrl,
@@ -119,8 +120,9 @@ export async function runApprovalEscalations() {
           userId: escalationTarget.id,
           type: "ESCALATION",
           titleKey: "escalationNotice",
-          messageParams: { docTitle: document.title, docCode: document.documentCode, approverName: approver.name, days: daysPending },
-          relatedDocumentId: document.id,
+          messageParams: { docTitle: revision.title, docCode, approverName: approver.name, days: daysPending },
+          relatedDocumentId: revision.documentId,
+          relatedRevisionId: revision.id,
         });
 
         // Notify original approver about escalation
@@ -128,18 +130,20 @@ export async function runApprovalEscalations() {
           userId: approver.id,
           type: "ESCALATION",
           titleKey: "approvalEscalated",
-          messageParams: { docTitle: document.title, docCode: document.documentCode, days: daysPending },
-          relatedDocumentId: document.id,
+          messageParams: { docTitle: revision.title, docCode, days: daysPending },
+          relatedDocumentId: revision.documentId,
+          relatedRevisionId: revision.id,
         });
 
         // Notify document uploader about escalation
-        if (document.uploadedById && document.uploadedById !== escalationTarget.id) {
+        if (revision.createdById && revision.createdById !== escalationTarget.id) {
           await enqueueNotification({
-            userId: document.uploadedById,
+            userId: revision.createdById,
             type: "ESCALATION",
             titleKey: "documentEscalated",
-            messageParams: { docTitle: document.title, docCode: document.documentCode, escalationTarget: escalationTarget.name },
-            relatedDocumentId: document.id,
+            messageParams: { docTitle: revision.title, docCode, escalationTarget: escalationTarget.name },
+            relatedDocumentId: revision.documentId,
+            relatedRevisionId: revision.id,
           });
         }
 

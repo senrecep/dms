@@ -9,11 +9,11 @@ export const userRoleEnum = pgEnum("user_role", [
 export const documentStatusEnum = pgEnum("document_status", [
   "DRAFT",
   "PENDING_APPROVAL",
-  "INTERMEDIATE_APPROVAL",
+  "PREPARER_APPROVED",
+  "PREPARER_REJECTED",
   "APPROVED",
+  "APPROVER_REJECTED",
   "PUBLISHED",
-  "REVISION",
-  "PASSIVE",
   "CANCELLED",
 ]);
 

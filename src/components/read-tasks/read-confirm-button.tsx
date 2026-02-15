@@ -6,17 +6,17 @@ import { confirmRead } from "@/actions/read-confirmations";
 import { useTranslations } from "next-intl";
 
 interface ReadConfirmButtonProps {
-  documentId: string;
+  revisionId: string;
 }
 
-export function ReadConfirmButton({ documentId }: ReadConfirmButtonProps) {
+export function ReadConfirmButton({ revisionId }: ReadConfirmButtonProps) {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
   const [confirmed, setConfirmed] = useState(false);
 
   function handleConfirm() {
     startTransition(async () => {
-      await confirmRead(documentId);
+      await confirmRead(revisionId);
       setConfirmed(true);
     });
   }

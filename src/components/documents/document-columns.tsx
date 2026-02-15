@@ -39,11 +39,12 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
         </Button>
       ),
       cell: ({ row }) => (
-        <span className="max-w-[150px] truncate sm:max-w-[300px]">{row.getValue("title")}</span>
+        <span className="max-w-[200px] truncate sm:max-w-[400px]">{row.getValue("title")}</span>
       ),
     },
     {
       accessorKey: "currentRevisionNo",
+      meta: { className: "hidden md:table-cell" },
       header: t("common.labels.revisionNo"),
       cell: ({ row }) => (
         <span className="text-muted-foreground">
@@ -53,6 +54,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
     },
     {
       accessorKey: "documentType",
+      meta: { className: "hidden lg:table-cell" },
       header: t("common.labels.type"),
       cell: ({ row }) => {
         const type = row.getValue<string>("documentType");
@@ -62,7 +64,24 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
     },
     {
       accessorKey: "departmentName",
+      meta: { className: "hidden lg:table-cell" },
       header: t("common.labels.department"),
+    },
+    {
+      accessorKey: "preparerName",
+      meta: { className: "hidden xl:table-cell" },
+      header: t("documents.form.preparer"),
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue<string>("preparerName") || "-"}</span>
+      ),
+    },
+    {
+      accessorKey: "approverName",
+      meta: { className: "hidden xl:table-cell" },
+      header: t("documents.form.approver"),
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue<string>("approverName") || "-"}</span>
+      ),
     },
     {
       accessorKey: "publishedAt",
@@ -84,7 +103,20 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
     {
       accessorKey: "status",
       header: t("common.labels.status"),
-      cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+      cell: ({ row }) => {
+        const status = row.getValue<string>("status");
+        const previousStatus = row.original.previousRevisionStatus;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <StatusBadge status={status} />
+            {previousStatus && status !== "PUBLISHED" && (
+              <span className="text-muted-foreground text-[10px]">
+                {t("documents.detail.previousStatus")}: {t(`documents.status.${statusToKey(previousStatus)}`)}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "readStatus",
@@ -98,4 +130,18 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
       ),
     },
   ];
+}
+
+function statusToKey(status: string): string {
+  const map: Record<string, string> = {
+    DRAFT: "draft",
+    PENDING_APPROVAL: "pendingApproval",
+    PREPARER_APPROVED: "preparerApproved",
+    APPROVED: "approved",
+    PUBLISHED: "published",
+    PREPARER_REJECTED: "preparerRejected",
+    APPROVER_REJECTED: "approverRejected",
+    CANCELLED: "cancelled",
+  };
+  return map[status] ?? "draft";
 }

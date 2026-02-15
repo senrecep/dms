@@ -21,6 +21,7 @@ export async function processCreateBulkNotifications(
         title: item.titleKey,
         message: JSON.stringify(item.messageParams ?? {}),
         relatedDocumentId: item.relatedDocumentId,
+        relatedRevisionId: item.relatedRevisionId,
       })),
     )
     .returning();
@@ -35,6 +36,7 @@ export async function processCreateBulkNotifications(
         title: notification.title,
         message: notification.message,
         relatedDocumentId: notification.relatedDocumentId,
+        relatedRevisionId: notification.relatedRevisionId,
       },
     });
   }

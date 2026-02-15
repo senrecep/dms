@@ -99,11 +99,11 @@
     "status": {
       "draft": "Taslak",
       "pendingApproval": "Onay Bekliyor",
-      "intermediateApproval": "Ara Onay",
+      "preparerApproved": "Hazırlayan Onayladı",
       "approved": "Onaylandı",
       "published": "Yayınlandı",
-      "revision": "Revizyon",
-      "passive": "Pasif",
+      "preparerRejected": "Hazırlayan Reddetti",
+      "approverRejected": "Onaylayıcı Reddetti",
       "cancelled": "İptal Edildi"
     },
     "type": {
@@ -125,7 +125,15 @@
       "revisionNotes": "Revizyon Notları",
       "preparerDepartment": "Hazırlayan Departman",
       "selectPreparerDepartment": "Hazırlayan departmanı seçin",
-      "proxyUpload": "Başka bir departman adına yükle"
+      "proxyUpload": "Başka bir departman adına yükle",
+      "preparer": "Hazırlayan",
+      "approver": "Onaylayıcı",
+      "selectPreparer": "Hazırlayan Seçin",
+      "startingRevisionNo": "Başlangıç Revizyon Numarası",
+      "saveAsDraft": "Taslak Olarak Kaydet",
+      "submitForApproval": "Onaya Gönder",
+      "overwriteWarning": "Bu mevcut taslak revizyonun üzerine yazılacaktır",
+      "changes": "Değişiklikler / Notlar"
     },
     "detail": {
       "title": "Belge Detayları",
@@ -141,8 +149,18 @@
       "noDistribution": "Departman belirlenmemiş.",
       "noActivity": "Henüz aktivite yok.",
       "currentRevision": "Mevcut revizyon",
-      "newRevision": "Yeni revizyon",
-      "revisionChangesPlaceholder": "Bu revizyondaki değişiklikleri açıklayın..."
+      "newRevision": "Yeni Revizyon",
+      "revisionChangesPlaceholder": "Bu revizyondaki değişiklikleri açıklayın...",
+      "preparer": "Hazırlayan",
+      "approver": "Onaylayıcı",
+      "waitingForPreparer": "Hazırlayan onayı bekleniyor",
+      "waitingForApprover": "Onaylayıcı onayı bekleniyor",
+      "rejectedBy": "Reddeden",
+      "previousStatus": "Önceki",
+      "revisionTimeline": "Revizyon Zaman Çizelgesi",
+      "rejectionReason": "Red Nedeni",
+      "fileInfo": "Dosya",
+      "revisionInfo": "Revizyon Bilgisi"
     },
     "upload": {
       "title": "Belge Yükle",
@@ -194,7 +212,9 @@
     },
     "type": {
       "intermediate": "Ara Onay",
-      "final": "Son Onay"
+      "final": "Son Onay",
+      "preparer": "Hazırlayan",
+      "approver": "Onaylayıcı"
     }
   },
   "notifications": {
@@ -216,6 +236,11 @@
       "documentPublished": "Belge Yayınlandı",
       "documentRevised": "Belge Revize Edildi",
       "newFinalApprovalRequest": "Yeni Son Onay İsteği",
+      "preparerApprovalRequest": "Hazırlayan Onayı Gerekli",
+      "approverApprovalRequest": "Onaylayıcı Onayı Gerekli",
+      "preparerApproved": "Hazırlayan Onayladı",
+      "preparerRejected": "Hazırlayan Reddetti",
+      "approverRejected": "Onaylayıcı Reddetti",
       "documentApproved": "Belge Onaylandı",
       "documentRejected": "Belge Reddedildi",
       "newReadAssignment": "Yeni Okuma Görevi",
@@ -357,44 +382,74 @@
     "creation": {
       "title": "Belge Oluşturma",
       "step1Title": "Temel Bilgiler",
-      "step1Desc": "Benzersiz bir belge kodu (ör: DOC-001) ve belge adı girin. İsteğe bağlı olarak belgenin amacını açıklayan bir açıklama ekleyin.",
+      "step1Desc": "Benzersiz bir belge kodu (ör: DOC-001), belge başlığı ve isteğe bağlı olarak belgenin amacını açıklayan bir açıklama girin.",
       "step2Title": "Sınıflandırma",
       "step2Desc": "Belge türünü (Prosedür, Talimat veya Form) ve belgenin ait olduğu departmanı seçin.",
       "step3Title": "Hazırlayan Departman (Opsiyonel)",
       "step3Desc": "Başka bir departman adına yükleme yapıyorsanız hazırlayan departmanı seçin. Aksi halde boş bırakın.",
-      "step4Title": "Onaylayıcı Seçimi",
-      "step4Desc": "Belgeyi inceleyip onaylayacak kişiyi seçin. Sadece Yönetici veya Admin rolündeki kullanıcılar listelenir.",
-      "step5Title": "Dağıtım Listesi",
-      "step5Desc": "Belge yayınlandığında hangi departmanlara ve/veya bireysel kullanıcılara dağıtılacağını seçin. Her ikisini birden seçebilirsiniz.",
-      "step6Title": "Dosya Yükleme",
-      "step6Desc": "Belge dosyasını sürükleyip bırakarak veya tıklayarak yükleyin. Ardından formu gönderin."
+      "step4Title": "Hazırlayan Seçimi",
+      "step4Desc": "Belgeyi hazırlayacak ve ön inceleme yapacak kişiyi seçin. Varsayılan olarak yükleyen kişidir, değiştirilebilir.",
+      "step5Title": "Onaylayıcı Seçimi",
+      "step5Desc": "Son onayı verecek kişiyi seçin. Sadece Yönetici veya Admin rolündeki kullanıcılar listelenir.",
+      "step6Title": "Dağıtım Listesi",
+      "step6Desc": "Belge yayınlandığında hangi departmanlara ve/veya bireysel kullanıcılara dağıtılacağını seçin.",
+      "step7Title": "Revizyon Numarası",
+      "step7Desc": "Başlangıç revizyon numarasını belirleyin (varsayılan 0). İlk revizyondan sonra bu numara otomatik artar.",
+      "step8Title": "Dosya Yükleme",
+      "step8Desc": "Belge dosyasını sürükleyip bırakarak veya tıklayarak yükleyin.",
+      "step9Title": "Kaydet veya Gönder",
+      "step9Desc": "Daha sonra düzenlemeye devam etmek için Taslak olarak kaydedin veya belgeyi doğrudan onay sürecine gönderin."
+    },
+    "approval": {
+      "title": "Onay Süreci",
+      "subtitle": "Belgeler yayınlanmadan önce iki aşamalı onay sürecinden geçer.",
+      "twoPerson": "İki kişili onay (Hazırlayan ≠ Onaylayıcı):",
+      "samePerson": "Aynı kişi onayı (Hazırlayan = Onaylayıcı):",
+      "samePersonNote": "Hazırlayan ve onaylayıcı aynı kişi olduğunda, hazırlayan adımı otomatik olarak atlanır.",
+      "rejection": "Red akışı:",
+      "newRevisionRequired": "Yeni Revizyon Gerekli",
+      "rejectionNote": "Reddedilen belgeler kilitlenir. Devam etmek için yeni bir revizyon oluşturulmalıdır."
     },
     "lifecycle": {
       "title": "Belge Yaşam Döngüsü",
-      "subtitle": "Her belge şu aşamalardan geçer:",
-      "draft": "Belge taslak olarak oluşturulur ve onaya gönderilir.",
-      "pendingApproval": "Atanan onaylayıcıya e-posta bildirimi gönderilir ve belgeyi inceler.",
-      "intermediateApproval": "Birden fazla onay seviyesi varsa ilk onaylayıcı onaylamıştır. Son onay bekleniyor.",
-      "approved": "Belge onaylanmıştır ve belge sahibi tarafından yayınlanmaya hazırdır.",
-      "published": "Belge, dağıtım listesindeki tüm kullanıcılara dağıtılır. Okuma görevleri otomatik oluşturulur.",
-      "revision": "Yeni bir sürüm yüklenir. Belge tekrar onay sürecinden geçer.",
-      "passive": "Yeni bir revizyon yayınlandığında önceki revizyonlar pasif duruma geçer.",
+      "subtitle": "Her belge revizyonu şu aşamalardan geçer:",
+      "draft": "Revizyon taslak olarak oluşturulur. Göndermeden önce birden fazla kez düzenlenip kaydedilebilir.",
+      "pendingApproval": "Belge onaya gönderilmiştir. Atanan hazırlayan inceleme için bildirim alır.",
+      "preparerApproved": "Hazırlayan belgeyi onaylamıştır. Son inceleme için onaylayıcıya bildirim gönderilir.",
+      "approved": "Belge tam olarak onaylanmıştır. Onaylayıcı artık yayınlayabilir veya revizyon talep edebilir.",
+      "published": "Belge, dağıtım listesindeki tüm kullanıcılara dağıtılır. Yöneticiler için okuma görevleri oluşturulur.",
+      "preparerRejected": "Hazırlayan belgeyi reddetmiştir. Revizyon kilitlenir ve yeni bir revizyon oluşturulmalıdır.",
+      "approverRejected": "Onaylayıcı belgeyi reddetmiştir. Revizyon kilitlenir ve yeni bir revizyon oluşturulmalıdır.",
       "cancelled": "Belge iptal edilir. İlgili tüm taraflar bilgilendirilir."
+    },
+    "revision": {
+      "title": "Revizyon Sistemi",
+      "subtitle": "Belge revizyonları nasıl çalışır:",
+      "draftOverwriteTitle": "Taslak Üzerine Yazma",
+      "draftOverwriteDesc": "Mevcut revizyon hâlâ Taslak durumundaysa, değişiklikleri kaydetmek yeni revizyon oluşturmak yerine mevcut taslağın üzerine yazar.",
+      "newRevisionTitle": "Yeni Revizyon",
+      "newRevisionDesc": "Yayınlanmış veya onaylanmış revizyonlar için artan revizyon numarasıyla yeni bir revizyon oluşturulur. Yeni dosya yüklemesi zorunludur.",
+      "rejectedRevisionTitle": "Red Sonrası",
+      "rejectedRevisionDesc": "Reddedilen revizyonlar kalıcı olarak kilitlenir. İş akışına devam etmek için güncellenmiş içerikle yeni bir revizyon oluşturmalısınız.",
+      "revisionNumberTitle": "Revizyon Numaralandırma",
+      "revisionNumberDesc": "İlk revizyon numarası manuel olarak belirlenebilir. Sonraki tüm revizyonlar otomatik olarak numaralandırılır (+1)."
     },
     "afterPublish": {
       "title": "Yayınladıktan Sonra Ne Olur?",
       "notifications": "Dağıtım listesindeki tüm kullanıcılara yeni belge hakkında e-posta bildirimi gönderilir.",
-      "readTasks": "Her kullanıcıya bir okuma görevi atanır. Belgeyi açıp okuduğunu ve anladığını onaylamalıdır.",
+      "readTasks": "Dağıtım listesindeki yöneticilere okuma görevi atanır. Belgeyi açıp okuduğunu onaylamalıdır.",
       "tracking": "Belge sahibi okuma durumunu anlık olarak takip edebilir — kimin okuduğunu, kimin okumadığını görebilir.",
-      "reminders": "Belirlenen süre içinde belgeyi okumayan kullanıcılara otomatik hatırlatma e-postaları gönderilir.",
-      "escalation": "Hatırlatma süresinden sonra hâlâ okumayan kullanıcılar için görev yöneticisine yükseltilir."
+      "reminders": "Belirlenen süre içinde okuma onayı vermeyen yöneticilere otomatik hatırlatma e-postaları gönderilir.",
+      "escalation": "Hatırlatma süresinden sonra hâlâ onaylamayan yöneticiler için görev üst yönetime yükseltilir."
     },
     "tips": {
       "title": "İpuçları",
       "tip1": "Kuruluşunuzun adlandırma kuralına uygun anlamlı belge kodları kullanın.",
       "tip2": "Kullanıcıların belgeyi açmadan önce amacını anlamasına yardımcı olacak bir açıklama ekleyin.",
       "tip3": "Gerektiğinde dağıtım listesinde hem departmanları hem bireysel kullanıcıları seçin — mükerrer kayıtlar otomatik engellenir.",
-      "tip4": "Onaydan sonra yayınlamadan önce belgeyi bir kez daha gözden geçirin, çünkü yayınlama dağıtımı anında başlatır."
+      "tip4": "Onaydan sonra yayınlamadan önce belgeyi bir kez daha gözden geçirin, çünkü yayınlama dağıtımı anında başlatır.",
+      "tip5": "Yalnızca yöneticilerin okuma onayı vermesi gerekir. Normal kullanıcılar yayınlanan belgeleri onay gerektirmeden görüntüleyebilir.",
+      "tip6": "Hazırlayan ve onaylayıcı aynı kişi olduğunda, onay süreci tek adıma sadeleştirilir."
     }
   }
 }

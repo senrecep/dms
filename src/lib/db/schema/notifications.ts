@@ -8,6 +8,7 @@ import {
 import { nanoid } from "nanoid";
 import { users } from "./users";
 import { documents } from "./documents";
+import { documentRevisions } from "./document-revisions";
 
 export const notificationTypeEnum = [
   "APPROVAL_REQUEST",
@@ -32,6 +33,9 @@ export const notifications = pgTable(
     relatedDocumentId: text("related_document_id").references(
       () => documents.id,
     ),
+    relatedRevisionId: text("related_revision_id").references(
+      () => documentRevisions.id,
+    ),
     isRead: boolean("is_read").notNull().default(false),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -43,6 +47,9 @@ export const notifications = pgTable(
     index("notifications_is_read_idx").on(table.isRead),
     index("notifications_related_document_id_idx").on(
       table.relatedDocumentId,
+    ),
+    index("notifications_related_revision_id_idx").on(
+      table.relatedRevisionId,
     ),
   ],
 );

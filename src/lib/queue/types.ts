@@ -4,6 +4,7 @@ import type { notifications } from "@/lib/db/schema";
 export type EmailTemplateName =
   | "approval-request"
   | "approval-reminder"
+  | "preparer-approved"
   | "document-rejected"
   | "document-approved"
   | "document-revised"
@@ -37,6 +38,7 @@ export type CreateNotificationPayload = {
   titleKey: string;
   messageParams?: Record<string, string | number>;
   relatedDocumentId?: string;
+  relatedRevisionId?: string;
 };
 
 export type CreateBulkNotificationsPayload = {
@@ -46,6 +48,7 @@ export type CreateBulkNotificationsPayload = {
     titleKey: string;
     messageParams?: Record<string, string | number>;
     relatedDocumentId?: string;
+    relatedRevisionId?: string;
   }>;
 };
 

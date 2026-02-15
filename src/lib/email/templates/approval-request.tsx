@@ -8,6 +8,7 @@ interface ApprovalRequestEmailProps {
   documentCode: string;
   uploaderName: string;
   approvalUrl: string;
+  approvalStep?: "preparer" | "approver";
   locale?: EmailLocale;
 }
 
@@ -17,17 +18,23 @@ export function ApprovalRequestEmail({
   documentCode,
   uploaderName,
   approvalUrl,
+  approvalStep = "preparer",
   locale = "tr",
 }: ApprovalRequestEmailProps) {
   const t = emailStrings[locale].approvalRequest;
   const tc = emailStrings[locale].common;
+
+  // Select appropriate text based on approval step
+  const bodyText = approvalStep === "preparer"
+    ? t.preparerBody
+    : t.approverBody;
 
   return (
     <EmailLayout preview={t.preview.replace("{title}", documentTitle)} locale={locale}>
       <Heading style={heading}>{t.heading}</Heading>
       <Text style={text}>{tc.greeting.replace("{name}", approverName)}</Text>
       <Text style={text}>
-        {t.body
+        {bodyText
           .replace("{uploaderName}", uploaderName)
           .replace("{documentTitle}", documentTitle)}
       </Text>

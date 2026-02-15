@@ -11,6 +11,7 @@ import {
   Users,
   Upload,
   ArrowRight,
+  ArrowDown,
   Mail,
   BookOpenCheck,
   BarChart3,
@@ -18,9 +19,14 @@ import {
   AlertTriangle,
   Lightbulb,
   CheckCircle2,
+  Hash,
+  UserPen,
+  Save,
+  RefreshCw,
+  XCircle,
 } from "lucide-react";
 
-const stepIcons = [FileText, Tags, Building2, UserCheck, Users, Upload];
+const stepIcons = [FileText, Tags, Building2, UserPen, UserCheck, Users, Hash, Upload, Save];
 
 export function GuideContent() {
   const t = useTranslations("guide");
@@ -32,16 +38,19 @@ export function GuideContent() {
     { title: t("creation.step4Title"), desc: t("creation.step4Desc") },
     { title: t("creation.step5Title"), desc: t("creation.step5Desc") },
     { title: t("creation.step6Title"), desc: t("creation.step6Desc") },
+    { title: t("creation.step7Title"), desc: t("creation.step7Desc") },
+    { title: t("creation.step8Title"), desc: t("creation.step8Desc") },
+    { title: t("creation.step9Title"), desc: t("creation.step9Desc") },
   ];
 
   const lifecycleSteps = [
     { key: "draft", color: "bg-gray-100 text-gray-700 border-gray-200" },
     { key: "pendingApproval", color: "bg-amber-50 text-amber-700 border-amber-200" },
-    { key: "intermediateApproval", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    { key: "preparerApproved", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
     { key: "approved", color: "bg-green-50 text-green-700 border-green-200" },
     { key: "published", color: "bg-primary/10 text-primary border-primary/20" },
-    { key: "revision", color: "bg-orange-50 text-orange-700 border-orange-200" },
-    { key: "passive", color: "bg-gray-50 text-gray-500 border-gray-200" },
+    { key: "preparerRejected", color: "bg-red-50 text-red-700 border-red-200" },
+    { key: "approverRejected", color: "bg-red-50 text-red-700 border-red-200" },
     { key: "cancelled", color: "bg-red-50 text-red-700 border-red-200" },
   ];
 
@@ -55,11 +64,20 @@ export function GuideContent() {
     { key: "escalation", icon: AlertTriangle, color: "text-red-600" },
   ];
 
+  const revisionItems = [
+    { key: "draftOverwrite", icon: Save, color: "text-gray-600" },
+    { key: "newRevision", icon: RefreshCw, color: "text-blue-600" },
+    { key: "rejectedRevision", icon: XCircle, color: "text-red-600" },
+    { key: "revisionNumber", icon: Hash, color: "text-purple-600" },
+  ];
+
   const tips = [
     t("tips.tip1"),
     t("tips.tip2"),
     t("tips.tip3"),
     t("tips.tip4"),
+    t("tips.tip5"),
+    t("tips.tip6"),
   ];
 
   return (
@@ -90,27 +108,78 @@ export function GuideContent() {
         </div>
       </section>
 
-      {/* Section 2: Document Lifecycle */}
+      {/* Section 2: Approval Workflow */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">{t("approval.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("approval.subtitle")}</p>
+        </div>
+
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            {/* Two-person flow */}
+            <div>
+              <p className="text-sm font-medium mb-3">{t("approval.twoPerson")}</p>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                {["draft", "pendingApproval", "preparerApproved", "approved", "published"].map((key, idx) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
+                      {statusLabels(key)}
+                    </Badge>
+                    {idx < 4 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Same-person flow */}
+            <div>
+              <p className="text-sm font-medium mb-3">{t("approval.samePerson")}</p>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                {["draft", "pendingApproval", "approved", "published"].map((key, idx) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
+                      {statusLabels(key)}
+                    </Badge>
+                    {idx < 3 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{t("approval.samePersonNote")}</p>
+            </div>
+
+            {/* Rejection flow */}
+            <div>
+              <p className="text-sm font-medium mb-3">{t("approval.rejection")}</p>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1.5 text-xs font-medium">
+                  {statusLabels("pendingApproval")}
+                </Badge>
+                <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-3 py-1.5 text-xs font-medium">
+                  {statusLabels("preparerRejected")} / {statusLabels("approverRejected")}
+                </Badge>
+                <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1.5 text-xs font-medium">
+                  {t("approval.newRevisionRequired")}
+                </Badge>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{t("approval.rejectionNote")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Section 3: Document Lifecycle */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold">{t("lifecycle.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("lifecycle.subtitle")}</p>
         </div>
 
-        {/* Flow diagram */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              {lifecycleSteps.slice(0, 5).map((step, idx) => (
-                <div key={step.key} className="flex items-center gap-2">
-                  <Badge variant="outline" className={`${step.color} px-3 py-1.5 text-xs font-medium`}>
-                    {statusLabels(step.key)}
-                  </Badge>
-                  {idx < 4 && <ArrowRight className="size-4 text-muted-foreground" />}
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 space-y-3">
+            <div className="space-y-3">
               {lifecycleSteps.map((step) => (
                 <div key={step.key} className="flex gap-3">
                   <Badge variant="outline" className={`${step.color} h-fit shrink-0 px-2 py-1 text-xs font-medium`}>
@@ -126,11 +195,42 @@ export function GuideContent() {
         </Card>
       </section>
 
-      {/* Section 3: After Publishing */}
+      {/* Section 4: Revision System */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-xl font-semibold">
+            <RefreshCw className="size-5 text-blue-500" />
+            {t("revision.title")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("revision.subtitle")}</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {revisionItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card key={item.key}>
+                <CardContent className="flex gap-3 p-4">
+                  <div className={`mt-0.5 ${item.color}`}>
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{t(`revision.${item.key}Title`)}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {t(`revision.${item.key}Desc`)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Section 5: After Publishing */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">{t("afterPublish.title")}</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {afterPublishItems.map((item, idx) => {
+          {afterPublishItems.map((item) => {
             const Icon = item.icon;
             return (
               <Card key={item.key}>
@@ -148,7 +248,7 @@ export function GuideContent() {
         </div>
       </section>
 
-      {/* Section 4: Tips */}
+      {/* Section 6: Tips */}
       <section className="space-y-4">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Lightbulb className="size-5 text-amber-500" />

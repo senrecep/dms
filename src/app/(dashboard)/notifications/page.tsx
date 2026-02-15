@@ -30,8 +30,13 @@ export default async function NotificationsPage({
         relatedDocument: {
           columns: {
             id: true,
-            title: true,
             documentCode: true,
+          },
+        },
+        relatedRevision: {
+          columns: {
+            id: true,
+            title: true,
           },
         },
       },
@@ -55,12 +60,14 @@ export default async function NotificationsPage({
         notifications={items.map((n) => ({
           id: n.id,
           type: n.type,
-          title: n.title,
+          title: n.relatedRevision?.title ?? n.title,
           message: n.message,
           isRead: n.isRead,
           createdAt: n.createdAt.toISOString(),
           relatedDocumentId: n.relatedDocumentId,
-          relatedDocument: n.relatedDocument,
+          relatedDocument: n.relatedDocument
+            ? { id: n.relatedDocument.id, documentCode: n.relatedDocument.documentCode, title: n.relatedRevision?.title ?? "" }
+            : null,
         }))}
         page={page}
         totalPages={totalPages}

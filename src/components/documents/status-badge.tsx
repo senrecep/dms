@@ -7,22 +7,22 @@ import { useTranslations } from "next-intl";
 const statusStyles: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-700 border-gray-200",
   PENDING_APPROVAL: "bg-amber-50 text-amber-700 border-amber-200",
-  INTERMEDIATE_APPROVAL: "bg-blue-50 text-blue-700 border-blue-200",
+  PREPARER_APPROVED: "bg-indigo-50 text-indigo-700 border-indigo-200",
   APPROVED: "bg-green-50 text-green-700 border-green-200",
   PUBLISHED: "bg-primary/10 text-primary border-primary/20",
-  REVISION: "bg-orange-50 text-orange-700 border-orange-200",
-  PASSIVE: "bg-gray-50 text-gray-500 border-gray-200",
+  PREPARER_REJECTED: "bg-red-50 text-red-700 border-red-200",
+  APPROVER_REJECTED: "bg-red-50 text-red-700 border-red-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200 line-through",
 };
 
 const statusKeys: Record<string, string> = {
   DRAFT: "draft",
   PENDING_APPROVAL: "pendingApproval",
-  INTERMEDIATE_APPROVAL: "intermediateApproval",
+  PREPARER_APPROVED: "preparerApproved",
   APPROVED: "approved",
   PUBLISHED: "published",
-  REVISION: "revision",
-  PASSIVE: "passive",
+  PREPARER_REJECTED: "preparerRejected",
+  APPROVER_REJECTED: "approverRejected",
   CANCELLED: "cancelled",
 };
 

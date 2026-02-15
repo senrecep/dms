@@ -3,6 +3,7 @@ import type { EmailTemplateName } from "./types";
 
 import { ApprovalRequestEmail } from "@/lib/email/templates/approval-request";
 import { ApprovalReminderEmail } from "@/lib/email/templates/approval-reminder";
+import { PreparerApprovedEmail } from "@/lib/email/templates/preparer-approved";
 import { DocumentRejectedEmail } from "@/lib/email/templates/document-rejected";
 import { DocumentApprovedEmail } from "@/lib/email/templates/document-approved";
 import { DocumentRevisedEmail } from "@/lib/email/templates/document-revised";
@@ -23,6 +24,7 @@ const templateRegistry: Record<
 > = {
   "approval-request": (props) => ApprovalRequestEmail(props),
   "approval-reminder": (props) => ApprovalReminderEmail(props),
+  "preparer-approved": (props) => PreparerApprovedEmail(props),
   "document-rejected": (props) => DocumentRejectedEmail(props),
   "document-approved": (props) => DocumentApprovedEmail(props),
   "document-revised": (props) => DocumentRevisedEmail(props),

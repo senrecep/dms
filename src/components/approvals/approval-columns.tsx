@@ -8,14 +8,18 @@ import { useTranslations } from "next-intl";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 
-interface ApprovalDocument {
+interface ApprovalRevision {
   id: string;
   title: string;
-  documentCode: string;
   documentType: "PROCEDURE" | "INSTRUCTION" | "FORM";
-  uploadedById: string;
+  createdById: string;
   createdAt: Date;
-  uploadedBy: {
+  documentId: string;
+  document: {
+    id: string;
+    documentCode: string;
+  };
+  createdBy: {
     id: string;
     name: string;
     email: string;
@@ -24,14 +28,14 @@ interface ApprovalDocument {
 
 export interface ApprovalRow {
   id: string;
-  documentId: string;
+  revisionId: string;
   approverId: string;
-  approvalType: "INTERMEDIATE" | "FINAL";
+  approvalType: "PREPARER" | "APPROVER";
   status: "PENDING" | "APPROVED" | "REJECTED";
   comment: string | null;
   respondedAt: Date | null;
   createdAt: Date;
-  document: ApprovalDocument;
+  revision: ApprovalRevision;
 }
 
 function formatDate(date: Date | string) {
@@ -61,28 +65,28 @@ export function usePendingColumns(): ColumnDef<ApprovalRow>[] {
 
   return [
     {
-      accessorKey: "document.documentCode",
+      accessorKey: "revision.document.documentCode",
       header: t("documents.form.documentCode"),
       cell: ({ row }) => (
         <span className="font-mono text-sm">
-          {row.original.document.documentCode}
+          {row.original.revision.document.documentCode}
         </span>
       ),
     },
     {
-      accessorKey: "document.title",
+      accessorKey: "revision.title",
       header: t("documents.form.documentName"),
       cell: ({ row }) => (
-        <div className="max-w-[150px] truncate font-medium sm:max-w-[300px]">
-          {row.original.document.title}
+        <div className="max-w-[200px] truncate font-medium sm:max-w-[400px]">
+          {row.original.revision.title}
         </div>
       ),
     },
     {
-      accessorKey: "document.documentType",
+      accessorKey: "revision.documentType",
       header: t("common.labels.type"),
       cell: ({ row }) => {
-        const type = row.original.document.documentType;
+        const type = row.original.revision.documentType;
         return (
           <Badge variant={typeVariants[type]}>
             {t(`documents.type.${type.toLowerCase()}`)}
@@ -94,15 +98,15 @@ export function usePendingColumns(): ColumnDef<ApprovalRow>[] {
       accessorKey: "approvalType",
       header: t("common.labels.approvalType"),
       cell: ({ row }) => (
-        <Badge variant={row.original.approvalType === "FINAL" ? "default" : "secondary"}>
+        <Badge variant={row.original.approvalType === "APPROVER" ? "default" : "secondary"}>
           {t(`approvals.type.${row.original.approvalType.toLowerCase()}`)}
         </Badge>
       ),
     },
     {
-      accessorKey: "document.uploadedBy.name",
+      accessorKey: "revision.createdBy.name",
       header: t("common.labels.requestedBy"),
-      cell: ({ row }) => row.original.document.uploadedBy.name,
+      cell: ({ row }) => row.original.revision.createdBy.name,
     },
     {
       accessorKey: "createdAt",
@@ -122,28 +126,28 @@ export function useCompletedColumns(): ColumnDef<ApprovalRow>[] {
 
   return [
     {
-      accessorKey: "document.documentCode",
+      accessorKey: "revision.document.documentCode",
       header: t("documents.form.documentCode"),
       cell: ({ row }) => (
         <span className="font-mono text-sm">
-          {row.original.document.documentCode}
+          {row.original.revision.document.documentCode}
         </span>
       ),
     },
     {
-      accessorKey: "document.title",
+      accessorKey: "revision.title",
       header: t("documents.form.documentName"),
       cell: ({ row }) => (
-        <div className="max-w-[150px] truncate font-medium sm:max-w-[300px]">
-          {row.original.document.title}
+        <div className="max-w-[200px] truncate font-medium sm:max-w-[400px]">
+          {row.original.revision.title}
         </div>
       ),
     },
     {
-      accessorKey: "document.documentType",
+      accessorKey: "revision.documentType",
       header: t("common.labels.type"),
       cell: ({ row }) => {
-        const type = row.original.document.documentType;
+        const type = row.original.revision.documentType;
         return (
           <Badge variant={typeVariants[type]}>
             {t(`documents.type.${type.toLowerCase()}`)}
@@ -161,9 +165,9 @@ export function useCompletedColumns(): ColumnDef<ApprovalRow>[] {
       ),
     },
     {
-      accessorKey: "document.uploadedBy.name",
+      accessorKey: "revision.createdBy.name",
       header: t("common.labels.requestedBy"),
-      cell: ({ row }) => row.original.document.uploadedBy.name,
+      cell: ({ row }) => row.original.revision.createdBy.name,
     },
     {
       accessorKey: "respondedAt",
@@ -187,7 +191,7 @@ export function useCompletedColumns(): ColumnDef<ApprovalRow>[] {
       header: t("common.labels.actions"),
       cell: ({ row }) => (
         <Button asChild size="sm" variant="outline" className="gap-1">
-          <Link href={`/documents/${row.original.documentId}`}>
+          <Link href={`/documents/${row.original.revision.documentId}`}>
             <ExternalLink className="size-3.5" />
             {t("common.actions.viewDetails")}
           </Link>

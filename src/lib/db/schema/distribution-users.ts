@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
-import { documents } from "./documents";
+import { documentRevisions } from "./document-revisions";
 import { users } from "./users";
 
 export const distributionUsers = pgTable(
@@ -9,9 +9,9 @@ export const distributionUsers = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => nanoid()),
-    documentId: text("document_id")
+    revisionId: text("revision_id")
       .notNull()
-      .references(() => documents.id),
+      .references(() => documentRevisions.id),
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
@@ -20,7 +20,7 @@ export const distributionUsers = pgTable(
       .defaultNow(),
   },
   (table) => [
-    index("distribution_users_document_id_idx").on(table.documentId),
+    index("distribution_users_revision_id_idx").on(table.revisionId),
     index("distribution_users_user_id_idx").on(table.userId),
   ],
 );

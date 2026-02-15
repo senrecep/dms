@@ -9,6 +9,7 @@ interface DocumentRejectedEmailProps {
   rejectedBy: string;
   rejectionReason: string;
   editUrl: string;
+  rejectedByRole?: "preparer" | "approver";
   locale?: EmailLocale;
 }
 
@@ -19,10 +20,16 @@ export function DocumentRejectedEmail({
   rejectedBy,
   rejectionReason,
   editUrl,
+  rejectedByRole,
   locale = "tr",
 }: DocumentRejectedEmailProps) {
   const t = emailStrings[locale].documentRejected;
   const tc = emailStrings[locale].common;
+
+  // Build rejection context if role is specified
+  const roleContext = rejectedByRole
+    ? ` (${rejectedByRole === "preparer" ? t.rejectedByPreparer : t.rejectedByApprover})`
+    : "";
 
   return (
     <EmailLayout preview={t.preview.replace("{title}", documentTitle)} locale={locale}>
@@ -32,7 +39,7 @@ export function DocumentRejectedEmail({
         {t.body
           .replace("{documentTitle}", documentTitle)
           .replace("{documentCode}", documentCode)
-          .replace("{rejectedBy}", rejectedBy)}
+          .replace("{rejectedBy}", rejectedBy + roleContext)}
       </Text>
       <Section style={reasonBox}>
         <Text style={reasonLabel}>{t.reasonLabel}</Text>

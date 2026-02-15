@@ -36,6 +36,14 @@ export const emailStrings: Record<
     approvalRequest: {
       preview: string;
       heading: string;
+      preparerBody: string;
+      approverBody: string;
+      documentCodeLabel: string;
+      button: string;
+    };
+    preparerApproved: {
+      preview: string;
+      heading: string;
       body: string;
       documentCodeLabel: string;
       button: string;
@@ -61,11 +69,14 @@ export const emailStrings: Record<
       reasonLabel: string;
       afterReason: string;
       button: string;
+      rejectedByPreparer: string;
+      rejectedByApprover: string;
     };
     documentRevised: {
       preview: string;
       heading: string;
       body: string;
+      revisionLabel: string;
       notesLabel: string;
       info: string;
       button: string;
@@ -119,6 +130,9 @@ export const emailStrings: Record<
     },
     subjects: {
       approvalRequest: "Onay Talebi: {title}",
+      preparerApprovalRequest: "Hazırlayıcı Onay Talebi: {title}",
+      approverApprovalRequest: "Nihai Onay Talebi: {title}",
+      preparerApproved: "Hazırlayıcı Onayı Tamamlandı: {title}",
       documentApproved: "Belge Onaylandı: {title}",
       documentRejected: "Belge Reddedildi: {title}",
       documentCancelled: "Belge İptal Edildi: {title}",
@@ -133,9 +147,17 @@ export const emailStrings: Record<
     approvalRequest: {
       preview: "Onay Talebi: {title}",
       heading: "Onay Talebi",
-      body: "{uploaderName} tarafından gönderilen {documentTitle} belgesi onayınızı beklemektedir.",
+      preparerBody: "{uploaderName} tarafından gönderilen {documentTitle} belgesi hazırlayıcı olarak onayınızı beklemektedir. Lütfen belgeyi inceleyin ve onaylayın.",
+      approverBody: "{documentTitle} belgesi hazırlayıcı tarafından onaylanmıştır. Nihai onay için lütfen belgeyi inceleyin.",
       documentCodeLabel: "Belge Kodu",
       button: "Belgeyi İncele",
+    },
+    preparerApproved: {
+      preview: "Hazırlayıcı Onayı: {title}",
+      heading: "Hazırlayıcı Onayı Tamamlandı",
+      body: "{preparerName} tarafından {documentTitle} ({documentCode}) belgesi hazırlayıcı olarak onaylanmıştır. Nihai onay için lütfen belgeyi inceleyin.",
+      documentCodeLabel: "Belge Kodu",
+      button: "Belgeyi İncele ve Onayla",
     },
     approvalReminder: {
       preview: "Hatırlatma: {title} onay bekliyor",
@@ -159,11 +181,14 @@ export const emailStrings: Record<
       afterReason:
         "Belgeyi düzenleyip tekrar onaya gönderebilirsiniz.",
       button: "Belgeyi Düzenle",
+      rejectedByPreparer: "Hazırlayıcı",
+      rejectedByApprover: "Onaylayıcı",
     },
     documentRevised: {
       preview: "Revize Edildi: {title}",
       heading: "Belge Revize Edildi",
       body: "{documentTitle} ({documentCode}) belgesi {revisedBy} tarafından revize edilmiştir.",
+      revisionLabel: "Revizyon Numarası:",
       notesLabel: "Revizyon Notları:",
       info: "Yeni versiyon incelemenizi beklemektedir.",
       button: "Belgeyi Görüntüle",
@@ -218,6 +243,9 @@ export const emailStrings: Record<
     },
     subjects: {
       approvalRequest: "Approval Request: {title}",
+      preparerApprovalRequest: "Preparer Approval Request: {title}",
+      approverApprovalRequest: "Final Approval Request: {title}",
+      preparerApproved: "Preparer Approved: {title}",
       documentApproved: "Document Approved: {title}",
       documentRejected: "Document Rejected: {title}",
       documentCancelled: "Document Cancelled: {title}",
@@ -232,9 +260,17 @@ export const emailStrings: Record<
     approvalRequest: {
       preview: "Approval Request: {title}",
       heading: "Approval Request",
-      body: "The document {documentTitle} submitted by {uploaderName} is awaiting your approval.",
+      preparerBody: "The document {documentTitle} submitted by {uploaderName} is awaiting your approval as preparer. Please review and approve the document.",
+      approverBody: "The document {documentTitle} has been approved by the preparer. Please review for final approval.",
       documentCodeLabel: "Document Code",
       button: "Review Document",
+    },
+    preparerApproved: {
+      preview: "Preparer Approved: {title}",
+      heading: "Preparer Approval Completed",
+      body: "The document {documentTitle} ({documentCode}) has been approved as preparer by {preparerName}. Please review for final approval.",
+      documentCodeLabel: "Document Code",
+      button: "Review and Approve",
     },
     approvalReminder: {
       preview: "Reminder: {title} pending approval",
@@ -258,11 +294,14 @@ export const emailStrings: Record<
       afterReason:
         "You can edit the document and resubmit it for approval.",
       button: "Edit Document",
+      rejectedByPreparer: "Preparer",
+      rejectedByApprover: "Approver",
     },
     documentRevised: {
       preview: "Revised: {title}",
       heading: "Document Revised",
       body: "The document {documentTitle} ({documentCode}) has been revised by {revisedBy}.",
+      revisionLabel: "Revision Number:",
       notesLabel: "Revision Notes:",
       info: "The new version is awaiting your review.",
       button: "View Document",

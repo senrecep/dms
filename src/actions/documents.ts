@@ -4,17 +4,17 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   documents,
+  documentRevisions,
   distributionLists,
   distributionUsers,
   readConfirmations,
   activityLogs,
-  documentRevisions,
   approvals,
   users,
   departments,
 } from "@/lib/db/schema";
 import { saveFile } from "@/lib/storage";
-import { and, eq, or, ilike, inArray, sql, desc, count } from "drizzle-orm";
+import { and, eq, or, ilike, inArray, sql, desc, count, asc, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod/v4";
 import { revalidatePath } from "next/cache";
@@ -47,7 +47,10 @@ export type DocumentListItem = {
   publishedAt: Date | null;
   createdAt: Date;
   departmentName: string;
+  preparerName: string;
+  approverName: string;
   uploaderName: string;
+  previousRevisionStatus: string | null;
   readConfirmed: number;
   readTotal: number;
 };
@@ -68,64 +71,85 @@ export async function getDocuments(filters: DocumentFilters = {}) {
   const session = await getSession();
   const { search, departmentId, documentType, status, page = 1, pageSize = 20 } = filters;
 
+  // Alias for current revision join
+  const rev = documentRevisions;
+
   const conditions = [eq(documents.isDeleted, false)];
 
   if (search) {
     conditions.push(
       or(
-        ilike(documents.title, `%${search}%`),
+        ilike(rev.title, `%${search}%`),
         ilike(documents.documentCode, `%${search}%`),
       )!,
     );
   }
 
   if (documentType) {
-    conditions.push(eq(documents.documentType, documentType as "PROCEDURE" | "INSTRUCTION" | "FORM"));
+    conditions.push(eq(rev.documentType, documentType as "PROCEDURE" | "INSTRUCTION" | "FORM"));
   }
 
   if (status) {
     conditions.push(
       eq(
-        documents.status,
-        status as "DRAFT" | "PENDING_APPROVAL" | "INTERMEDIATE_APPROVAL" | "APPROVED" | "PUBLISHED" | "REVISION" | "PASSIVE" | "CANCELLED",
+        rev.status,
+        status as "DRAFT" | "PENDING_APPROVAL" | "PREPARER_APPROVED" | "PREPARER_REJECTED" | "APPROVED" | "APPROVER_REJECTED" | "PUBLISHED" | "CANCELLED",
       ),
     );
   }
 
-  // Department filter: show docs where departmentId matches OR where doc appears in distribution_lists for that department
   if (departmentId) {
-    const distributedDocIds = db
-      .select({ documentId: distributionLists.documentId })
+    const distributedRevisionDocIds = db
+      .select({ documentId: rev.documentId })
       .from(distributionLists)
+      .innerJoin(rev, eq(distributionLists.revisionId, rev.id))
       .where(eq(distributionLists.departmentId, departmentId));
 
     conditions.push(
       or(
-        eq(documents.departmentId, departmentId),
-        inArray(documents.id, distributedDocIds),
+        eq(rev.departmentId, departmentId),
+        inArray(documents.id, distributedRevisionDocIds),
       )!,
     );
   }
 
   const where = and(...conditions);
 
+  // Aliases for preparer and approver
+  const preparerUser = users;
+
   const [docsResult, totalResult] = await Promise.all([
     db
       .select({
         id: documents.id,
         documentCode: documents.documentCode,
-        title: documents.title,
+        title: rev.title,
         currentRevisionNo: documents.currentRevisionNo,
-        status: documents.status,
-        documentType: documents.documentType,
-        publishedAt: documents.publishedAt,
+        status: rev.status,
+        documentType: rev.documentType,
+        publishedAt: rev.publishedAt,
         createdAt: documents.createdAt,
         departmentName: departments.name,
-        uploaderName: users.name,
+        preparerName: sql<string>`preparer.name`.as("preparer_name"),
+        approverName: sql<string>`approver_user.name`.as("approver_name"),
+        uploaderName: sql<string>`creator.name`.as("uploader_name"),
+        revisionId: rev.id,
       })
       .from(documents)
-      .leftJoin(departments, eq(documents.departmentId, departments.id))
-      .leftJoin(users, eq(documents.uploadedById, users.id))
+      .innerJoin(rev, eq(documents.currentRevisionId, rev.id))
+      .leftJoin(departments, eq(rev.departmentId, departments.id))
+      .leftJoin(
+        sql`"user" as preparer`,
+        sql`preparer.id = ${rev.preparerId}`,
+      )
+      .leftJoin(
+        sql`"user" as approver_user`,
+        sql`approver_user.id = ${rev.approverId}`,
+      )
+      .leftJoin(
+        sql`"user" as creator`,
+        sql`creator.id = ${rev.createdById}`,
+      )
       .where(where)
       .orderBy(desc(documents.createdAt))
       .limit(pageSize)
@@ -133,27 +157,56 @@ export async function getDocuments(filters: DocumentFilters = {}) {
     db
       .select({ count: count() })
       .from(documents)
+      .innerJoin(rev, eq(documents.currentRevisionId, rev.id))
+      .leftJoin(departments, eq(rev.departmentId, departments.id))
       .where(where),
   ]);
 
-  // Get read confirmation stats for all fetched documents
-  const docIds = docsResult.map((d) => d.id);
+  // Get read confirmation stats for current revisions
+  const revisionIds = docsResult.map((d) => d.revisionId).filter(Boolean) as string[];
   let readStats: Record<string, { confirmed: number; total: number }> = {};
 
-  if (docIds.length > 0) {
+  if (revisionIds.length > 0) {
     const stats = await db
       .select({
-        documentId: readConfirmations.documentId,
+        revisionId: readConfirmations.revisionId,
         total: count(),
         confirmed: count(readConfirmations.confirmedAt),
       })
       .from(readConfirmations)
-      .where(inArray(readConfirmations.documentId, docIds))
-      .groupBy(readConfirmations.documentId);
+      .where(inArray(readConfirmations.revisionId, revisionIds))
+      .groupBy(readConfirmations.revisionId);
 
     readStats = Object.fromEntries(
-      stats.map((s) => [s.documentId, { confirmed: s.confirmed, total: s.total }]),
+      stats.map((s) => [s.revisionId, { confirmed: s.confirmed, total: s.total }]),
     );
+  }
+
+  // Get previous revision status for each document
+  const docIds = docsResult.map((d) => d.id);
+  let prevStatuses: Record<string, string | null> = {};
+
+  if (docIds.length > 0) {
+    // For each document, get the revision before the current one
+    const prevRevisions = await db
+      .select({
+        documentId: documentRevisions.documentId,
+        status: documentRevisions.status,
+        revisionNo: documentRevisions.revisionNo,
+      })
+      .from(documentRevisions)
+      .where(inArray(documentRevisions.documentId, docIds))
+      .orderBy(documentRevisions.documentId, desc(documentRevisions.revisionNo));
+
+    // Group by documentId and pick the second one (previous)
+    const grouped: Record<string, Array<{ status: string; revisionNo: number }>> = {};
+    for (const r of prevRevisions) {
+      if (!grouped[r.documentId]) grouped[r.documentId] = [];
+      grouped[r.documentId].push({ status: r.status, revisionNo: r.revisionNo });
+    }
+    for (const [docId, revs] of Object.entries(grouped)) {
+      prevStatuses[docId] = revs.length > 1 ? revs[1].status : null;
+    }
   }
 
   const data: DocumentListItem[] = docsResult.map((doc) => ({
@@ -166,9 +219,12 @@ export async function getDocuments(filters: DocumentFilters = {}) {
     publishedAt: doc.publishedAt,
     createdAt: doc.createdAt,
     departmentName: doc.departmentName ?? "",
+    preparerName: doc.preparerName ?? "",
+    approverName: doc.approverName ?? "",
     uploaderName: doc.uploaderName ?? "",
-    readConfirmed: readStats[doc.id]?.confirmed ?? 0,
-    readTotal: readStats[doc.id]?.total ?? 0,
+    previousRevisionStatus: prevStatuses[doc.id] ?? null,
+    readConfirmed: readStats[doc.revisionId]?.confirmed ?? 0,
+    readTotal: readStats[doc.revisionId]?.total ?? 0,
   }));
 
   return {
@@ -185,30 +241,32 @@ export async function getDocumentById(id: string) {
   const doc = await db.query.documents.findFirst({
     where: and(eq(documents.id, id), eq(documents.isDeleted, false)),
     with: {
-      department: true,
-      uploadedBy: true,
-      preparerDepartment: true,
-      approver: true,
       revisions: {
         orderBy: (rev, { desc }) => [desc(rev.revisionNo)],
-        with: { createdBy: true },
-      },
-      approvals: {
-        orderBy: (appr, { desc }) => [desc(appr.createdAt)],
-        with: { approver: true },
-      },
-      distributionLists: {
-        with: { department: true },
-      },
-      distributionUsers: {
-        with: { user: true },
-      },
-      readConfirmations: {
-        with: { user: true },
+        with: {
+          preparer: { columns: { id: true, name: true, email: true } },
+          approver: { columns: { id: true, name: true, email: true } },
+          createdBy: { columns: { id: true, name: true, email: true } },
+          department: { columns: { id: true, name: true } },
+          preparerDepartment: { columns: { id: true, name: true } },
+          approvals: {
+            orderBy: (appr, { desc }) => [desc(appr.createdAt)],
+            with: { approver: { columns: { id: true, name: true, email: true } } },
+          },
+          distributionLists: {
+            with: { department: { columns: { id: true, name: true } } },
+          },
+          distributionUsers: {
+            with: { user: { columns: { id: true, name: true, email: true } } },
+          },
+          readConfirmations: {
+            with: { user: { columns: { id: true, name: true, email: true } } },
+          },
+        },
       },
       activityLogs: {
         orderBy: (log, { desc }) => [desc(log.createdAt)],
-        with: { user: true },
+        with: { user: { columns: { id: true, name: true } } },
       },
     },
   });
@@ -227,9 +285,12 @@ const createDocumentSchema = z.object({
   documentType: z.enum(["PROCEDURE", "INSTRUCTION", "FORM"]),
   departmentId: z.string().min(1, "Department is required"),
   preparerDepartmentId: z.string().optional(),
+  preparerId: z.string().min(1, "Preparer is required"),
   approverId: z.string().optional(),
   distributionDepartmentIds: z.string().optional(), // comma-separated
   distributionUserIds: z.string().optional(), // comma-separated
+  startingRevisionNo: z.coerce.number().int().min(0).optional(),
+  action: z.enum(["save", "submit"]).optional(),
 });
 
 export async function createDocument(formData: FormData) {
@@ -242,205 +303,714 @@ export async function createDocument(formData: FormData) {
     documentType: formData.get("documentType") as string,
     departmentId: formData.get("departmentId") as string,
     preparerDepartmentId: (formData.get("preparerDepartmentId") as string) || undefined,
+    preparerId: (formData.get("preparerId") as string) || session.user.id,
     approverId: (formData.get("approverId") as string) || undefined,
     distributionDepartmentIds: (formData.get("distributionDepartmentIds") as string) || undefined,
     distributionUserIds: (formData.get("distributionUserIds") as string) || undefined,
+    startingRevisionNo: (formData.get("startingRevisionNo") as string) || "0",
+    action: (formData.get("action") as string) || "save",
   };
 
   const parsed = createDocumentSchema.parse(raw);
   const file = formData.get("file") as File | null;
 
-  // Create the document
+  if (!file || file.size === 0) throw new Error("File is required");
+
+  const startingRevNo = parsed.startingRevisionNo ?? 0;
+  const actionType = parsed.action ?? "save";
+  const initialStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
+
+  // 1. Create master document
   const [doc] = await db
     .insert(documents)
     .values({
       documentCode: parsed.documentCode,
-      title: parsed.title,
-      description: parsed.description,
-      documentType: parsed.documentType as "PROCEDURE" | "INSTRUCTION" | "FORM",
-      departmentId: parsed.departmentId,
-      preparerDepartmentId: parsed.preparerDepartmentId || null,
-      approverId: parsed.approverId || null,
-      uploadedById: session.user.id,
-      status: parsed.approverId ? "PENDING_APPROVAL" : "DRAFT",
     })
     .returning();
 
-  // Save file if provided
-  if (file && file.size > 0) {
-    const fileMeta = await saveFile(file, doc.id);
-    await db
-      .update(documents)
-      .set({
-        filePath: fileMeta.path,
-        fileName: fileMeta.fileName,
-        fileSize: fileMeta.size,
-        mimeType: fileMeta.mimeType,
-      })
-      .where(eq(documents.id, doc.id));
+  // 2. Save file
+  const fileMeta = await saveFile(file, doc.id);
 
-    // Create initial revision record (Rev.01)
-    await db.insert(documentRevisions).values({
+  // 3. Create first revision
+  const [revision] = await db
+    .insert(documentRevisions)
+    .values({
       documentId: doc.id,
-      revisionNo: 1,
+      revisionNo: startingRevNo,
+      title: parsed.title,
+      description: parsed.description,
+      documentType: parsed.documentType as "PROCEDURE" | "INSTRUCTION" | "FORM",
+      status: initialStatus,
+      departmentId: parsed.departmentId,
+      preparerDepartmentId: parsed.preparerDepartmentId || null,
+      preparerId: parsed.preparerId,
+      approverId: parsed.approverId || null,
+      createdById: session.user.id,
       filePath: fileMeta.path,
       fileName: fileMeta.fileName,
       fileSize: fileMeta.size,
       mimeType: fileMeta.mimeType,
       changes: "Initial upload",
-      status: doc.status,
-      createdById: session.user.id,
-    });
-  }
+    })
+    .returning();
 
-  // Create distribution list entries
+  // 4. Update master document with currentRevisionId
+  await db
+    .update(documents)
+    .set({
+      currentRevisionId: revision.id,
+      currentRevisionNo: startingRevNo,
+    })
+    .where(eq(documents.id, doc.id));
+
+  // 5. Create distribution lists with revisionId
   if (parsed.distributionDepartmentIds) {
     const deptIds = parsed.distributionDepartmentIds.split(",").filter(Boolean);
     if (deptIds.length > 0) {
       await db.insert(distributionLists).values(
         deptIds.map((deptId) => ({
-          documentId: doc.id,
+          revisionId: revision.id,
           departmentId: deptId,
         })),
       );
     }
   }
 
-  // Create distribution user entries (individual users)
+  // 6. Create distribution users with revisionId
   if (parsed.distributionUserIds) {
     const userIds = parsed.distributionUserIds.split(",").filter(Boolean);
     if (userIds.length > 0) {
       await db.insert(distributionUsers).values(
         userIds.map((userId) => ({
-          documentId: doc.id,
+          revisionId: revision.id,
           userId,
         })),
       );
     }
   }
 
-  // Create approval record if approver specified
-  if (parsed.approverId) {
-    await db.insert(approvals).values({
-      documentId: doc.id,
-      approverId: parsed.approverId,
-      approvalType: "FINAL",
-      status: "PENDING",
-    });
+  // 7. Handle approval flow if submitting
+  if (actionType === "submit") {
+    await createApprovalFlow(revision.id, parsed.preparerId, parsed.approverId || null, doc.id, parsed.title, parsed.documentCode, session.user.name);
   }
 
-  // Log activity
+  // 8. Log activity
   await db.insert(activityLogs).values({
     documentId: doc.id,
+    revisionId: revision.id,
     userId: session.user.id,
     action: "UPLOADED",
-    details: { title: parsed.title, documentCode: parsed.documentCode },
+    details: { title: parsed.title, documentCode: parsed.documentCode, revisionNo: startingRevNo },
   });
 
   revalidatePath("/documents");
 
-  // Async notifications (non-critical)
-  if (parsed.approverId) {
-    try {
-      const approver = await db.query.users.findFirst({
-        where: eq(users.id, parsed.approverId),
-        columns: { name: true, email: true },
-      });
-
-      const jobs: Promise<unknown>[] = [];
-
-      if (approver) {
-        jobs.push(enqueueEmail({
-          to: approver.email,
-          subjectKey: "approvalRequest",
-          subjectParams: { title: parsed.title },
-          templateName: "approval-request",
-          templateProps: {
-            approverName: approver.name,
-            documentTitle: parsed.title,
-            documentCode: parsed.documentCode,
-            uploaderName: session.user.name,
-            approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${doc.id}`,
-          },
-        }));
-      }
-
-      jobs.push(enqueueNotification({
-        userId: parsed.approverId,
-        type: "APPROVAL_REQUEST",
-        titleKey: "newApprovalRequest",
-        messageParams: { docTitle: parsed.title, docCode: parsed.documentCode },
-        relatedDocumentId: doc.id,
-      }));
-
-      await Promise.allSettled(jobs);
-    } catch (error) {
-      console.error("[createDocument] Failed to enqueue notifications:", error);
-    }
-  }
-
   return { success: true, id: doc.id };
 }
 
-export async function cancelDocument(id: string) {
+// Helper: create approval flow based on preparer/approver logic
+async function createApprovalFlow(
+  revisionId: string,
+  preparerId: string,
+  approverId: string | null,
+  documentId: string,
+  title: string,
+  documentCode: string,
+  uploaderName: string,
+) {
+  if (!approverId) return;
+
+  if (preparerId !== approverId) {
+    // Two-step: PREPARER first, then APPROVER
+    await db.insert(approvals).values({
+      revisionId,
+      approverId: preparerId,
+      approvalType: "PREPARER",
+      status: "PENDING",
+    });
+
+    // Notify preparer
+    try {
+      const preparer = await db.query.users.findFirst({
+        where: eq(users.id, preparerId),
+        columns: { name: true, email: true },
+      });
+
+      if (preparer) {
+        await Promise.allSettled([
+          enqueueNotification({
+            userId: preparerId,
+            type: "APPROVAL_REQUEST",
+            titleKey: "newApprovalRequest",
+            messageParams: { docTitle: title, docCode: documentCode },
+            relatedDocumentId: documentId,
+            relatedRevisionId: revisionId,
+          }),
+          enqueueEmail({
+            to: preparer.email,
+            subjectKey: "approvalRequest",
+            subjectParams: { title },
+            templateName: "approval-request",
+            templateProps: {
+              approverName: preparer.name,
+              documentTitle: title,
+              documentCode,
+              uploaderName,
+              approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
+            },
+          }),
+        ]);
+      }
+    } catch (error) {
+      console.error("[createApprovalFlow] Failed to notify preparer:", error);
+    }
+  } else {
+    // Single step: preparerId === approverId, skip preparer step
+    await db.insert(approvals).values({
+      revisionId,
+      approverId,
+      approvalType: "APPROVER",
+      status: "PENDING",
+    });
+
+    // Notify approver
+    try {
+      const approver = await db.query.users.findFirst({
+        where: eq(users.id, approverId),
+        columns: { name: true, email: true },
+      });
+
+      if (approver) {
+        await Promise.allSettled([
+          enqueueNotification({
+            userId: approverId,
+            type: "APPROVAL_REQUEST",
+            titleKey: "newApprovalRequest",
+            messageParams: { docTitle: title, docCode: documentCode },
+            relatedDocumentId: documentId,
+            relatedRevisionId: revisionId,
+          }),
+          enqueueEmail({
+            to: approver.email,
+            subjectKey: "approvalRequest",
+            subjectParams: { title },
+            templateName: "approval-request",
+            templateProps: {
+              approverName: approver.name,
+              documentTitle: title,
+              documentCode,
+              uploaderName,
+              approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
+            },
+          }),
+        ]);
+      }
+    } catch (error) {
+      console.error("[createApprovalFlow] Failed to notify approver:", error);
+    }
+  }
+}
+
+// --- submitForApproval (NEW) ---
+
+export async function submitForApproval(revisionId: string) {
   const session = await getSession();
 
-  // Get document details with relationships
-  const doc = await db.query.documents.findFirst({
-    where: and(eq(documents.id, id), eq(documents.isDeleted, false)),
+  const revision = await db.query.documentRevisions.findFirst({
+    where: eq(documentRevisions.id, revisionId),
     with: {
-      approver: { columns: { id: true, name: true, email: true } },
-      distributionLists: {
-        with: { department: true },
+      document: { columns: { id: true, documentCode: true } },
+    },
+  });
+
+  if (!revision) throw new Error("Revision not found");
+  if (revision.status !== "DRAFT") throw new Error("Only DRAFT revisions can be submitted");
+
+  // Update status to PENDING_APPROVAL
+  await db
+    .update(documentRevisions)
+    .set({ status: "PENDING_APPROVAL" })
+    .where(eq(documentRevisions.id, revisionId));
+
+  // Create approval flow
+  await createApprovalFlow(
+    revisionId,
+    revision.preparerId,
+    revision.approverId,
+    revision.documentId,
+    revision.title,
+    revision.document.documentCode,
+    session.user.name,
+  );
+
+  // Log activity
+  await db.insert(activityLogs).values({
+    documentId: revision.documentId,
+    revisionId,
+    userId: session.user.id,
+    action: "SUBMITTED",
+    details: { title: revision.title, revisionNo: revision.revisionNo },
+  });
+
+  revalidatePath("/documents");
+  revalidatePath(`/documents/${revision.documentId}`);
+
+  return { success: true };
+}
+
+// --- publishDocument (REWRITE) ---
+
+export async function publishDocument(revisionId: string) {
+  const session = await getSession();
+
+  // Get revision with document info
+  const revision = await db.query.documentRevisions.findFirst({
+    where: eq(documentRevisions.id, revisionId),
+    with: {
+      document: { columns: { id: true, documentCode: true } },
+      distributionLists: { with: { department: true } },
+      distributionUsers: true,
+    },
+  });
+
+  if (!revision) throw new Error("Revision not found");
+  if (revision.status !== "APPROVED") throw new Error("Only APPROVED revisions can be published");
+
+  // Verify caller is approver or ADMIN
+  if (revision.approverId !== session.user.id && session.user.role !== "ADMIN") {
+    throw new Error("Only the approver or an admin can publish");
+  }
+
+  const now = new Date();
+
+  // Update revision status
+  await db
+    .update(documentRevisions)
+    .set({ status: "PUBLISHED", publishedAt: now })
+    .where(eq(documentRevisions.id, revisionId));
+
+  // Collect distribution users: departments + individual users
+  const allUserIds = new Set<string>();
+
+  if (revision.distributionLists.length > 0) {
+    const deptIds = revision.distributionLists.map((d) => d.departmentId);
+    const deptUsers = await db
+      .select({ id: users.id, role: users.role })
+      .from(users)
+      .where(and(inArray(users.departmentId, deptIds), eq(users.isActive, true)));
+    // Only MANAGER role users get read confirmations
+    deptUsers.filter((u) => u.role === "MANAGER").forEach((u) => allUserIds.add(u.id));
+  }
+
+  if (revision.distributionUsers.length > 0) {
+    const indivUserIds = revision.distributionUsers.map((u) => u.userId);
+    // Check which of these are MANAGERs
+    const indivUsers = await db
+      .select({ id: users.id, role: users.role })
+      .from(users)
+      .where(and(inArray(users.id, indivUserIds), eq(users.isActive, true)));
+    indivUsers.filter((u) => u.role === "MANAGER").forEach((u) => allUserIds.add(u.id));
+  }
+
+  const targetUserIds = Array.from(allUserIds);
+
+  // Create read confirmations only for MANAGER role users
+  if (targetUserIds.length > 0) {
+    await db.insert(readConfirmations).values(
+      targetUserIds.map((uid) => ({
+        revisionId,
+        userId: uid,
+      })),
+    );
+  }
+
+  // Log activity
+  await db.insert(activityLogs).values({
+    documentId: revision.documentId,
+    revisionId,
+    userId: session.user.id,
+    action: "PUBLISHED",
+    details: { title: revision.title, revisionNo: revision.revisionNo },
+  });
+
+  revalidatePath("/documents");
+  revalidatePath(`/documents/${revision.documentId}`);
+
+  // Async notifications
+  try {
+    if (targetUserIds.length > 0) {
+      const jobs: Promise<unknown>[] = [];
+
+      jobs.push(enqueueBulkNotifications({
+        notifications: targetUserIds.map((uid) => ({
+          userId: uid,
+          type: "READ_ASSIGNMENT" as const,
+          titleKey: "newReadAssignment",
+          messageParams: { docTitle: revision.title, docCode: revision.document.documentCode },
+          relatedDocumentId: revision.documentId,
+          relatedRevisionId: revisionId,
+        })),
+      }));
+
+      const usersForEmail = await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(inArray(users.id, targetUserIds));
+
+      if (usersForEmail.length > 0) {
+        jobs.push(enqueueBulkEmail({
+          emails: usersForEmail.map((u) => ({
+            to: u.email,
+            subjectKey: "readAssignment",
+            subjectParams: { title: revision.title },
+            templateName: "read-assignment" as const,
+            templateProps: {
+              userName: u.name,
+              documentTitle: revision.title,
+              documentCode: revision.document.documentCode,
+              publishedBy: session.user.name,
+              readUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${revision.documentId}`,
+            },
+          })),
+        }));
+      }
+
+      await Promise.allSettled(jobs);
+    }
+
+    // Notify uploader if different from publisher
+    if (revision.createdById !== session.user.id) {
+      await enqueueNotification({
+        userId: revision.createdById,
+        type: "READ_ASSIGNMENT",
+        titleKey: "documentPublished",
+        messageParams: { docTitle: revision.title, docCode: revision.document.documentCode },
+        relatedDocumentId: revision.documentId,
+        relatedRevisionId: revisionId,
+      });
+    }
+  } catch (error) {
+    console.error("[publishDocument] Failed to enqueue notifications:", error);
+  }
+
+  return { success: true };
+}
+
+// --- reviseDocument (REWRITE) ---
+
+const reviseDocumentSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  documentType: z.enum(["PROCEDURE", "INSTRUCTION", "FORM"]).optional(),
+  departmentId: z.string().optional(),
+  preparerDepartmentId: z.string().optional(),
+  preparerId: z.string().optional(),
+  approverId: z.string().optional(),
+  changes: z.string().optional(),
+  distributionDepartmentIds: z.string().optional(),
+  distributionUserIds: z.string().optional(),
+  action: z.enum(["save", "submit"]).optional(),
+});
+
+export async function reviseDocument(formData: FormData) {
+  const session = await getSession();
+  const documentId = formData.get("documentId") as string;
+  const file = formData.get("file") as File | null;
+
+  if (!documentId) throw new Error("Document ID is required");
+  if (!file || file.size === 0) throw new Error("File is required for revision");
+
+  const raw = {
+    title: (formData.get("title") as string) || undefined,
+    description: (formData.get("description") as string) || undefined,
+    documentType: (formData.get("documentType") as string) || undefined,
+    departmentId: (formData.get("departmentId") as string) || undefined,
+    preparerDepartmentId: (formData.get("preparerDepartmentId") as string) || undefined,
+    preparerId: (formData.get("preparerId") as string) || undefined,
+    approverId: (formData.get("approverId") as string) || undefined,
+    changes: (formData.get("changes") as string) || undefined,
+    distributionDepartmentIds: (formData.get("distributionDepartmentIds") as string) || undefined,
+    distributionUserIds: (formData.get("distributionUserIds") as string) || undefined,
+    action: (formData.get("action") as string) || "save",
+  };
+
+  const parsed = reviseDocumentSchema.parse(raw);
+
+  // Get document with current revision
+  const doc = await db.query.documents.findFirst({
+    where: and(eq(documents.id, documentId), eq(documents.isDeleted, false)),
+    with: {
+      currentRevision: true,
+    },
+  });
+
+  if (!doc) throw new Error("Document not found");
+  if (!doc.currentRevision) throw new Error("No current revision found");
+
+  const currentRevision = doc.currentRevision;
+  const fileMeta = await saveFile(file, documentId);
+  const actionType = parsed.action ?? "save";
+
+  if (currentRevision.status === "DRAFT") {
+    // OVERWRITE existing draft revision
+    const updateData: Record<string, unknown> = {
+      filePath: fileMeta.path,
+      fileName: fileMeta.fileName,
+      fileSize: fileMeta.size,
+      mimeType: fileMeta.mimeType,
+      updatedAt: new Date(),
+    };
+
+    if (parsed.title) updateData.title = parsed.title;
+    if (parsed.description !== undefined) updateData.description = parsed.description;
+    if (parsed.documentType) updateData.documentType = parsed.documentType;
+    if (parsed.departmentId) updateData.departmentId = parsed.departmentId;
+    if (parsed.preparerDepartmentId !== undefined) updateData.preparerDepartmentId = parsed.preparerDepartmentId || null;
+    if (parsed.preparerId) updateData.preparerId = parsed.preparerId;
+    if (parsed.approverId !== undefined) updateData.approverId = parsed.approverId || null;
+    if (parsed.changes !== undefined) updateData.changes = parsed.changes;
+
+    if (actionType === "submit") {
+      updateData.status = "PENDING_APPROVAL";
+    }
+
+    await db
+      .update(documentRevisions)
+      .set(updateData)
+      .where(eq(documentRevisions.id, currentRevision.id));
+
+    // Update distribution if provided
+    if (parsed.distributionDepartmentIds !== undefined) {
+      // Delete existing and recreate
+      await db.delete(distributionLists).where(eq(distributionLists.revisionId, currentRevision.id));
+      const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
+      if (deptIds.length > 0) {
+        await db.insert(distributionLists).values(
+          deptIds.map((deptId) => ({ revisionId: currentRevision.id, departmentId: deptId })),
+        );
+      }
+    }
+
+    if (parsed.distributionUserIds !== undefined) {
+      await db.delete(distributionUsers).where(eq(distributionUsers.revisionId, currentRevision.id));
+      const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
+      if (userIds.length > 0) {
+        await db.insert(distributionUsers).values(
+          userIds.map((userId) => ({ revisionId: currentRevision.id, userId })),
+        );
+      }
+    }
+
+    // Handle approval flow if submitting
+    if (actionType === "submit") {
+      const effectivePreparerId = parsed.preparerId || currentRevision.preparerId;
+      const effectiveApproverId = parsed.approverId !== undefined ? (parsed.approverId || null) : currentRevision.approverId;
+      const effectiveTitle = parsed.title || currentRevision.title;
+
+      await createApprovalFlow(
+        currentRevision.id,
+        effectivePreparerId,
+        effectiveApproverId,
+        documentId,
+        effectiveTitle,
+        doc.documentCode,
+        session.user.name,
+      );
+    }
+
+    // Log activity
+    await db.insert(activityLogs).values({
+      documentId,
+      revisionId: currentRevision.id,
+      userId: session.user.id,
+      action: "REVISED",
+      details: { revisionNo: currentRevision.revisionNo, changes: parsed.changes, overwrite: true },
+    });
+
+    revalidatePath("/documents");
+    revalidatePath(`/documents/${documentId}`);
+    return { success: true, revisionNo: currentRevision.revisionNo };
+  } else {
+    // Create NEW revision
+    const newRevisionNo = doc.currentRevisionNo + 1;
+    const newStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
+
+    const [newRevision] = await db
+      .insert(documentRevisions)
+      .values({
+        documentId,
+        revisionNo: newRevisionNo,
+        title: parsed.title || currentRevision.title,
+        description: parsed.description !== undefined ? parsed.description : currentRevision.description,
+        documentType: (parsed.documentType || currentRevision.documentType) as "PROCEDURE" | "INSTRUCTION" | "FORM",
+        status: newStatus,
+        departmentId: parsed.departmentId || currentRevision.departmentId,
+        preparerDepartmentId: parsed.preparerDepartmentId !== undefined
+          ? (parsed.preparerDepartmentId || null)
+          : currentRevision.preparerDepartmentId,
+        preparerId: parsed.preparerId || currentRevision.preparerId,
+        approverId: parsed.approverId !== undefined
+          ? (parsed.approverId || null)
+          : currentRevision.approverId,
+        createdById: session.user.id,
+        filePath: fileMeta.path,
+        fileName: fileMeta.fileName,
+        fileSize: fileMeta.size,
+        mimeType: fileMeta.mimeType,
+        changes: parsed.changes,
+      })
+      .returning();
+
+    // Update master document
+    await db
+      .update(documents)
+      .set({
+        currentRevisionId: newRevision.id,
+        currentRevisionNo: newRevisionNo,
+      })
+      .where(eq(documents.id, documentId));
+
+    // Create distribution lists for new revision
+    if (parsed.distributionDepartmentIds !== undefined) {
+      const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
+      if (deptIds.length > 0) {
+        await db.insert(distributionLists).values(
+          deptIds.map((deptId) => ({ revisionId: newRevision.id, departmentId: deptId })),
+        );
+      }
+    } else {
+      // Copy from previous revision
+      const prevDists = await db
+        .select({ departmentId: distributionLists.departmentId })
+        .from(distributionLists)
+        .where(eq(distributionLists.revisionId, currentRevision.id));
+      if (prevDists.length > 0) {
+        await db.insert(distributionLists).values(
+          prevDists.map((d) => ({ revisionId: newRevision.id, departmentId: d.departmentId })),
+        );
+      }
+    }
+
+    if (parsed.distributionUserIds !== undefined) {
+      const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
+      if (userIds.length > 0) {
+        await db.insert(distributionUsers).values(
+          userIds.map((userId) => ({ revisionId: newRevision.id, userId })),
+        );
+      }
+    } else {
+      // Copy from previous revision
+      const prevUsers = await db
+        .select({ userId: distributionUsers.userId })
+        .from(distributionUsers)
+        .where(eq(distributionUsers.revisionId, currentRevision.id));
+      if (prevUsers.length > 0) {
+        await db.insert(distributionUsers).values(
+          prevUsers.map((u) => ({ revisionId: newRevision.id, userId: u.userId })),
+        );
+      }
+    }
+
+    // Handle approval flow if submitting
+    if (actionType === "submit") {
+      const effectivePreparerId = parsed.preparerId || currentRevision.preparerId;
+      const effectiveApproverId = parsed.approverId !== undefined ? (parsed.approverId || null) : currentRevision.approverId;
+      const effectiveTitle = parsed.title || currentRevision.title;
+
+      await createApprovalFlow(
+        newRevision.id,
+        effectivePreparerId,
+        effectiveApproverId,
+        documentId,
+        effectiveTitle,
+        doc.documentCode,
+        session.user.name,
+      );
+    }
+
+    // Log activity
+    await db.insert(activityLogs).values({
+      documentId,
+      revisionId: newRevision.id,
+      userId: session.user.id,
+      action: "REVISED",
+      details: { revisionNo: newRevisionNo, changes: parsed.changes },
+    });
+
+    revalidatePath("/documents");
+    revalidatePath(`/documents/${documentId}`);
+    return { success: true, revisionNo: newRevisionNo };
+  }
+}
+
+// --- cancelDocument (UPDATE) ---
+
+export async function cancelDocument(documentId: string) {
+  const session = await getSession();
+
+  const doc = await db.query.documents.findFirst({
+    where: and(eq(documents.id, documentId), eq(documents.isDeleted, false)),
+    with: {
+      currentRevision: {
+        with: {
+          approver: { columns: { id: true, name: true, email: true } },
+          distributionLists: { with: { department: true } },
+        },
       },
     },
   });
 
   if (!doc) throw new Error("Document not found");
+  if (!doc.currentRevision) throw new Error("No current revision found");
 
+  const revision = doc.currentRevision;
+
+  // Cancel the current revision
   await db
-    .update(documents)
-    .set({ status: "CANCELLED", updatedAt: new Date() })
-    .where(eq(documents.id, id));
+    .update(documentRevisions)
+    .set({ status: "CANCELLED" })
+    .where(eq(documentRevisions.id, revision.id));
 
+  // Log activity with revisionId
   await db.insert(activityLogs).values({
-    documentId: id,
+    documentId,
+    revisionId: revision.id,
     userId: session.user.id,
     action: "CANCELLED",
+    details: { title: revision.title, revisionNo: revision.revisionNo },
   });
 
   revalidatePath("/documents");
-  revalidatePath(`/documents/${id}`);
+  revalidatePath(`/documents/${documentId}`);
 
-  // Async notifications (non-critical)
+  // Async notifications
   try {
-    // Notify approver if document had pending approval
-    if (doc.approverId && doc.status === "PENDING_APPROVAL") {
+    if (revision.approverId && revision.status === "PENDING_APPROVAL" && revision.approver) {
       const pendingApproval = await db.query.approvals.findFirst({
         where: and(
-          eq(approvals.documentId, id),
-          eq(approvals.approverId, doc.approverId),
+          eq(approvals.revisionId, revision.id),
           eq(approvals.status, "PENDING"),
         ),
       });
 
-      if (pendingApproval && doc.approver) {
+      if (pendingApproval) {
         await Promise.allSettled([
           enqueueNotification({
-            userId: doc.approverId,
+            userId: revision.approverId,
             type: "APPROVAL_REQUEST",
             titleKey: "documentCancelled",
-            messageParams: { docTitle: doc.title, docCode: doc.documentCode },
-            relatedDocumentId: id,
+            messageParams: { docTitle: revision.title, docCode: doc.documentCode },
+            relatedDocumentId: documentId,
+            relatedRevisionId: revision.id,
           }),
           enqueueEmail({
-            to: doc.approver.email,
+            to: revision.approver.email,
             subjectKey: "documentCancelled",
-            subjectParams: { title: doc.title },
+            subjectParams: { title: revision.title },
             templateName: "document-cancelled",
             templateProps: {
-              recipientName: doc.approver.name,
-              documentTitle: doc.title,
+              recipientName: revision.approver.name,
+              documentTitle: revision.title,
               documentCode: doc.documentCode,
               cancelledBy: session.user.name,
             },
@@ -449,12 +1019,11 @@ export async function cancelDocument(id: string) {
       }
     }
 
-    // Notify distribution users if document was PUBLISHED
-    if (doc.status === "PUBLISHED") {
+    if (revision.status === "PUBLISHED") {
       const allCancelUserIds = new Set<string>();
 
-      if (doc.distributionLists.length > 0) {
-        const deptIds = doc.distributionLists.map((d) => d.departmentId);
+      if (revision.distributionLists.length > 0) {
+        const deptIds = revision.distributionLists.map((d) => d.departmentId);
         const deptUsers = await db
           .select({ id: users.id })
           .from(users)
@@ -465,7 +1034,7 @@ export async function cancelDocument(id: string) {
       const indivUsers = await db
         .select({ userId: distributionUsers.userId })
         .from(distributionUsers)
-        .where(eq(distributionUsers.documentId, id));
+        .where(eq(distributionUsers.revisionId, revision.id));
       indivUsers.forEach((u) => allCancelUserIds.add(u.userId));
 
       const cancelUserIds = Array.from(allCancelUserIds);
@@ -482,19 +1051,20 @@ export async function cancelDocument(id: string) {
               userId: u.id,
               type: "READ_ASSIGNMENT" as const,
               titleKey: "documentCancelled",
-              messageParams: { docTitle: doc.title, docCode: doc.documentCode },
-              relatedDocumentId: id,
+              messageParams: { docTitle: revision.title, docCode: doc.documentCode },
+              relatedDocumentId: documentId,
+              relatedRevisionId: revision.id,
             })),
           }),
           enqueueBulkEmail({
             emails: targetUsers.map((u) => ({
               to: u.email,
               subjectKey: "documentCancelled",
-              subjectParams: { title: doc.title },
+              subjectParams: { title: revision.title },
               templateName: "document-cancelled" as const,
               templateProps: {
                 recipientName: u.name,
-                documentTitle: doc.title,
+                documentTitle: revision.title,
                 documentCode: doc.documentCode,
                 cancelledBy: session.user.name,
               },
@@ -510,249 +1080,28 @@ export async function cancelDocument(id: string) {
   return { success: true };
 }
 
-export async function publishDocument(id: string) {
+// --- exportDocumentsToExcel (UPDATE) ---
+
+export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
   const session = await getSession();
 
-  const now = new Date();
-  await db
-    .update(documents)
-    .set({ status: "PUBLISHED", publishedAt: now, updatedAt: now })
-    .where(eq(documents.id, id));
+  // Reuse getDocuments logic
+  const result = await getDocuments(filters);
 
-  // Collect target user IDs from both department-based and individual distribution
-  const allUserIds = new Set<string>();
-
-  // Get users from distribution departments
-  const distList = await db
-    .select({ departmentId: distributionLists.departmentId })
-    .from(distributionLists)
-    .where(eq(distributionLists.documentId, id));
-
-  const deptIds = distList.map((d) => d.departmentId);
-  if (deptIds.length > 0) {
-    const deptUsers = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(and(inArray(users.departmentId, deptIds), eq(users.isActive, true)));
-    deptUsers.forEach((u) => allUserIds.add(u.id));
-  }
-
-  // Get individually distributed users
-  const distUsers = await db
-    .select({ userId: distributionUsers.userId })
-    .from(distributionUsers)
-    .where(eq(distributionUsers.documentId, id));
-  distUsers.forEach((u) => allUserIds.add(u.userId));
-
-  const targetUserIds = Array.from(allUserIds);
-
-  if (targetUserIds.length > 0) {
-    // Create read confirmations (DB write)
-    await db.insert(readConfirmations).values(
-      targetUserIds.map((uid) => ({
-        documentId: id,
-        userId: uid,
-      })),
-    );
-  }
-
-  // Log activity (DB write)
-  await db.insert(activityLogs).values({
-    documentId: id,
-    userId: session.user.id,
-    action: "PUBLISHED",
-  });
-
-  revalidatePath("/documents");
-  revalidatePath(`/documents/${id}`);
-
-  // Async notifications (non-critical)
-  try {
-    if (targetUserIds.length > 0) {
-      const doc = await db.query.documents.findFirst({
-        where: eq(documents.id, id),
-        columns: { title: true, documentCode: true },
-      });
-
-      const jobs: Promise<unknown>[] = [];
-
-      jobs.push(enqueueBulkNotifications({
-        notifications: targetUserIds.map((uid) => ({
-          userId: uid,
-          type: "READ_ASSIGNMENT" as const,
-          titleKey: "newReadAssignment",
-          messageParams: { docTitle: doc?.title ?? "", docCode: doc?.documentCode ?? "" },
-          relatedDocumentId: id,
-        })),
-      }));
-
-      const usersForEmail = await db
-        .select({ name: users.name, email: users.email })
-        .from(users)
-        .where(inArray(users.id, targetUserIds));
-
-      if (usersForEmail.length > 0) {
-        jobs.push(enqueueBulkEmail({
-          emails: usersForEmail.map((u) => ({
-            to: u.email,
-            subjectKey: "readAssignment",
-            subjectParams: { title: doc?.title ?? "" },
-            templateName: "read-assignment" as const,
-            templateProps: {
-              userName: u.name,
-              documentTitle: doc?.title ?? "",
-              documentCode: doc?.documentCode ?? "",
-              publishedBy: session.user.name,
-              readUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${id}`,
-            },
-          })),
-        }));
-      }
-
-      await Promise.allSettled(jobs);
-    }
-
-    const docForUploader = await db.query.documents.findFirst({
-      where: eq(documents.id, id),
-      columns: { title: true, documentCode: true, uploadedById: true },
-    });
-
-    if (docForUploader && docForUploader.uploadedById !== session.user.id) {
-      await enqueueNotification({
-        userId: docForUploader.uploadedById,
-        type: "READ_ASSIGNMENT",
-        titleKey: "documentPublished",
-        messageParams: { docTitle: docForUploader.title, docCode: docForUploader.documentCode },
-        relatedDocumentId: id,
-      });
-    }
-  } catch (error) {
-    console.error("[publishDocument] Failed to enqueue notifications:", error);
-  }
-
-  return { success: true };
-}
-
-const reviseDocumentSchema = z.object({
-  changes: z.string().optional(),
-});
-
-export async function reviseDocument(formData: FormData) {
-  const session = await getSession();
-  const documentId = formData.get("documentId") as string;
-  const changes = (formData.get("changes") as string) || undefined;
-  const file = formData.get("file") as File | null;
-
-  if (!documentId) throw new Error("Document ID is required");
-  if (!file || file.size === 0) throw new Error("File is required for revision");
-
-  // Get current document
-  const doc = await db.query.documents.findFirst({
-    where: and(eq(documents.id, documentId), eq(documents.isDeleted, false)),
-  });
-
-  if (!doc) throw new Error("Document not found");
-
-  const newRevisionNo = doc.currentRevisionNo + 1;
-
-  // Save file
-  const fileMeta = await saveFile(file, documentId);
-
-  // Create revision record
-  await db.insert(documentRevisions).values({
-    documentId,
-    revisionNo: newRevisionNo,
-    filePath: fileMeta.path,
-    fileName: fileMeta.fileName,
-    fileSize: fileMeta.size,
-    mimeType: fileMeta.mimeType,
-    changes,
+  // Return data suitable for Excel export with new columns
+  return result.data.map((doc) => ({
+    documentCode: doc.documentCode,
+    title: doc.title,
+    revisionNo: doc.currentRevisionNo,
     status: doc.status,
-    createdById: session.user.id,
-  });
-
-  // Update document
-  await db
-    .update(documents)
-    .set({
-      currentRevisionNo: newRevisionNo,
-      filePath: fileMeta.path,
-      fileName: fileMeta.fileName,
-      fileSize: fileMeta.size,
-      mimeType: fileMeta.mimeType,
-      status: "REVISION",
-      updatedAt: new Date(),
-    })
-    .where(eq(documents.id, documentId));
-
-  // Log activity
-  await db.insert(activityLogs).values({
-    documentId,
-    userId: session.user.id,
-    action: "REVISED",
-    details: { revisionNo: newRevisionNo, changes },
-  });
-
-  // Find the document's previous approver(s) from approvals table
-  const previousApprovals = await db.query.approvals.findMany({
-    where: eq(approvals.documentId, documentId),
-    with: {
-      approver: { columns: { id: true, name: true, email: true } },
-    },
-    orderBy: (approvals, { desc }) => [desc(approvals.createdAt)],
-    limit: 1,
-  });
-
-  if (previousApprovals.length > 0 && previousApprovals[0]) {
-    const lastApproval = previousApprovals[0];
-
-    // Create new pending approval record for the approver
-    await db.insert(approvals).values({
-      documentId,
-      approverId: lastApproval.approverId,
-      approvalType: lastApproval.approvalType,
-      status: "PENDING",
-    });
-
-    // Update document status to PENDING_APPROVAL
-    await db
-      .update(documents)
-      .set({ status: "PENDING_APPROVAL" })
-      .where(eq(documents.id, documentId));
-
-    // Async notifications (non-critical)
-    try {
-      await Promise.allSettled([
-        enqueueNotification({
-          userId: lastApproval.approverId,
-          type: "APPROVAL_REQUEST",
-          titleKey: "documentRevised",
-          messageParams: { docTitle: doc.title, docCode: doc.documentCode, version: newRevisionNo },
-          relatedDocumentId: documentId,
-        }),
-        enqueueEmail({
-          to: lastApproval.approver.email,
-          subjectKey: "documentRevised",
-          subjectParams: { title: doc.title },
-          templateName: "document-revised",
-          templateProps: {
-            recipientName: lastApproval.approver.name,
-            documentTitle: doc.title,
-            documentCode: doc.documentCode,
-            revisedBy: session.user.name,
-            revisionNotes: changes,
-            documentUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
-          },
-        }),
-      ]);
-    } catch (error) {
-      console.error("[reviseDocument] Failed to enqueue notifications:", error);
-    }
-  }
-
-  revalidatePath("/documents");
-  revalidatePath(`/documents/${documentId}`);
-  return { success: true, revisionNo: newRevisionNo };
+    documentType: doc.documentType,
+    departmentName: doc.departmentName,
+    preparerName: doc.preparerName,
+    approverName: doc.approverName,
+    publishedAt: doc.publishedAt?.toISOString() ?? "",
+    readConfirmed: doc.readConfirmed,
+    readTotal: doc.readTotal,
+  }));
 }
 
 // --- Data loaders for forms ---
