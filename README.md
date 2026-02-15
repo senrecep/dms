@@ -49,7 +49,7 @@ A full-featured, enterprise-grade document management system built for organizat
 |-------|-----------|
 | Framework | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) |
 | Language | [TypeScript](https://www.typescriptlang.org/) (strict mode) |
-| Runtime | [Bun](https://bun.sh/) (dev & build) · [Node.js 22](https://nodejs.org/) (Docker runtime) |
+| Runtime | [Bun](https://bun.sh/) (dev, build & Docker runtime) |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) (new-york variant) |
 | Database | [PostgreSQL 17](https://www.postgresql.org/) via [Drizzle ORM](https://orm.drizzle.team/) |
 | Authentication | [Better Auth](https://www.better-auth.com/) (email + password, session-based) |
@@ -384,16 +384,16 @@ DMS is containerized with a multi-stage Dockerfile:
 |-------|------|---------|
 | `deps` | `oven/bun:1` | Install dependencies (fast lockfile + native dep handling) |
 | `build` | `oven/bun:1` | Build Next.js application (@parcel/watcher compatibility) |
-| `runner` | `node:22-alpine` | Production app server (Node.js for reliable Docker DNS) |
-| `worker` | `node:22-alpine` | Background job worker (tsx for TypeScript execution) |
-| `init` | `node:22-alpine` | One-shot: db:push + db:seed |
+| `runner` | `oven/bun:1-slim` | Production app server |
+| `worker` | `oven/bun:1-slim` | Background job worker |
+| `init` | `oven/bun:1-slim` | One-shot: db:push + db:seed |
 
 Production deploys as five Docker Compose services:
 - **db** — PostgreSQL 17 (Alpine)
 - **redis** — Redis 7 (Alpine, AOF persistence, password auth)
 - **init** — One-shot container: runs `db:push` + `db:seed` on every deploy (idempotent), then exits
-- **app** — Next.js application (Node.js runtime), starts after init completes
-- **worker** — BullMQ background job processor (Node.js + tsx), starts after init completes
+- **app** — Next.js application (Bun runtime), starts after init completes
+- **worker** — BullMQ background job processor (Bun runtime), starts after init completes
 
 ### Compose Files
 
