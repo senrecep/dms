@@ -2,10 +2,12 @@
 
 ## Overview
 
-DMS is deployed as a Docker Compose stack with four services:
+DMS is deployed as a Docker Compose stack with six services:
 
 - **app** — Next.js application (Bun runtime)
 - **worker** — BullMQ background job processor (email + notifications)
+- **init** — One-shot container: schema push + conditional seed
+- **cron** — Alpine container for scheduled reminders and escalations
 - **db** — PostgreSQL 17 (Alpine)
 - **redis** — Redis 7 (Alpine, AOF persistence, password auth)
 
@@ -15,8 +17,8 @@ Two production compose files are provided:
 
 | File | Use Case | Ports |
 |------|----------|-------|
-| `docker-compose.production.yml` | Self-hosted VPS / bare-metal | `${APP_PORT:-3000}:3000` — configurable via env |
-| `docker-compose.dokploy.yml` | Dokploy | None — Dokploy's Traefik reverse proxy handles domain routing, SSL, and container networking internally |
+| `docker-compose.production.yml` | Self-hosted VPS / bare-metal (6 services) | `${APP_PORT:-3000}:3000` — configurable via env |
+| `docker-compose.dokploy.yml` | Dokploy (6 services) | None — Dokploy's Traefik reverse proxy handles domain routing, SSL, and container networking internally |
 
 > Local development uses `docker-compose.yml` (only db + redis, app runs via `bun dev`).
 
@@ -54,6 +56,11 @@ CRON_SECRET=<generate_strong_secret>
 SEED_ADMIN_NAME=System Admin
 SEED_ADMIN_EMAIL=admin@yourdomain.com
 SEED_ADMIN_PASSWORD=<generate_strong_password>
+SEED_DEFAULT_PASSWORD=<password_for_test_users>
+SEED_EMAIL_DOMAIN=yourdomain.com
+
+# First deploy only — remove after initial setup
+FORCE_SEED=true
 ```
 
 > **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address, language) is managed through the **admin panel** at `/settings` after first login. The seed script creates sensible defaults. You do **not** need email-related environment variables in production — configure everything from the UI.
@@ -90,12 +97,25 @@ docker compose -f docker-compose.production.yml up -d --build
 ### Automatic Database Setup
 
 The `init` service runs automatically on every deploy:
-1. **db:push** — Applies the latest schema to PostgreSQL (idempotent, only applies changes)
-2. **db:seed** — Creates admin user, departments, and default settings (skips if already exist)
+1. **db:push** — Applies the latest Drizzle schema to PostgreSQL (safe, only applies diffs)
+2. **Seed check** — Seed only runs if the database is empty (no users) or `FORCE_SEED=true`
 
 The `app` and `worker` services wait for `init` to complete before starting (`service_completed_successfully`).
 
-> The seed uses `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` from your environment. After logging in, the admin can create additional users from `/users` and configure email settings from `/settings`.
+> **First deploy:** Set `FORCE_SEED=true` in your environment. This creates the admin user, departments, sample documents, and system settings. After successful deploy, **remove** `FORCE_SEED` or set it to `false` to prevent data loss on subsequent deploys.
+
+> **Warning:** The seed script **clears all existing data** before inserting. Never leave `FORCE_SEED=true` in production after initial setup.
+
+**Seed environment variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SEED_ADMIN_NAME` | `System Admin` | Admin display name |
+| `SEED_ADMIN_EMAIL` | `admin@dms.com` | Admin login email |
+| `SEED_ADMIN_PASSWORD` | — | Admin password (required) |
+| `SEED_DEFAULT_PASSWORD` | `User123!` | Password for test users |
+| `SEED_EMAIL_DOMAIN` | `dms.com` | Email domain for test users |
+| `FORCE_SEED` | `false` | Force re-seed (clears existing data) |
 
 ## 4. Deploy via Dokploy
 
@@ -149,6 +169,24 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
 
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: init
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD}
+      SEED_EMAIL_DOMAIN: ${SEED_EMAIL_DOMAIN}
+      FORCE_SEED: ${FORCE_SEED:-false}
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
   app:
     build:
       context: .
@@ -166,6 +204,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
+      init: { condition: service_completed_successfully }
 
   worker:
     build:
@@ -181,6 +220,18 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
+      init: { condition: service_completed_successfully }
+
+  cron:
+    image: alpine:3.20
+    restart: always
+    command: >
+      sh -c "apk add --no-cache curl &&
+        echo '0 9,18 * * * curl -X POST -H \"Authorization: Bearer ${CRON_SECRET}\" http://app:3000/api/cron/reminders' | crontab - &&
+        echo '0 10,19 * * * curl -X POST -H \"Authorization: Bearer ${CRON_SECRET}\" http://app:3000/api/cron/escalations' | crontab - &&
+        crond -f"
+    depends_on:
+      app: { condition: service_started }
 
 volumes:
   postgres_data:    # Database files
@@ -232,10 +283,9 @@ git pull origin main
 
 # Rebuild and redeploy (only app + worker, db/redis untouched)
 docker compose -f docker-compose.production.yml up -d --build app worker
-
-# If the schema changed, run migrations
-docker compose exec app bun run db:push
 ```
+
+> Schema migrations are handled automatically by the `init` service on every deploy. No manual `db:push` is needed.
 
 ## 8. Monitoring and Logs
 
@@ -328,3 +378,4 @@ docker system prune -f
 - [ ] Regular backup plan is in place (daily DB + weekly uploads)
 - [ ] Log rotation is configured (set in `docker-compose.production.yml`)
 - [ ] Email settings are configured via admin panel (`/settings`)
+- [ ] `FORCE_SEED` is removed or set to `false` after initial deployment

@@ -47,6 +47,8 @@ CRON_SECRET=dev-cron-secret-change-in-production
 SEED_ADMIN_NAME=System Admin
 SEED_ADMIN_EMAIL=admin@dms.com
 SEED_ADMIN_PASSWORD=admin123456
+SEED_DEFAULT_PASSWORD=User123!
+SEED_EMAIL_DOMAIN=dms.com
 ```
 
 > **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address) is managed through the **admin panel** at `/settings` after first login. The seed script creates default settings. You do not need to set email-related environment variables for local development — configure them from the UI instead.
@@ -90,25 +92,55 @@ Push the schema to PostgreSQL:
 bun run db:push
 ```
 
-## 6. Create the Initial Admin User
+## 6. Seed the Database
 
-The seed script uses the `SEED_ADMIN_*` variables from `.env.local`:
+The seed script creates test data using `SEED_*` variables from `.env.local`:
 
 ```bash
 bun run db:seed
 ```
 
-This command:
-- Creates 4 sample departments (Quality, Production, Engineering, HR)
-- Creates an ADMIN user with the configured email/password
-- Creates default system settings (email config, reminder periods, etc.)
-- Is idempotent — safe to run multiple times
+This creates:
+- **4 departments**: Kalite Yönetimi, Üretim, İnsan Kaynakları, Bilgi Teknolojileri
+- **11 users**: 1 admin + 4 managers + 6 users (across all departments)
+- **11 sample documents** covering all 8 workflow statuses
+- **14 revisions** with full approval, distribution, and read tracking data
+- **13 system settings** (email config, reminder periods, etc.)
 
-Login credentials:
-- **Email**: `SEED_ADMIN_EMAIL` from `.env.local` (default: `admin@dms.com`)
-- **Password**: `SEED_ADMIN_PASSWORD` from `.env.local`
+> **Warning:** The seed script **clears all existing data** before inserting. It is NOT idempotent — do not run on a database with real data.
 
-> After logging in, the admin can create new users from the `/users` page and configure email settings from `/settings`.
+**Login credentials:**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `SEED_ADMIN_EMAIL` (default: `admin@dms.com`) | `SEED_ADMIN_PASSWORD` |
+| Managers | `quality.manager@{SEED_EMAIL_DOMAIN}`, etc. | `SEED_DEFAULT_PASSWORD` |
+| Users | `quality.user@{SEED_EMAIL_DOMAIN}`, etc. | `SEED_DEFAULT_PASSWORD` |
+
+**Seed environment variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SEED_ADMIN_NAME` | `System Admin` | Admin display name |
+| `SEED_ADMIN_EMAIL` | `admin@dms.com` | Admin login email |
+| `SEED_ADMIN_PASSWORD` | `Admin123!` | Admin password |
+| `SEED_DEFAULT_PASSWORD` | `User123!` | Password for all other seed users |
+| `SEED_EMAIL_DOMAIN` | `dms.com` | Email domain for seed users |
+
+**Document status coverage in seed data:**
+
+| Status | Document Code | Description |
+|--------|--------------|-------------|
+| DRAFT | DOC-IT-001 | Freshly uploaded, not submitted |
+| PENDING_APPROVAL | DOC-PRD-002 | Awaiting preparer approval |
+| PREPARER_APPROVED | DOC-PRD-001 (rev1) | Awaiting final approver |
+| PREPARER_REJECTED | DOC-IT-002 | Rejected by preparer with comment |
+| APPROVED | DOC-QMS-002 | Ready to publish (migrated, rev 5) |
+| APPROVER_REJECTED | DOC-HR-001 | Rejected by approver with comment |
+| PUBLISHED | DOC-QMS-001, DOC-HR-002, DOC-PRD-003, DOC-HR-003 | Various read tracking states |
+| CANCELLED | DOC-QMS-003 | Cancelled document |
+
+> After logging in, the admin can create new users from `/users` and configure email settings from `/settings`.
 
 ## 7. Start the Development Server
 
@@ -140,7 +172,7 @@ The worker runs in watch mode and auto-restarts on code changes.
 | `bun run db:generate` | Generate Drizzle migration files |
 | `bun run db:push` | Push schema to database (no migration files) |
 | `bun run db:studio` | Open Drizzle Studio GUI |
-| `bun run db:seed` | Seed admin user, departments, and system settings |
+| `bun run db:seed` | Seed users, departments, sample documents, and settings |
 | `bun run worker` | Start BullMQ worker |
 | `bun run worker:dev` | Start BullMQ worker (watch mode) |
 

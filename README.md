@@ -37,11 +37,11 @@
 ## Features
 
 - **Document Management** — Upload, version, and organize documents with unique codes and classification (Procedure, Instruction, Form)
-- **Multi-Level Approval Workflow** — Intermediate and final approval stages with configurable approvers
+- **Multi-Level Approval Workflow** — Two-stage approval (preparer + approver) with same-person shortcut, rejection with comments, and configurable escalation
 - **Controlled Distribution** — Distribute published documents to specific departments and/or individual users
 - **Read Confirmation Tracking** — Track who has read published documents in real time
 - **Automated Reminders & Escalation** — Configurable reminder periods for unread documents and pending approvals, with automatic escalation to management
-- **Revision Control** — Full revision history with automatic archiving of previous versions
+- **Revision Control** — Full revision history with master/revision architecture — each revision independently tracks metadata, files, approvals, distribution, and read confirmations
 - **Role-Based Access Control** — Three roles (Admin, Manager, User) with granular permissions enforced at the server level
 - **Real-Time Notifications** — Server-Sent Events (SSE) powered by Redis Pub/Sub for instant in-app notifications
 - **Async Email Delivery** — All emails processed through BullMQ job queue for reliability and retry support
@@ -50,6 +50,7 @@
 - **Soft Delete** — No data is ever permanently deleted; all records use soft-delete flags
 - **Dark Mode** — Full dark mode support via CSS variables
 - **Mobile-Responsive** — Mobile-first design with responsive breakpoints
+- **Progressive Web App (PWA)** — Installable on mobile and desktop with offline-capable service worker
 
 ## Tech Stack
 
@@ -152,7 +153,7 @@ src/
 │   │   ├── config.ts             #   Email provider config + language cache
 │   │   ├── index.ts              #   sendEmail() core function
 │   │   ├── translations.ts       #   Email string dictionary (TR + EN)
-│   │   └── templates/            #   11 React Email templates
+│   │   └── templates/            #   12 React Email templates
 │   ├── jobs/                     #   BullMQ job handlers
 │   │   ├── approval-escalation.ts
 │   │   ├── approval-reminder.ts
@@ -197,7 +198,7 @@ bun install
 # 5. Push database schema
 bun run db:push
 
-# 6. Seed initial data (admin user + departments)
+# 6. Seed initial data (admin + test users, departments, sample documents)
 bun run db:seed
 
 # 7. Start the development server
@@ -222,43 +223,55 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with the credent
 | `bun run db:generate` | Generate Drizzle migrations |
 | `bun run db:push` | Push schema directly to database |
 | `bun run db:studio` | Open Drizzle Studio GUI |
-| `bun run db:seed` | Seed admin user, departments, and settings |
+| `bun run db:seed` | Seed users, departments, sample documents, and settings |
 | `bun run worker` | Start BullMQ worker (production) |
 | `bun run worker:dev` | Start BullMQ worker (watch mode) |
 
 ## Document Lifecycle
 
-Every document follows a structured lifecycle with full audit trail:
+Every document follows a structured lifecycle with full audit trail. Documents use a **master/revision** architecture: the `documents` table holds only the unique code, while all metadata, files, and workflow state live in `document_revisions`.
 
+### Approval Flows
+
+**Two-person flow** (preparer ≠ approver):
 ```
-  ┌─────────┐     Submit      ┌──────────────────┐
-  │  Draft   │───────────────▶│ Pending Approval  │
-  └─────────┘                 └────────┬─────────┘
-       ▲                               │
-       │ Rejected               Intermediate
-       │                        Approval ↓
-       │                     ┌──────────────────────┐
-       └─────────────────────│Intermediate Approval  │
-                             └──────────┬───────────┘
-                                        │
-                                  Final Approval
-                                        ↓
-                              ┌──────────────────┐      Publish     ┌───────────┐
-                              │     Approved     │─────────────────▶│ Published │
-                              └──────────────────┘                  └─────┬─────┘
-                                                                          │
-                                                                    Revise │
-                                                                          ↓
-                                                                   ┌───────────┐
-                                                        Old rev →  │ Revision  │
-                                                        Passive    └───────────┘
+Draft → Pending Approval → Preparer Approved → Approved → Published
 ```
 
-**Post-publish automation:**
-1. All users in the distribution list receive email notifications
+**Same-person flow** (preparer = approver):
+```
+Draft → Pending Approval → Approved → Published
+```
+
+**Rejection paths:**
+```
+Pending Approval → Preparer Rejected → (new revision required)
+Preparer Approved → Approver Rejected → (new revision required)
+```
+
+**Other transitions:**
+- Any non-published status → **Cancelled**
+- Published → **New Revision** (creates next revision, previous stays published in history)
+
+### Status Reference
+
+| Status | Description |
+|--------|-------------|
+| `DRAFT` | Initial state, document uploaded but not submitted |
+| `PENDING_APPROVAL` | Submitted, awaiting preparer approval |
+| `PREPARER_APPROVED` | Preparer approved, awaiting final approver |
+| `PREPARER_REJECTED` | Preparer rejected with comment |
+| `APPROVED` | Final approver approved, ready to publish |
+| `APPROVER_REJECTED` | Final approver rejected with comment |
+| `PUBLISHED` | Live document, distributed to users |
+| `CANCELLED` | Document cancelled, no longer active |
+
+### Post-Publish Automation
+
+1. All users in the distribution list receive email + in-app notifications
 2. Read tasks are created for each recipient
-3. Automated reminders are sent after configurable days
-4. Unread tasks escalate to department managers
+3. Automated reminders after configurable days (default: 3)
+4. Unread tasks escalate to department managers after configurable days (default: 7)
 
 ## Authentication & Roles
 
@@ -281,13 +294,14 @@ DMS supports two email providers, configurable from the admin settings panel:
 - **Resend** — API-based delivery (recommended for most deployments)
 - **SMTP** — Traditional SMTP for on-premise or custom mail servers
 
-All 11 email templates are built with [React Email](https://react.email/) and support **TR/EN localization** via a standalone translation dictionary (since templates render in the BullMQ worker process where React context is unavailable).
+All 12 email templates are built with [React Email](https://react.email/) and support **TR/EN localization** via a standalone translation dictionary (since templates render in the BullMQ worker process where React context is unavailable).
 
 **Email templates:**
 | Template | Trigger |
 |----------|---------|
 | Welcome | New user created |
 | Approval Request | Document submitted for approval |
+| Preparer Approved | Preparer approves, document advances to final approver |
 | Approval Reminder | Pending approval exceeds reminder threshold |
 | Document Approved | Approver approves a document |
 | Document Rejected | Approver rejects a document |
@@ -380,15 +394,17 @@ PostgreSQL 17 with 15 schema files managed by Drizzle ORM:
 | `users` | User accounts with roles (extends Better Auth) |
 | `sessions` / `accounts` / `verifications` | Better Auth session management |
 | `departments` | Organizational departments |
-| `documents` | Core document records with status, code, type |
-| `document_revisions` | Version history with file references |
-| `approvals` | Approval records (intermediate + final) |
-| `distribution_lists` | Department-level document distribution |
-| `distribution_users` | User-level document distribution |
-| `read_confirmations` | Read confirmation tracking per user |
+| `documents` | Master document records (document code, current revision pointer) |
+| `document_revisions` | Revision records with title, type, status, file, preparer, approver per revision |
+| `approvals` | Approval records (preparer + approver stages per revision) |
+| `distribution_lists` | Department-level distribution per revision |
+| `distribution_users` | User-level distribution per revision |
+| `read_confirmations` | Read confirmation tracking per user per revision |
 | `notifications` | In-app notification records |
 | `activity_logs` | Full audit trail (JSONB details) |
 | `system_settings` | Key-value system configuration |
+
+Documents use a master/revision pattern: `documents` holds only the unique code and a pointer to the current revision; all metadata (title, type, status, file, approvals) lives in `document_revisions`.
 
 **Key conventions:**
 - Soft delete everywhere (`isDeleted` + `deletedAt`)
@@ -406,12 +422,12 @@ DMS is containerized with a multi-stage Dockerfile:
 | `build` | `oven/bun:1` | Build Next.js application (@parcel/watcher compatibility) |
 | `runner` | `oven/bun:1-slim` | Production app server |
 | `worker` | `oven/bun:1-slim` | Background job worker |
-| `init` | `oven/bun:1-slim` | One-shot: db:push + db:seed |
+| `init` | `oven/bun:1-slim` | One-shot: schema push + conditional seed |
 
 Production deploys as six Docker Compose services:
 - **db** — PostgreSQL 17 (Alpine)
 - **redis** — Redis 7 (Alpine, AOF persistence, password auth)
-- **init** — One-shot container: runs `db:push` + `db:seed` on every deploy (idempotent), then exits
+- **init** — One-shot container: runs `db:push` on every deploy; seed only runs if database is empty or `FORCE_SEED=true`
 - **app** — Next.js application (Bun runtime), starts after init completes
 - **worker** — BullMQ background job processor (Bun runtime), starts after init completes
 - **cron** — Alpine cron container, calls `/api/cron` twice daily for reminders and escalations
@@ -423,8 +439,8 @@ The project provides three compose files for different environments:
 | File | Environment | Ports | Use Case |
 |------|-------------|-------|----------|
 | `docker-compose.yml` | Local development | db: 5432, redis: 6379 | Only starts db + redis; app runs via `bun dev` |
-| `docker-compose.production.yml` | Self-hosted VPS | `${APP_PORT:-3000}:3000` | All 4 services, port configurable via env |
-| `docker-compose.dokploy.yml` | Dokploy | None (internal) | All 4 services, no ports exposed — Dokploy's Traefik reverse proxy handles domain routing and SSL |
+| `docker-compose.production.yml` | Self-hosted VPS | `${APP_PORT:-3000}:3000` | All 6 services, port configurable via env |
+| `docker-compose.dokploy.yml` | Dokploy | None (internal) | All 6 services, no ports exposed — Dokploy's Traefik reverse proxy handles domain routing and SSL |
 
 **Self-hosted VPS:**
 
@@ -454,6 +470,9 @@ docker compose -f docker-compose.production.yml up -d --build
 | `SEED_ADMIN_NAME` | No | Initial admin name (default: `System Admin`) |
 | `SEED_ADMIN_EMAIL` | No | Initial admin email (default: `admin@dms.com`) |
 | `SEED_ADMIN_PASSWORD` | Seed | Initial admin password (required for seeding) |
+| `SEED_DEFAULT_PASSWORD` | No | Default password for seed test users (default: `User123!`) |
+| `SEED_EMAIL_DOMAIN` | No | Email domain for seed test users (default: `dms.com`) |
+| `FORCE_SEED` | No | Set to `true` to force re-seed (clears existing data) |
 
 > **Email configuration** (provider, API keys, SMTP credentials, sender address, language) is managed through the admin panel at `/settings` — not via environment variables. The seed script creates sensible defaults.
 
@@ -530,13 +549,14 @@ DMS has three roles with distinct capabilities. Permissions are enforced at the 
 
 | Event | Who Receives |
 |-------|-------------|
-| Document submitted for approval | Assigned approver |
-| Document approved | Document owner |
-| Document rejected | Document owner |
+| Document submitted for approval | Assigned preparer |
+| Preparer approved | Final approver |
+| Document approved | Document creator |
+| Document rejected (preparer or approver) | Document creator |
 | Document published | All users in distribution list |
 | Read reminder (after N days) | Users who haven't confirmed reading |
 | Approval reminder (after N days) | Approver with pending approval |
-| Escalation notice | Admin (when approval/read exceeds escalation threshold) |
+| Escalation notice | Department manager (for reads), Admin (for approvals) |
 
 ## License
 
