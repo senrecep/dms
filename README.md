@@ -324,6 +324,18 @@ bun run worker:dev
 bun run worker
 ```
 
+### Scheduled Jobs (Cron)
+
+Reminder and escalation jobs are triggered by a periodic HTTP call to `/api/cron` (protected by `CRON_SECRET`). In production, a lightweight Alpine cron container is included in both Docker Compose files and calls the endpoint twice daily (09:00 and 18:00 UTC):
+
+| Job | Setting Key | Default | Description |
+|-----|-------------|---------|-------------|
+| Approval Reminder | `default_reminder_days` | 3 days | Remind approvers about stale pending approvals |
+| Read Reminder | `read_reminder_days` | 3 days | Remind users about unconfirmed read tasks |
+| Approval Escalation | `default_escalation_days` | 7 days | Escalate long-pending approvals to management |
+
+All thresholds are configurable from the admin panel at `/settings`.
+
 ## Internationalization
 
 ### UI (next-intl)
@@ -388,12 +400,13 @@ DMS is containerized with a multi-stage Dockerfile:
 | `worker` | `oven/bun:1-slim` | Background job worker |
 | `init` | `oven/bun:1-slim` | One-shot: db:push + db:seed |
 
-Production deploys as five Docker Compose services:
+Production deploys as six Docker Compose services:
 - **db** — PostgreSQL 17 (Alpine)
 - **redis** — Redis 7 (Alpine, AOF persistence, password auth)
 - **init** — One-shot container: runs `db:push` + `db:seed` on every deploy (idempotent), then exits
 - **app** — Next.js application (Bun runtime), starts after init completes
 - **worker** — BullMQ background job processor (Bun runtime), starts after init completes
+- **cron** — Alpine cron container, calls `/api/cron` twice daily for reminders and escalations
 
 ### Compose Files
 

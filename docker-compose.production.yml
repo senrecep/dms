@@ -149,6 +149,26 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  cron:
+    image: alpine:3.20
+    restart: always
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        echo '0 9,18 * * * curl -sf -H \"Authorization: Bearer '\"$$CRON_SECRET\"'\" http://app:3000/api/cron > /proc/1/fd/1 2>&1' | crontab - &&
+        crond -f
+      "
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+    depends_on:
+      app:
+        condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+
 volumes:
   postgres_data:
   redis_data:
