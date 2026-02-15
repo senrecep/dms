@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline - DMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #2C3E50;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 480px;
+    }
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    p {
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .retry-btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      background: #5DADE2;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .retry-btn:hover {
+      background: #3498DB;
+    }
+    .retry-btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2C3E50"/>
+          <stop offset="100%" stop-color="#1a252f"/>
+        </linearGradient>
+        <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#5DADE2"/>
+          <stop offset="100%" stop-color="#3498DB"/>
+        </linearGradient>
+      </defs>
+      <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+      <path d="M176 96 L352 96 L352 368 L144 368 L144 128 Z" fill="white" opacity="0.95"/>
+      <path d="M144 128 L176 128 L176 96 Z" fill="#D5DBDB"/>
+      <rect x="184" y="160" width="128" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+      <rect x="184" y="208" width="96" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+      <rect x="184" y="256" width="128" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+      <rect x="184" y="304" width="80" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+      <circle cx="336" cy="336" r="96" fill="url(#accent)"/>
+      <path d="M292 336 L320 364 L380 304" stroke="white" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <h1>You are currently offline</h1>
+    <p>Please check your internet connection and try again. Your work is safe and will sync when you reconnect.</p>
+    <button class="retry-btn" onclick="location.reload()">Retry Connection</button>
+  </div>
+</body>
+</html>

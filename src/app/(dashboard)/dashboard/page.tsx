@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -11,6 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getDashboardStats, getRecentActivity, getPendingTasks } from "@/actions/dashboard";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Overview of your documents, approvals, and recent activity.",
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const session = await getSession();

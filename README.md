@@ -1,9 +1,17 @@
-# DMS — Document Management System
+<p align="center">
+  <img src="public/logo.svg" width="120" alt="DMS Logo" />
+</p>
 
-[![GitHub](https://img.shields.io/badge/GitHub-senrecep%2Fdms-181717?logo=github)](https://github.com/senrecep/dms)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<h1 align="center">DMS — Document Management System</h1>
 
-A full-featured, enterprise-grade document management system built for organizations that need structured document creation, multi-level approval workflows, controlled distribution, and auditable read confirmations. Designed with a corporate aesthetic and role-based access control.
+<p align="center">
+  <a href="https://github.com/senrecep/dms"><img src="https://img.shields.io/badge/GitHub-senrecep%2Fdms-181717?logo=github" alt="GitHub"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  A full-featured, enterprise-grade document management system built for organizations that need structured document creation, multi-level approval workflows, controlled distribution, and auditable read confirmations. Designed with a corporate aesthetic and role-based access control.
+</p>
 
 ## Table of Contents
 

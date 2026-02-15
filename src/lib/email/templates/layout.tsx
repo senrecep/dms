@@ -4,12 +4,15 @@ import {
   Head,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
 import { emailStrings, type EmailLocale } from "../translations";
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000";
 
 const colors = {
   primary: "#2C3E50",
@@ -37,7 +40,22 @@ export function EmailLayout({ preview, children, locale = "tr" }: EmailLayoutPro
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={logo}>DMS</Text>
+            <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: "100%" }}>
+              <tr>
+                <td style={{ verticalAlign: "middle" }}>
+                  <Img
+                    src={`${appUrl}/logo.svg`}
+                    width="36"
+                    height="36"
+                    alt="DMS"
+                    style={logoImg}
+                  />
+                </td>
+                <td style={{ verticalAlign: "middle", paddingLeft: "12px" }}>
+                  <Text style={logoText}>DMS</Text>
+                </td>
+              </tr>
+            </table>
           </Section>
           <Section style={content}>{children}</Section>
           <Hr style={hr} />
@@ -72,7 +90,11 @@ const header = {
   padding: "24px 32px",
 };
 
-const logo = {
+const logoImg = {
+  borderRadius: "8px",
+};
+
+const logoText = {
   color: colors.white,
   fontSize: "20px",
   fontWeight: "700" as const,

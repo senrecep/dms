@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2C3E50"/>
+      <stop offset="100%" stop-color="#1a252f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5DADE2"/>
+      <stop offset="100%" stop-color="#3498DB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+
+  <!-- Document -->
+  <path d="M176 96 L352 96 L352 368 L144 368 L144 128 Z" fill="white" opacity="0.95"/>
+  <path d="M144 128 L176 128 L176 96 Z" fill="#D5DBDB"/>
+
+  <!-- Text lines -->
+  <rect x="184" y="160" width="128" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+  <rect x="184" y="208" width="96" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+  <rect x="184" y="256" width="128" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+  <rect x="184" y="304" width="80" height="16" rx="8" fill="#2C3E50" opacity="0.15"/>
+
+  <!-- Checkmark badge -->
+  <circle cx="336" cy="336" r="96" fill="url(#accent)"/>
+  <path d="M292 336 L320 364 L380 304" stroke="white" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
