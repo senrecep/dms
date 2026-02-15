@@ -1,0 +1,400 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "search": "Search",
+      "filter": "Filter",
+      "export": "Export",
+      "submit": "Submit",
+      "confirm": "Confirm",
+      "back": "Back",
+      "next": "Next",
+      "close": "Close",
+      "upload": "Upload",
+      "download": "Download",
+      "refresh": "Refresh",
+      "view": "View",
+      "viewDetails": "View Details"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "loading": "Loading...",
+      "error": "An error occurred",
+      "success": "Operation completed successfully"
+    },
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "department": "Department",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions",
+      "description": "Description",
+      "type": "Type",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "noResults": "No results found",
+      "uploadedBy": "Uploaded By",
+      "requestedBy": "Requested By",
+      "respondedAt": "Responded At",
+      "approvalType": "Approval Type",
+      "readStatus": "Read Status",
+      "notRead": "Not read",
+      "revisionNo": "Rev No",
+      "publishedBy": "Published By"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing",
+      "of": "of",
+      "entries": "entries",
+      "page": "Page"
+    },
+    "confirm": {
+      "title": "Are you sure?",
+      "description": "This action cannot be undone.",
+      "yes": "Yes, proceed",
+      "no": "No, cancel"
+    }
+  },
+  "nav": {
+    "navigation": "Navigation",
+    "administration": "Administration",
+    "dashboard": "Dashboard",
+    "documents": "Documents",
+    "approvals": "Approvals",
+    "readTasks": "Read Tasks",
+    "departments": "Departments",
+    "users": "Users",
+    "settings": "Settings",
+    "guide": "Guide",
+    "notifications": "Notifications"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "email": "Email Address",
+      "password": "Password",
+      "submit": "Sign In",
+      "forgotPassword": "Forgot your password?"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password. Please try again.",
+      "accountDisabled": "Your account has been disabled. Please contact an administrator.",
+      "sessionExpired": "Your session has expired. Please sign in again."
+    }
+  },
+  "documents": {
+    "list": {
+      "title": "Documents",
+      "empty": "No documents found.",
+      "searchPlaceholder": "Search documents..."
+    },
+    "status": {
+      "draft": "Draft",
+      "pendingApproval": "Pending Approval",
+      "intermediateApproval": "Intermediate Approval",
+      "approved": "Approved",
+      "published": "Published",
+      "revision": "Revision",
+      "passive": "Passive",
+      "cancelled": "Cancelled"
+    },
+    "type": {
+      "procedure": "Procedure",
+      "instruction": "Instruction",
+      "form": "Form"
+    },
+    "form": {
+      "title": "Document Form",
+      "documentCode": "Document Code",
+      "documentName": "Document Name",
+      "selectType": "Select Document Type",
+      "selectDepartment": "Select Department",
+      "selectApprover": "Select Approver",
+      "distributionList": "Distribution List (Departments)",
+      "distributionUsers": "Distribution List (Users)",
+      "searchUsers": "Search users...",
+      "uploadFile": "Upload File",
+      "revisionNotes": "Revision Notes",
+      "preparerDepartment": "Preparer Department",
+      "selectPreparerDepartment": "Select preparer department",
+      "proxyUpload": "Upload on behalf of another department"
+    },
+    "detail": {
+      "title": "Document Details",
+      "revisionHistory": "Revision History",
+      "approvalHistory": "Approval History",
+      "distributionStatus": "Distribution Status",
+      "activityLog": "Activity Log",
+      "distributionDepartments": "Distribution Departments",
+      "distributionUsers": "Distribution Users",
+      "readConfirmations": "Read Confirmations",
+      "noRevisions": "No revisions yet.",
+      "noApprovals": "No approvals yet.",
+      "noDistribution": "No departments set.",
+      "noActivity": "No activity yet.",
+      "currentRevision": "Current revision",
+      "newRevision": "New revision will be",
+      "revisionChangesPlaceholder": "Describe the changes in this revision..."
+    },
+    "upload": {
+      "title": "Upload Document",
+      "dragDrop": "Drag and drop files here, or click to browse",
+      "selectFile": "Select File",
+      "uploading": "Uploading...",
+      "uploadSuccess": "File uploaded successfully.",
+      "uploadError": "Failed to upload file. Please try again."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "revise": "Request Revision",
+      "cancel": "Cancel Document",
+      "publish": "Publish",
+      "markAsRead": "Mark as Read"
+    },
+    "toast": {
+      "cancelled": "Document cancelled",
+      "cancelFailed": "Failed to cancel document",
+      "published": "Document published",
+      "publishFailed": "Failed to publish document",
+      "revisionCreated": "Revision {revNo} created",
+      "revisionFailed": "Failed to create revision",
+      "fileRequired": "Please select a file"
+    }
+  },
+  "approvals": {
+    "list": {
+      "title": "Approvals",
+      "pending": "Pending Approvals",
+      "completed": "Completed Approvals",
+      "empty": "No approvals found."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "form": {
+      "rejectionReason": "Rejection Reason",
+      "rejectionReasonPlaceholder": "Please provide a reason for rejection...",
+      "approvalComment": "Approval Comment"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "escalated": "Escalated"
+    },
+    "type": {
+      "intermediate": "Intermediate",
+      "final": "Final"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications.",
+    "markAllRead": "Mark All as Read",
+    "viewAll": "View All Notifications",
+    "types": {
+      "approvalRequest": "Approval Request",
+      "documentRejected": "Document Rejected",
+      "readAssignment": "Read Assignment",
+      "reminder": "Reminder",
+      "escalation": "Escalation",
+      "documentPublished": "Document Published"
+    },
+    "titles": {
+      "newApprovalRequest": "New Approval Request",
+      "documentCancelled": "Document Cancelled",
+      "documentPublished": "Document Published",
+      "documentRevised": "Document Revised",
+      "newFinalApprovalRequest": "New Final Approval Request",
+      "documentApproved": "Document Approved",
+      "documentRejected": "Document Rejected",
+      "newReadAssignment": "New Read Assignment",
+      "documentReadConfirmed": "Document Read Confirmed",
+      "readReminder": "Read Reminder",
+      "approvalReminder": "Approval Reminder",
+      "escalationNotice": "Escalation Notice",
+      "approvalEscalated": "Approval Escalated",
+      "documentEscalated": "Document Escalated"
+    },
+    "messages": {
+      "newApprovalRequest": "Document \"{docTitle}\" ({docCode}) requires your approval.",
+      "documentCancelled": "Document \"{docTitle}\" ({docCode}) has been cancelled.",
+      "documentPublished": "Your document \"{docTitle}\" ({docCode}) has been published.",
+      "documentRevised": "Document \"{docTitle}\" ({docCode}) has been revised to version {version}. Please review the changes.",
+      "newFinalApprovalRequest": "Document \"{docTitle}\" ({docCode}) requires your final approval.",
+      "documentApproved": "Your document \"{docTitle}\" ({docCode}) has been {approvalType} approved.",
+      "documentRejected": "Your document \"{docTitle}\" ({docCode}) has been rejected. Reason: {reason}",
+      "newReadAssignment": "Document \"{docTitle}\" ({docCode}) has been published and requires your reading.",
+      "documentReadConfirmed": "{userName} has confirmed reading \"{docTitle}\" ({docCode}).",
+      "readReminder": "You haven't read or confirmed \"{docTitle}\" ({docCode}) for {days} days.",
+      "approvalReminder": "Document \"{docTitle}\" ({docCode}) has been awaiting your approval for {days} days.",
+      "escalationNotice": "Document \"{docTitle}\" ({docCode}) has not been approved by {approverName} for {days} days.",
+      "approvalEscalated": "Your pending approval for \"{docTitle}\" ({docCode}) has been escalated after {days} days.",
+      "documentEscalated": "Your document \"{docTitle}\" ({docCode}) approval has been escalated to {escalationTarget}."
+    }
+  },
+  "departments": {
+    "list": {
+      "title": "Departments",
+      "empty": "No departments found.",
+      "addNew": "Add Department"
+    },
+    "form": {
+      "name": "Department Name",
+      "description": "Description",
+      "manager": "Department Manager",
+      "slug": "Slug"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "stats": {
+      "totalDocuments": "Total Documents",
+      "pendingApprovals": "Pending Approvals",
+      "unreadDocuments": "Unread Documents",
+      "activeUsers": "Active Users"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "empty": "No recent activity."
+    },
+    "pendingTasks": {
+      "title": "Pending Tasks",
+      "empty": "No pending tasks."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": {
+      "title": "General Settings",
+      "appName": "Application Name",
+      "defaultReminderDays": "Default Reminder Days",
+      "defaultEscalationDays": "Default Escalation Days"
+    },
+    "users": {
+      "title": "User Management",
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "roles": "Role",
+      "password": "Password",
+      "selectRole": "Select Role",
+      "selectDepartment": "Select Department",
+      "userCreated": "User created successfully.",
+      "emailExists": "A user with this email already exists."
+    },
+    "email": {
+      "language": "Email Language",
+      "languageTr": "Turkish (Türkçe)",
+      "languageEn": "English",
+      "languageDescription": "Language used for email templates and subjects sent by the system."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "info": "Profile Information",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordChanged": "Password changed successfully",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters"
+  },
+  "readTasks": {
+    "title": "Read Tasks",
+    "pending": "Pending",
+    "completed": "Completed",
+    "empty": "No pending read tasks.",
+    "readAt": "Read at",
+    "confirmRead": "I have read and understood this document",
+    "confirmed": "Read Confirmed"
+  },
+  "errors": {
+    "notFound": "The requested resource was not found.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "forbidden": "Access denied.",
+    "serverError": "An unexpected server error occurred. Please try again later.",
+    "networkError": "Network error. Please check your connection.",
+    "validationError": "Please fix the validation errors and try again.",
+    "fileTooBig": "The file exceeds the maximum allowed size.",
+    "unsupportedFormat": "The file format is not supported."
+  },
+  "errorPages": {
+    "forbidden": {
+      "title": "403",
+      "description": "You do not have permission to access this page.",
+      "goHome": "Home",
+      "login": "Sign In"
+    },
+    "notFound": {
+      "title": "404",
+      "description": "The page you are looking for does not exist.",
+      "goHome": "Home"
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Please enter a valid email address.",
+    "minLength": "Must be at least {min} characters.",
+    "maxLength": "Must be no more than {max} characters.",
+    "unique": "This value is already in use.",
+    "invalidFormat": "The format is invalid."
+  },
+  "guide": {
+    "title": "Document Management Guide",
+    "subtitle": "Learn how to create, approve and distribute documents step by step.",
+    "creation": {
+      "title": "Creating a Document",
+      "step1Title": "Basic Information",
+      "step1Desc": "Enter a unique document code (e.g., DOC-001) and document name. Optionally add a description to explain the document's purpose.",
+      "step2Title": "Classification",
+      "step2Desc": "Select the document type (Procedure, Instruction, or Form) and the department that owns the document.",
+      "step3Title": "Preparer Department (Optional)",
+      "step3Desc": "If you are uploading on behalf of another department, select the preparer department. Otherwise, leave it empty.",
+      "step4Title": "Select Approver",
+      "step4Desc": "Choose who will review and approve the document. Only users with Manager or Admin roles are listed.",
+      "step5Title": "Distribution List",
+      "step5Desc": "Choose which departments and/or individual users should receive the document after it is published. You can select both.",
+      "step6Title": "Upload File",
+      "step6Desc": "Upload the document file by dragging and dropping or clicking to browse. Then submit the form."
+    },
+    "lifecycle": {
+      "title": "Document Lifecycle",
+      "subtitle": "Every document goes through these stages:",
+      "draft": "Document is created as a draft and submitted for approval.",
+      "pendingApproval": "The assigned approver receives an email notification and reviews the document.",
+      "intermediateApproval": "If there are multiple approval levels, the first approver has approved. Waiting for final approval.",
+      "approved": "The document has been approved and is ready to be published by the document owner.",
+      "published": "The document is distributed to all users in the distribution list. Read tasks are created automatically.",
+      "revision": "A new version is uploaded. The document goes through the approval process again.",
+      "passive": "Previous revisions become passive when a new revision is published.",
+      "cancelled": "The document is cancelled. All related parties are notified."
+    },
+    "afterPublish": {
+      "title": "What Happens After Publishing?",
+      "notifications": "All users in the distribution list receive an email notification about the new document.",
+      "readTasks": "Each user gets a read task. They must open the document and confirm they have read and understood it.",
+      "tracking": "The document owner can track read status in real time — who has read and who hasn't.",
+      "reminders": "Automatic reminder emails are sent to users who haven't read the document within the configured period.",
+      "escalation": "If a user still hasn't read after the reminder period, the task is escalated to their manager."
+    },
+    "tips": {
+      "title": "Tips",
+      "tip1": "Use meaningful document codes that follow your organization's naming convention.",
+      "tip2": "Add a description to help users understand the document's purpose before opening it.",
+      "tip3": "Select both departments and individual users in the distribution list when needed — duplicates are handled automatically.",
+      "tip4": "After approval, review the document one more time before publishing, as publishing triggers distribution immediately."
+    }
+  }
+}

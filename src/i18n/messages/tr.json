@@ -1,0 +1,400 @@
+{
+  "common": {
+    "actions": {
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "delete": "Sil",
+      "edit": "Düzenle",
+      "create": "Oluştur",
+      "search": "Ara",
+      "filter": "Filtrele",
+      "export": "Dışa Aktar",
+      "submit": "Gönder",
+      "confirm": "Onayla",
+      "back": "Geri",
+      "next": "İleri",
+      "close": "Kapat",
+      "upload": "Yükle",
+      "download": "İndir",
+      "refresh": "Yenile",
+      "view": "Görüntüle",
+      "viewDetails": "Detayları Görüntüle"
+    },
+    "status": {
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "loading": "Yükleniyor...",
+      "error": "Bir hata oluştu",
+      "success": "İşlem başarıyla tamamlandı"
+    },
+    "labels": {
+      "name": "Ad",
+      "email": "E-posta",
+      "department": "Departman",
+      "date": "Tarih",
+      "status": "Durum",
+      "actions": "İşlemler",
+      "description": "Açıklama",
+      "type": "Tür",
+      "createdAt": "Oluşturulma Tarihi",
+      "updatedAt": "Güncellenme Tarihi",
+      "noResults": "Sonuç bulunamadı",
+      "uploadedBy": "Yükleyen",
+      "requestedBy": "Talep Eden",
+      "respondedAt": "Yanıtlanma Tarihi",
+      "approvalType": "Onay Türü",
+      "readStatus": "Okuma Durumu",
+      "notRead": "Okunmadı",
+      "revisionNo": "Rev No",
+      "publishedBy": "Yayınlayan"
+    },
+    "pagination": {
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "showing": "Gösterilen",
+      "of": "/",
+      "entries": "kayıt",
+      "page": "Sayfa"
+    },
+    "confirm": {
+      "title": "Emin misiniz?",
+      "description": "Bu işlem geri alınamaz.",
+      "yes": "Evet, devam et",
+      "no": "Hayır, iptal et"
+    }
+  },
+  "nav": {
+    "navigation": "Navigasyon",
+    "administration": "Yönetim",
+    "dashboard": "Kontrol Paneli",
+    "documents": "Belgeler",
+    "approvals": "Onaylar",
+    "readTasks": "Okuma Görevleri",
+    "departments": "Departmanlar",
+    "users": "Kullanıcılar",
+    "settings": "Ayarlar",
+    "guide": "Rehber",
+    "notifications": "Bildirimler"
+  },
+  "auth": {
+    "login": {
+      "title": "Giriş Yap",
+      "email": "E-posta Adresi",
+      "password": "Şifre",
+      "submit": "Giriş Yap",
+      "forgotPassword": "Şifrenizi mi unuttunuz?"
+    },
+    "errors": {
+      "invalidCredentials": "Geçersiz e-posta veya şifre. Lütfen tekrar deneyin.",
+      "accountDisabled": "Hesabınız devre dışı bırakıldı. Lütfen yöneticinizle iletişime geçin.",
+      "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın."
+    }
+  },
+  "documents": {
+    "list": {
+      "title": "Belgeler",
+      "empty": "Belge bulunamadı.",
+      "searchPlaceholder": "Belge ara..."
+    },
+    "status": {
+      "draft": "Taslak",
+      "pendingApproval": "Onay Bekliyor",
+      "intermediateApproval": "Ara Onay",
+      "approved": "Onaylandı",
+      "published": "Yayınlandı",
+      "revision": "Revizyon",
+      "passive": "Pasif",
+      "cancelled": "İptal Edildi"
+    },
+    "type": {
+      "procedure": "Prosedür",
+      "instruction": "Talimat",
+      "form": "Form"
+    },
+    "form": {
+      "title": "Belge Formu",
+      "documentCode": "Belge Kodu",
+      "documentName": "Belge Adı",
+      "selectType": "Belge Türü Seçin",
+      "selectDepartment": "Departman Seçin",
+      "selectApprover": "Onaylayıcı Seçin",
+      "distributionList": "Dağıtım Listesi (Departmanlar)",
+      "distributionUsers": "Dağıtım Listesi (Kullanıcılar)",
+      "searchUsers": "Kullanıcı ara...",
+      "uploadFile": "Dosya Yükle",
+      "revisionNotes": "Revizyon Notları",
+      "preparerDepartment": "Hazırlayan Departman",
+      "selectPreparerDepartment": "Hazırlayan departmanı seçin",
+      "proxyUpload": "Başka bir departman adına yükle"
+    },
+    "detail": {
+      "title": "Belge Detayları",
+      "revisionHistory": "Revizyon Geçmişi",
+      "approvalHistory": "Onay Geçmişi",
+      "distributionStatus": "Dağıtım Durumu",
+      "activityLog": "Aktivite Günlüğü",
+      "distributionDepartments": "Dağıtım Departmanları",
+      "distributionUsers": "Dağıtım Kullanıcıları",
+      "readConfirmations": "Okuma Onayları",
+      "noRevisions": "Henüz revizyon yok.",
+      "noApprovals": "Henüz onay yok.",
+      "noDistribution": "Departman belirlenmemiş.",
+      "noActivity": "Henüz aktivite yok.",
+      "currentRevision": "Mevcut revizyon",
+      "newRevision": "Yeni revizyon",
+      "revisionChangesPlaceholder": "Bu revizyondaki değişiklikleri açıklayın..."
+    },
+    "upload": {
+      "title": "Belge Yükle",
+      "dragDrop": "Dosyaları buraya sürükleyip bırakın veya göz atmak için tıklayın",
+      "selectFile": "Dosya Seç",
+      "uploading": "Yükleniyor...",
+      "uploadSuccess": "Dosya başarıyla yüklendi.",
+      "uploadError": "Dosya yüklenemedi. Lütfen tekrar deneyin."
+    },
+    "actions": {
+      "approve": "Onayla",
+      "reject": "Reddet",
+      "revise": "Revizyon İste",
+      "cancel": "Belgeyi İptal Et",
+      "publish": "Yayınla",
+      "markAsRead": "Okundu Olarak İşaretle"
+    },
+    "toast": {
+      "cancelled": "Belge iptal edildi",
+      "cancelFailed": "Belge iptal edilemedi",
+      "published": "Belge yayınlandı",
+      "publishFailed": "Belge yayınlanamadı",
+      "revisionCreated": "Revizyon {revNo} oluşturuldu",
+      "revisionFailed": "Revizyon oluşturulamadı",
+      "fileRequired": "Lütfen bir dosya seçin"
+    }
+  },
+  "approvals": {
+    "list": {
+      "title": "Onaylar",
+      "pending": "Bekleyen Onaylar",
+      "completed": "Tamamlanan Onaylar",
+      "empty": "Onay bulunamadı."
+    },
+    "actions": {
+      "approve": "Onayla",
+      "reject": "Reddet"
+    },
+    "form": {
+      "rejectionReason": "Red Nedeni",
+      "rejectionReasonPlaceholder": "Lütfen red nedeni belirtin...",
+      "approvalComment": "Onay Yorumu"
+    },
+    "status": {
+      "pending": "Bekleyen",
+      "approved": "Onaylandı",
+      "rejected": "Reddedildi",
+      "escalated": "Yükseltildi"
+    },
+    "type": {
+      "intermediate": "Ara Onay",
+      "final": "Son Onay"
+    }
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "empty": "Bildirim yok.",
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "viewAll": "Tüm Bildirimleri Görüntüle",
+    "types": {
+      "approvalRequest": "Onay İsteği",
+      "documentRejected": "Belge Reddedildi",
+      "readAssignment": "Okuma Görevi",
+      "reminder": "Hatırlatma",
+      "escalation": "Yükseltme",
+      "documentPublished": "Belge Yayınlandı"
+    },
+    "titles": {
+      "newApprovalRequest": "Yeni Onay İsteği",
+      "documentCancelled": "Belge İptal Edildi",
+      "documentPublished": "Belge Yayınlandı",
+      "documentRevised": "Belge Revize Edildi",
+      "newFinalApprovalRequest": "Yeni Son Onay İsteği",
+      "documentApproved": "Belge Onaylandı",
+      "documentRejected": "Belge Reddedildi",
+      "newReadAssignment": "Yeni Okuma Görevi",
+      "documentReadConfirmed": "Belge Okundu Onaylandı",
+      "readReminder": "Okuma Hatırlatması",
+      "approvalReminder": "Onay Hatırlatması",
+      "escalationNotice": "Eskalasyon Bildirimi",
+      "approvalEscalated": "Onay Yükseltildi",
+      "documentEscalated": "Belge Yükseltildi"
+    },
+    "messages": {
+      "newApprovalRequest": "\"{docTitle}\" ({docCode}) belgesi onayınızı beklemektedir.",
+      "documentCancelled": "\"{docTitle}\" ({docCode}) belgesi iptal edilmiştir.",
+      "documentPublished": "\"{docTitle}\" ({docCode}) belgeniz yayınlanmıştır.",
+      "documentRevised": "\"{docTitle}\" ({docCode}) belgesi {version}. versiyona revize edilmiştir. Lütfen değişiklikleri inceleyin.",
+      "newFinalApprovalRequest": "\"{docTitle}\" ({docCode}) belgesi son onayınızı beklemektedir.",
+      "documentApproved": "\"{docTitle}\" ({docCode}) belgeniz {approvalType} olarak onaylanmıştır.",
+      "documentRejected": "\"{docTitle}\" ({docCode}) belgeniz reddedilmiştir. Sebep: {reason}",
+      "newReadAssignment": "\"{docTitle}\" ({docCode}) belgesi yayınlanmıştır ve okumanız gerekmektedir.",
+      "documentReadConfirmed": "{userName}, \"{docTitle}\" ({docCode}) belgesini okuduğunu onaylamıştır.",
+      "readReminder": "\"{docTitle}\" ({docCode}) belgesini {days} gündür okumadınız veya onaylamadınız.",
+      "approvalReminder": "\"{docTitle}\" ({docCode}) belgesi {days} gündür onayınızı beklemektedir.",
+      "escalationNotice": "\"{docTitle}\" ({docCode}) belgesi {approverName} tarafından {days} gündür onaylanmamıştır.",
+      "approvalEscalated": "\"{docTitle}\" ({docCode}) belgesi için bekleyen onayınız {days} gün sonra yükseltilmiştir.",
+      "documentEscalated": "\"{docTitle}\" ({docCode}) belgenizin onay süreci {escalationTarget} kişisine yükseltilmiştir."
+    }
+  },
+  "departments": {
+    "list": {
+      "title": "Departmanlar",
+      "empty": "Departman bulunamadı.",
+      "addNew": "Departman Ekle"
+    },
+    "form": {
+      "name": "Departman Adı",
+      "description": "Açıklama",
+      "manager": "Departman Yöneticisi",
+      "slug": "Slug"
+    }
+  },
+  "dashboard": {
+    "title": "Kontrol Paneli",
+    "welcome": "Tekrar hoş geldiniz",
+    "stats": {
+      "totalDocuments": "Toplam Belgeler",
+      "pendingApprovals": "Bekleyen Onaylar",
+      "unreadDocuments": "Okunmamış Belgeler",
+      "activeUsers": "Aktif Kullanıcılar"
+    },
+    "recentActivity": {
+      "title": "Son Aktiviteler",
+      "empty": "Son aktivite yok."
+    },
+    "pendingTasks": {
+      "title": "Bekleyen Görevler",
+      "empty": "Bekleyen görev yok."
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "general": {
+      "title": "Genel Ayarlar",
+      "appName": "Uygulama Adı",
+      "defaultReminderDays": "Varsayılan Hatırlatma Günleri",
+      "defaultEscalationDays": "Varsayılan Yükseltme Günleri"
+    },
+    "users": {
+      "title": "Kullanıcı Yönetimi",
+      "addUser": "Kullanıcı Ekle",
+      "editUser": "Kullanıcıyı Düzenle",
+      "roles": "Rol",
+      "password": "Şifre",
+      "selectRole": "Rol Seçin",
+      "selectDepartment": "Departman Seçin",
+      "userCreated": "Kullanıcı başarıyla oluşturuldu.",
+      "emailExists": "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut."
+    },
+    "email": {
+      "language": "Email Dili",
+      "languageTr": "Türkçe",
+      "languageEn": "İngilizce (English)",
+      "languageDescription": "Sistem tarafından gönderilen email şablonları ve konu satırlarında kullanılacak dil."
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "info": "Profil Bilgileri",
+    "changePassword": "Şifre Değiştir",
+    "currentPassword": "Mevcut Şifre",
+    "newPassword": "Yeni Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "passwordChanged": "Şifre başarıyla değiştirildi",
+    "passwordMismatch": "Şifreler eşleşmiyor",
+    "passwordTooShort": "Şifre en az 8 karakter olmalıdır"
+  },
+  "readTasks": {
+    "title": "Okuma Görevleri",
+    "pending": "Bekleyen",
+    "completed": "Tamamlanan",
+    "empty": "Bekleyen okuma görevi yok.",
+    "readAt": "Okunma tarihi",
+    "confirmRead": "Bu belgeyi okudum ve anladım",
+    "confirmed": "Okuma Onaylandı"
+  },
+  "errors": {
+    "notFound": "İstenen kaynak bulunamadı.",
+    "unauthorized": "Bu işlemi gerçekleştirme yetkiniz yok.",
+    "forbidden": "Erişim reddedildi.",
+    "serverError": "Beklenmeyen bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.",
+    "networkError": "Ağ hatası. Lütfen bağlantınızı kontrol edin.",
+    "validationError": "Lütfen doğrulama hatalarını düzeltin ve tekrar deneyin.",
+    "fileTooBig": "Dosya izin verilen maksimum boyutu aşıyor.",
+    "unsupportedFormat": "Dosya formatı desteklenmiyor."
+  },
+  "errorPages": {
+    "forbidden": {
+      "title": "403",
+      "description": "Bu sayfaya erişim yetkiniz bulunmamaktadır.",
+      "goHome": "Ana Sayfa",
+      "login": "Giriş Yap"
+    },
+    "notFound": {
+      "title": "404",
+      "description": "Aradığınız sayfa bulunamadı.",
+      "goHome": "Ana Sayfa"
+    }
+  },
+  "validation": {
+    "required": "Bu alan zorunludur.",
+    "email": "Lütfen geçerli bir e-posta adresi girin.",
+    "minLength": "En az {min} karakter olmalıdır.",
+    "maxLength": "En fazla {max} karakter olmalıdır.",
+    "unique": "Bu değer zaten kullanımda.",
+    "invalidFormat": "Format geçersiz."
+  },
+  "guide": {
+    "title": "Belge Yönetimi Rehberi",
+    "subtitle": "Belge oluşturma, onaylama ve dağıtım süreçlerini adım adım öğrenin.",
+    "creation": {
+      "title": "Belge Oluşturma",
+      "step1Title": "Temel Bilgiler",
+      "step1Desc": "Benzersiz bir belge kodu (ör: DOC-001) ve belge adı girin. İsteğe bağlı olarak belgenin amacını açıklayan bir açıklama ekleyin.",
+      "step2Title": "Sınıflandırma",
+      "step2Desc": "Belge türünü (Prosedür, Talimat veya Form) ve belgenin ait olduğu departmanı seçin.",
+      "step3Title": "Hazırlayan Departman (Opsiyonel)",
+      "step3Desc": "Başka bir departman adına yükleme yapıyorsanız hazırlayan departmanı seçin. Aksi halde boş bırakın.",
+      "step4Title": "Onaylayıcı Seçimi",
+      "step4Desc": "Belgeyi inceleyip onaylayacak kişiyi seçin. Sadece Yönetici veya Admin rolündeki kullanıcılar listelenir.",
+      "step5Title": "Dağıtım Listesi",
+      "step5Desc": "Belge yayınlandığında hangi departmanlara ve/veya bireysel kullanıcılara dağıtılacağını seçin. Her ikisini birden seçebilirsiniz.",
+      "step6Title": "Dosya Yükleme",
+      "step6Desc": "Belge dosyasını sürükleyip bırakarak veya tıklayarak yükleyin. Ardından formu gönderin."
+    },
+    "lifecycle": {
+      "title": "Belge Yaşam Döngüsü",
+      "subtitle": "Her belge şu aşamalardan geçer:",
+      "draft": "Belge taslak olarak oluşturulur ve onaya gönderilir.",
+      "pendingApproval": "Atanan onaylayıcıya e-posta bildirimi gönderilir ve belgeyi inceler.",
+      "intermediateApproval": "Birden fazla onay seviyesi varsa ilk onaylayıcı onaylamıştır. Son onay bekleniyor.",
+      "approved": "Belge onaylanmıştır ve belge sahibi tarafından yayınlanmaya hazırdır.",
+      "published": "Belge, dağıtım listesindeki tüm kullanıcılara dağıtılır. Okuma görevleri otomatik oluşturulur.",
+      "revision": "Yeni bir sürüm yüklenir. Belge tekrar onay sürecinden geçer.",
+      "passive": "Yeni bir revizyon yayınlandığında önceki revizyonlar pasif duruma geçer.",
+      "cancelled": "Belge iptal edilir. İlgili tüm taraflar bilgilendirilir."
+    },
+    "afterPublish": {
+      "title": "Yayınladıktan Sonra Ne Olur?",
+      "notifications": "Dağıtım listesindeki tüm kullanıcılara yeni belge hakkında e-posta bildirimi gönderilir.",
+      "readTasks": "Her kullanıcıya bir okuma görevi atanır. Belgeyi açıp okuduğunu ve anladığını onaylamalıdır.",
+      "tracking": "Belge sahibi okuma durumunu anlık olarak takip edebilir — kimin okuduğunu, kimin okumadığını görebilir.",
+      "reminders": "Belirlenen süre içinde belgeyi okumayan kullanıcılara otomatik hatırlatma e-postaları gönderilir.",
+      "escalation": "Hatırlatma süresinden sonra hâlâ okumayan kullanıcılar için görev yöneticisine yükseltilir."
+    },
+    "tips": {
+      "title": "İpuçları",
+      "tip1": "Kuruluşunuzun adlandırma kuralına uygun anlamlı belge kodları kullanın.",
+      "tip2": "Kullanıcıların belgeyi açmadan önce amacını anlamasına yardımcı olacak bir açıklama ekleyin.",
+      "tip3": "Gerektiğinde dağıtım listesinde hem departmanları hem bireysel kullanıcıları seçin — mükerrer kayıtlar otomatik engellenir.",
+      "tip4": "Onaydan sonra yayınlamadan önce belgeyi bir kez daha gözden geçirin, çünkü yayınlama dağıtımı anında başlatır."
+    }
+  }
+}

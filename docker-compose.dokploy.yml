@@ -1,0 +1,169 @@
+# =============================================================================
+# DMS - Dokploy Docker Compose
+# =============================================================================
+# Optimized for Dokploy deployment. No exposed ports — Dokploy's built-in
+# Traefik reverse proxy handles domain routing and SSL termination.
+#
+# For self-hosted VPS without Dokploy, use docker-compose.production.yml.
+# Local development uses docker-compose.yml (db + redis only).
+#
+# Required environment variables (set in Dokploy panel):
+#   POSTGRES_PASSWORD, REDIS_PASSWORD, BETTER_AUTH_SECRET,
+#   BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL
+#
+# Network: uses dokploy-network (external) for Traefik routing and DNS.
+# IMPORTANT: Disable "Enable Isolated Deployment" in Dokploy panel.
+#
+# The init service automatically runs db:push + db:seed on every deploy.
+# Both commands are idempotent — safe to run multiple times.
+# =============================================================================
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: dms
+      POSTGRES_USER: dms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dms -d dms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dokploy-network
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dokploy-network
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: init
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-System Admin}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@dms.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    networks:
+      - dokploy-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-500}
+      DEFAULT_REMINDER_DAYS: ${DEFAULT_REMINDER_DAYS:-3}
+      DEFAULT_ESCALATION_DAYS: ${DEFAULT_ESCALATION_DAYS:-7}
+      CRON_SECRET: ${CRON_SECRET}
+    volumes:
+      - uploads_data:${UPLOAD_DIR:-/app/uploads}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - dokploy-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dokploy-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+
+networks:
+  dokploy-network:
+    external: true
