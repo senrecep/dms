@@ -47,23 +47,26 @@ ENV HOSTNAME="0.0.0.0"
 
 CMD ["bun", "server.js"]
 
-# Stage 4: Worker runner
+# Stage 4: Worker runner (no build stage dependency — only needs src + deps)
 FROM oven/bun:1-slim AS worker
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/src ./src
-COPY --from=build /app/tsconfig.json ./
+COPY src ./src
+COPY tsconfig.json ./
 CMD ["bun", "run", "src/worker.ts"]
 
 # Stage 5: Init runner (db:push + db:seed, runs once then exits)
+# No build stage dependency — only needs src + deps + drizzle config
 FROM oven/bun:1-slim AS init
 WORKDIR /app
 ENV NODE_ENV=production
+# expect: auto-answers drizzle-kit interactive prompts in non-TTY Docker env
+RUN apt-get update && apt-get install -y --no-install-recommends expect && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/src ./src
-COPY --from=build /app/tsconfig.json ./
-COPY --from=build /app/drizzle.config.ts ./
+COPY src ./src
+COPY tsconfig.json ./
+COPY drizzle.config.ts ./
 COPY docker-entrypoint-init.sh ./
 RUN chmod +x docker-entrypoint-init.sh
 CMD ["./docker-entrypoint-init.sh"]

@@ -4,7 +4,22 @@ set -e
 echo "=== DMS Init ==="
 
 echo "[1/2] Pushing database schema..."
-bunx drizzle-kit push --force
+# expect auto-answers interactive "created or renamed" prompts from drizzle-kit
+# --force only skips data-loss warnings, NOT column disambiguation prompts
+expect -c '
+set timeout 600
+spawn bunx drizzle-kit push --force
+expect {
+  "created or renamed" {
+    sleep 0.2
+    send "\r"
+    exp_continue
+  }
+  eof
+}
+foreach {pid spawnid os_error value} [wait] break
+exit $value
+'
 echo "  Schema push complete."
 
 echo "[2/2] Checking if seed is needed..."
@@ -16,14 +31,15 @@ if [ "$FORCE_SEED" = "true" ]; then
 else
   USER_COUNT=$(bun -e "
 import postgres from 'postgres';
-const sql = postgres(process.env.DATABASE_URL);
+const sql = postgres(process.env.DATABASE_URL, { connect_timeout: 10, idle_timeout: 5, max: 1 });
 try {
   const result = await sql\`SELECT COUNT(*)::int as count FROM \"user\"\`;
   console.log(result[0].count);
-  await sql.end();
 } catch {
   console.log('0');
-  await sql.end();
+} finally {
+  await sql.end({ timeout: 5 }).catch(() => {});
+  process.exit(0);
 }
 " 2>/dev/null || echo "0")
 
