@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -256,7 +257,7 @@ export function UploadForm({ departments, approvers, allUsers }: UploadFormProps
               <FormItem className="md:col-span-2">
                 <FormLabel>{t("common.labels.description")}</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Textarea {...field} rows={3} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
