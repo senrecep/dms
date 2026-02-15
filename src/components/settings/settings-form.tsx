@@ -27,12 +27,14 @@ const SETTING_LABELS: Record<string, string> = {
   app_name: "Application Name",
   default_reminder_days: "Default Reminder Days",
   default_escalation_days: "Default Escalation Days",
+  read_reminder_days: "Read Reminder Days",
 };
 
 const SETTING_TYPES: Record<string, "text" | "number"> = {
   app_name: "text",
   default_reminder_days: "number",
   default_escalation_days: "number",
+  read_reminder_days: "number",
 };
 
 export function SettingsForm({ settings }: { settings: Setting[] }) {
