@@ -302,6 +302,13 @@
       "description": "Description",
       "manager": "Department Manager",
       "slug": "Slug"
+    },
+    "detail": {
+      "title": "Department Details",
+      "members": "Members",
+      "noMembers": "No users in this department.",
+      "memberCount": "{count} members",
+      "back": "Back to Departments"
     }
   },
   "dashboard": {
@@ -344,7 +351,25 @@
       "userCreated": "User created successfully.",
       "emailExists": "A user with this email already exists.",
       "passwordResetSent": "Password reset link has been sent.",
-      "sendResetLink": "Send password reset link"
+      "sendResetLink": "Send password reset link",
+      "detail": {
+        "title": "User Details",
+        "back": "Back to Users",
+        "memberSince": "Member Since",
+        "documentCode": "Document Code",
+        "stats": {
+          "documentsCreated": "Documents Created",
+          "approvals": "Approvals",
+          "approvalsCompleted": "Approved",
+          "approvalsRejected": "Rejected",
+          "approvalsPending": "Pending Approvals",
+          "readTasks": "Read Tasks",
+          "documentsRead": "Documents Read",
+          "readsPending": "Pending Reads"
+        },
+        "recentActivity": "Recent Activity",
+        "noActivity": "No activity yet."
+      }
     },
     "email": {
       "language": "Email Language",

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { departments, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -73,7 +74,14 @@ export default async function DepartmentsPage() {
               <TableBody>
                 {departmentList.map((dept) => (
                   <TableRow key={dept.id}>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/departments/${dept.slug}`}
+                        className="hover:underline text-primary"
+                      >
+                        {dept.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{dept.managerName ?? "-"}</TableCell>
                     <TableCell>
                       <Badge variant={dept.isActive ? "default" : "secondary"}>

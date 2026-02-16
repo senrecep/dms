@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { users, departments } from "@/lib/db/schema";
@@ -72,7 +73,14 @@ export default async function UsersPage() {
             <TableBody>
               {userList.map((u) => (
                 <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/users/${u.id}`}
+                      className="hover:underline text-primary"
+                    >
+                      {u.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{u.role}</Badge>

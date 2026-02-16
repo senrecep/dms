@@ -302,6 +302,13 @@
       "description": "Açıklama",
       "manager": "Departman Yöneticisi",
       "slug": "Slug"
+    },
+    "detail": {
+      "title": "Departman Detayı",
+      "members": "Üyeler",
+      "noMembers": "Bu departmanda kullanıcı yok.",
+      "memberCount": "{count} üye",
+      "back": "Departmanlara Dön"
     }
   },
   "dashboard": {
@@ -344,7 +351,25 @@
       "userCreated": "Kullanıcı başarıyla oluşturuldu.",
       "emailExists": "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut.",
       "passwordResetSent": "Şifre sıfırlama bağlantısı gönderildi.",
-      "sendResetLink": "Şifre sıfırlama bağlantısı gönder"
+      "sendResetLink": "Şifre sıfırlama bağlantısı gönder",
+      "detail": {
+        "title": "Kullanıcı Detayı",
+        "back": "Kullanıcılara Dön",
+        "memberSince": "Kayıt Tarihi",
+        "documentCode": "Belge Kodu",
+        "stats": {
+          "documentsCreated": "Oluşturulan Belgeler",
+          "approvals": "Onaylar",
+          "approvalsCompleted": "Onaylanan",
+          "approvalsRejected": "Reddedilen",
+          "approvalsPending": "Bekleyen Onaylar",
+          "readTasks": "Okuma Görevleri",
+          "documentsRead": "Okunan Belgeler",
+          "readsPending": "Bekleyen Okumalar"
+        },
+        "recentActivity": "Son Aktiviteler",
+        "noActivity": "Henüz aktivite yok."
+      }
     },
     "email": {
       "language": "Email Dili",
