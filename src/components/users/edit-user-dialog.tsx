@@ -33,9 +33,19 @@ type User = {
   isActive: boolean;
 };
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  EMAIL_EXISTS: "emailExists",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  DUPLICATE_ENTRY: "duplicateEntry",
+  REFERENCE_ERROR: "referenceError",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function EditUserDialog({ user }: { user: User }) {
   const t = useTranslations("settings.users");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -80,14 +90,15 @@ export function EditUserDialog({ user }: { user: User }) {
         isActive,
       });
 
-      if (result.error) {
-        setError(result.error);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        setError(tErrors(key));
       } else {
         setOpen(false);
         router.refresh();
       }
     } catch {
-      setError(tCommon("status.error"));
+      setError(tErrors("unexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -143,9 +154,9 @@ export function EditUserDialog({ user }: { user: User }) {
                 <SelectValue placeholder="-" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="USER">USER</SelectItem>
-                <SelectItem value="MANAGER">MANAGER</SelectItem>
-                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="USER">{t("roleUser")}</SelectItem>
+                <SelectItem value="MANAGER">{t("roleManager")}</SelectItem>
+                <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

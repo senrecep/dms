@@ -13,6 +13,24 @@ import {
 } from "@/components/ui/card";
 import { getDashboardStats, getRecentActivity, getPendingTasks } from "@/actions/dashboard";
 
+const ACTION_KEY_MAP: Record<string, string> = {
+  UPLOADED: "uploaded",
+  SUBMITTED: "submitted",
+  APPROVED: "approved",
+  PREPARER_APPROVED: "preparerApproved",
+  PREPARER_REJECTED: "preparerRejected",
+  APPROVER_REJECTED: "approverRejected",
+  REJECTED: "rejected",
+  READ: "read",
+  REVISED: "revised",
+  PUBLISHED: "published",
+  CANCELLED: "cancelled",
+};
+
+function actionToKey(action: string) {
+  return ACTION_KEY_MAP[action] ?? action.toLowerCase();
+}
+
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Overview of your documents, approvals, and recent activity.",
@@ -25,6 +43,7 @@ export default async function DashboardPage() {
 
   const t = await getTranslations("dashboard");
   const tCommon = await getTranslations("common");
+  const tActivity = await getTranslations("documents.activity");
 
   const stats = await getDashboardStats();
   const recentActivity = await getRecentActivity();
@@ -119,7 +138,7 @@ export default async function DashboardPage() {
                         {activity.userName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {activity.action} - {activity.documentCode}
+                        {tActivity(actionToKey(activity.action))} - {activity.documentCode}
                       </p>
                     </div>
                     <time className="shrink-0 text-xs text-muted-foreground">

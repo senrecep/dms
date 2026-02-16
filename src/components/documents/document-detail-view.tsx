@@ -53,6 +53,20 @@ const statusTimelineColors: Record<string, string> = {
   CANCELLED: "bg-red-400",
 };
 
+const ACTION_KEY_MAP: Record<string, string> = {
+  UPLOADED: "uploaded",
+  SUBMITTED: "submitted",
+  APPROVED: "approved",
+  PREPARER_APPROVED: "preparerApproved",
+  PREPARER_REJECTED: "preparerRejected",
+  APPROVER_REJECTED: "approverRejected",
+  REJECTED: "rejected",
+  READ: "read",
+  REVISED: "revised",
+  PUBLISHED: "published",
+  CANCELLED: "cancelled",
+};
+
 export function DocumentDetailView({ document: doc }: Props) {
   const t = useTranslations();
   const router = useRouter();
@@ -607,7 +621,7 @@ export function DocumentDetailView({ document: doc }: Props) {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
-                            {log.action}
+                            {t(`documents.activity.${ACTION_KEY_MAP[log.action] ?? log.action.toLowerCase()}`)}
                           </Badge>
                           <span className="text-muted-foreground text-xs">
                             {format(log.createdAt, "dd.MM.yyyy HH:mm")}

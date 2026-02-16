@@ -162,13 +162,36 @@
       "fileInfo": "File",
       "revisionInfo": "Revision Info"
     },
+    "activity": {
+      "uploaded": "Uploaded",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "preparerApproved": "Preparer Approved",
+      "preparerRejected": "Preparer Rejected",
+      "approverRejected": "Approver Rejected",
+      "rejected": "Rejected",
+      "read": "Read",
+      "revised": "Revised",
+      "published": "Published",
+      "cancelled": "Cancelled"
+    },
     "upload": {
       "title": "Upload Document",
       "dragDrop": "Drag and drop files here, or click to browse",
       "selectFile": "Select File",
       "uploading": "Uploading...",
       "uploadSuccess": "File uploaded successfully.",
-      "uploadError": "Failed to upload file. Please try again."
+      "uploadError": "Failed to upload file. Please try again.",
+      "errors": {
+        "documentCodeExists": "This document code is already in use. Please choose a different code.",
+        "fileTooLarge": "The file exceeds the maximum allowed size ({maxSize} MB).",
+        "fileRequired": "Please select a file to upload.",
+        "fileSystemError": "Failed to save the file. Please contact your administrator.",
+        "diskFull": "Server storage is full. Please contact your administrator.",
+        "documentNotFound": "Document not found.",
+        "revisionNotDraft": "Only draft revisions can be submitted for approval.",
+        "unexpectedError": "An unexpected error occurred. Please try again."
+      }
     },
     "actions": {
       "approve": "Approve",
@@ -312,11 +335,16 @@
       "addUser": "Add User",
       "editUser": "Edit User",
       "roles": "Role",
+      "roleUser": "User",
+      "roleManager": "Manager",
+      "roleAdmin": "Administrator",
       "password": "Password",
       "selectRole": "Select Role",
       "selectDepartment": "Select Department",
       "userCreated": "User created successfully.",
-      "emailExists": "A user with this email already exists."
+      "emailExists": "A user with this email already exists.",
+      "passwordResetSent": "Password reset link has been sent.",
+      "sendResetLink": "Send password reset link"
     },
     "email": {
       "language": "Email Language",
@@ -353,7 +381,29 @@
     "networkError": "Network error. Please check your connection.",
     "validationError": "Please fix the validation errors and try again.",
     "fileTooBig": "The file exceeds the maximum allowed size.",
-    "unsupportedFormat": "The file format is not supported."
+    "unsupportedFormat": "The file format is not supported.",
+    "duplicateEntry": "This record already exists.",
+    "referenceError": "Referenced record not found or in use.",
+    "requiredField": "A required field is missing.",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "departmentSlugExists": "A department with this slug already exists.",
+    "departmentNotFound": "Department not found.",
+    "emailExists": "A user with this email already exists.",
+    "userNotFound": "User not found.",
+    "userCreateFailed": "Failed to create user.",
+    "passwordResetFailed": "Failed to send password reset email.",
+    "nameRequired": "Name is required.",
+    "settingSaveFailed": "Failed to save settings.",
+    "emailTestFailed": "Failed to send test email.",
+    "approvalNotFound": "Approval not found or already processed.",
+    "rejectionTooShort": "Rejection reason must be at least 10 characters.",
+    "readTaskNotFound": "Read task not found or already confirmed.",
+    "onlyManagersCanConfirm": "Only managers can confirm document reading.",
+    "documentCodeExists": "This document code is already in use.",
+    "fileTooLarge": "The file exceeds the maximum allowed size ({maxSize} MB).",
+    "fileRequired": "Please select a file to upload.",
+    "fileSystemError": "Failed to save the file. Please contact your administrator.",
+    "diskFull": "Server storage is full. Please contact your administrator."
   },
   "errorPages": {
     "forbidden": {

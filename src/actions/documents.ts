@@ -25,6 +25,7 @@ import {
   enqueueBulkNotifications,
 } from "@/lib/queue";
 import { env } from "@/lib/env";
+import { classifyError } from "@/lib/errors";
 
 // --- Types ---
 
@@ -64,6 +65,7 @@ async function getSession() {
   if (!session) throw new Error("Unauthorized");
   return session;
 }
+
 
 // --- Queries ---
 
@@ -294,6 +296,7 @@ const createDocumentSchema = z.object({
 });
 
 export async function createDocument(formData: FormData) {
+  try {
   const session = await getSession();
 
   const raw = {
@@ -314,7 +317,14 @@ export async function createDocument(formData: FormData) {
   const parsed = createDocumentSchema.parse(raw);
   const file = formData.get("file") as File | null;
 
-  if (!file || file.size === 0) throw new Error("File is required");
+  if (!file || file.size === 0) {
+    return { success: false, error: "File is required", errorCode: "FILE_REQUIRED" };
+  }
+
+  const maxSizeBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    return { success: false, error: `File exceeds ${env.MAX_FILE_SIZE_MB} MB limit`, errorCode: "FILE_TOO_LARGE", maxSize: env.MAX_FILE_SIZE_MB };
+  }
 
   const startingRevNo = parsed.startingRevisionNo ?? 0;
   const actionType = parsed.action ?? "save";
@@ -406,6 +416,12 @@ export async function createDocument(formData: FormData) {
   revalidatePath("/documents");
 
   return { success: true, id: doc.id };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues.map((i) => i.message).join(", "), errorCode: "VALIDATION_ERROR" };
+    }
+    return classifyError(error);
+  }
 }
 
 // Helper: create approval flow based on preparer/approver logic
@@ -713,12 +729,22 @@ const reviseDocumentSchema = z.object({
 });
 
 export async function reviseDocument(formData: FormData) {
+  try {
   const session = await getSession();
   const documentId = formData.get("documentId") as string;
   const file = formData.get("file") as File | null;
 
-  if (!documentId) throw new Error("Document ID is required");
-  if (!file || file.size === 0) throw new Error("File is required for revision");
+  if (!documentId) {
+    return { success: false, error: "Document ID is required", errorCode: "VALIDATION_ERROR" };
+  }
+  if (!file || file.size === 0) {
+    return { success: false, error: "File is required for revision", errorCode: "FILE_REQUIRED" };
+  }
+
+  const maxSizeBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    return { success: false, error: `File exceeds ${env.MAX_FILE_SIZE_MB} MB limit`, errorCode: "FILE_TOO_LARGE", maxSize: env.MAX_FILE_SIZE_MB };
+  }
 
   const raw = {
     title: (formData.get("title") as string) || undefined,
@@ -940,6 +966,12 @@ export async function reviseDocument(formData: FormData) {
     revalidatePath("/documents");
     revalidatePath(`/documents/${documentId}`);
     return { success: true, revisionNo: newRevisionNo };
+  }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues.map((i) => i.message).join(", "), errorCode: "VALIDATION_ERROR" };
+    }
+    return classifyError(error);
   }
 }
 

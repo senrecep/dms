@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { eq, desc, and, count } from "drizzle-orm";
 import { sendToUser } from "@/lib/sse";
 import { revalidatePath } from "next/cache";
+import { classifyError, type ActionResult } from "@/lib/errors";
 
 export async function getNotifications(page = 1, limit = 20) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -50,48 +51,60 @@ export async function getNotifications(page = 1, limit = 20) {
   };
 }
 
-export async function markNotificationAsRead(notificationId: string) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error("Unauthorized");
+export async function markNotificationAsRead(notificationId: string): Promise<ActionResult> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) throw new Error("Unauthorized");
 
-  await db
-    .update(notifications)
-    .set({
-      isRead: true,
-      readAt: new Date(),
-    })
-    .where(
-      and(
-        eq(notifications.id, notificationId),
-        eq(notifications.userId, session.user.id),
-      ),
-    );
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, session.user.id),
+        ),
+      );
 
-  revalidatePath("/approvals");
-  revalidatePath("/read-tasks");
-  revalidatePath("/notifications");
+    revalidatePath("/approvals");
+    revalidatePath("/read-tasks");
+    revalidatePath("/notifications");
+
+    return { success: true };
+  } catch (error) {
+    return classifyError(error);
+  }
 }
 
-export async function markAllNotificationsAsRead() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error("Unauthorized");
+export async function markAllNotificationsAsRead(): Promise<ActionResult> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) throw new Error("Unauthorized");
 
-  await db
-    .update(notifications)
-    .set({
-      isRead: true,
-      readAt: new Date(),
-    })
-    .where(
-      and(
-        eq(notifications.userId, session.user.id),
-        eq(notifications.isRead, false),
-      ),
-    );
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.userId, session.user.id),
+          eq(notifications.isRead, false),
+        ),
+      );
 
-  revalidatePath("/approvals");
-  revalidatePath("/read-tasks");
-  revalidatePath("/notifications");
+    revalidatePath("/approvals");
+    revalidatePath("/read-tasks");
+    revalidatePath("/notifications");
+
+    return { success: true };
+  } catch (error) {
+    return classifyError(error);
+  }
 }
 
 export async function createNotification(data: {

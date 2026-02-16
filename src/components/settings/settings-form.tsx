@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { updateSetting } from "@/actions/settings";
+import { toast } from "sonner";
 import { Check, Loader2 } from "lucide-react";
 
 type Setting = {
@@ -37,9 +38,18 @@ const SETTING_TYPES: Record<string, "text" | "number"> = {
   read_reminder_days: "number",
 };
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  NAME_REQUIRED: "nameRequired",
+  SETTING_SAVE_FAILED: "settingSaveFailed",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function SettingsForm({ settings }: { settings: Setting[] }) {
   const t = useTranslations("settings.general");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
 
   const [values, setValues] = useState<Record<string, string>>(
@@ -51,7 +61,12 @@ export function SettingsForm({ settings }: { settings: Setting[] }) {
   async function handleSave(key: string) {
     setSaving(key);
     try {
-      await updateSetting(key, values[key]);
+      const result = await updateSetting(key, values[key]);
+      if (!result.success) {
+        const errorKey = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        toast.error(tErrors(errorKey));
+        return;
+      }
       setSaved(key);
       router.refresh();
       setTimeout(() => setSaved(null), 2000);

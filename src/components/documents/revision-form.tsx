@@ -74,6 +74,27 @@ const revisionSchema = z.object({
 
 type RevisionFormValues = z.infer<typeof revisionSchema>;
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  DOCUMENT_CODE_EXISTS: "documents.upload.errors.documentCodeExists",
+  FILE_TOO_LARGE: "documents.upload.errors.fileTooLarge",
+  FILE_REQUIRED: "documents.upload.errors.fileRequired",
+  FILE_SYSTEM_ERROR: "documents.upload.errors.fileSystemError",
+  DISK_FULL: "documents.upload.errors.diskFull",
+  DOCUMENT_NOT_FOUND: "documents.upload.errors.documentNotFound",
+  REVISION_NOT_DRAFT: "documents.upload.errors.revisionNotDraft",
+};
+
+function getRevisionErrorMessage(
+  t: ReturnType<typeof useTranslations>,
+  errorCode?: string,
+  maxSize?: number,
+): string {
+  if (errorCode && ERROR_CODE_MAP[errorCode]) {
+    return t(ERROR_CODE_MAP[errorCode] as never, { maxSize: maxSize ?? 500 } as never);
+  }
+  return t("documents.upload.errors.unexpectedError");
+}
+
 export function RevisionForm({
   documentId,
   currentRevision,
@@ -156,10 +177,16 @@ export function RevisionForm({
       formData.set("file", file);
 
       const result = await reviseDocument(formData);
-      toast.success(t("documents.toast.revisionCreated", { revNo: result.revisionNo }));
-      router.push(`/documents/${documentId}`);
+      if (result.success && "revisionNo" in result) {
+        toast.success(t("documents.toast.revisionCreated", { revNo: result.revisionNo as number }));
+        router.push(`/documents/${documentId}`);
+      } else {
+        const errorCode = "errorCode" in result ? (result as { errorCode?: string }).errorCode : undefined;
+        const maxSize = "maxSize" in result ? (result as { maxSize?: number }).maxSize : undefined;
+        toast.error(getRevisionErrorMessage(t, errorCode, maxSize));
+      }
     } catch {
-      toast.error(t("documents.toast.revisionFailed"));
+      toast.error(t("documents.upload.errors.unexpectedError"));
     } finally {
       setIsSubmitting(false);
     }

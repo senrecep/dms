@@ -6,6 +6,7 @@ import { users, departments } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { classifyError, type ActionResult } from "@/lib/errors";
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -36,18 +37,22 @@ export async function getProfile() {
   return result[0];
 }
 
-export async function updateProfile(data: { name: string }) {
-  const session = await getSessionOrThrow();
+export async function updateProfile(data: { name: string }): Promise<ActionResult> {
+  try {
+    const session = await getSessionOrThrow();
 
-  if (!data.name || data.name.trim().length === 0) {
-    return { error: "Name is required" };
+    if (!data.name || data.name.trim().length === 0) {
+      return { success: false, error: "Name is required", errorCode: "NAME_REQUIRED" };
+    }
+
+    await db
+      .update(users)
+      .set({ name: data.name.trim() })
+      .where(eq(users.id, session.user.id));
+
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    return classifyError(error);
   }
-
-  await db
-    .update(users)
-    .set({ name: data.name.trim() })
-    .where(eq(users.id, session.user.id));
-
-  revalidatePath("/profile");
-  return { success: true };
 }

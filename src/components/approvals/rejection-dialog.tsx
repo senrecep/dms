@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { rejectDocument } from "@/actions/approvals";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 const rejectionSchema = z.object({
   comment: z.string().min(10, "Rejection reason must be at least 10 characters"),
@@ -38,6 +39,14 @@ interface RejectionDialogProps {
   documentTitle: string;
 }
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  APPROVAL_NOT_FOUND: "approvalNotFound",
+  REJECTION_TOO_SHORT: "rejectionTooShort",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function RejectionDialog({
   open,
   onOpenChange,
@@ -45,6 +54,7 @@ export function RejectionDialog({
   documentTitle,
 }: RejectionDialogProps) {
   const t = useTranslations();
+  const tErrors = useTranslations("errors");
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<RejectionFormValues>({
@@ -56,7 +66,13 @@ export function RejectionDialog({
 
   function onSubmit(values: RejectionFormValues) {
     startTransition(async () => {
-      await rejectDocument(approvalId, values.comment);
+      const result = await rejectDocument(approvalId, values.comment);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        toast.error(tErrors(key));
+        return;
+      }
+      toast.success(t("approvals.actions.rejected"));
       form.reset();
       onOpenChange(false);
     });

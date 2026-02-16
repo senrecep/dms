@@ -16,6 +16,7 @@ import { enqueueEmail, enqueueNotification } from "@/lib/queue";
 import { publish, CHANNELS } from "@/lib/redis/pubsub";
 import { revalidatePath } from "next/cache";
 import { env } from "@/lib/env";
+import { classifyError, type ActionResult } from "@/lib/errors";
 
 // --- Queries ---
 
@@ -105,206 +106,214 @@ export async function getCompletedApprovals() {
 
 // --- Mutations ---
 
-export async function approveDocument(approvalId: string, comment?: string) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error("Unauthorized");
+export async function approveDocument(approvalId: string, comment?: string): Promise<ActionResult> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) throw new Error("Unauthorized");
 
-  const approval = await db.query.approvals.findFirst({
-    where: and(
-      eq(approvals.id, approvalId),
-      eq(approvals.approverId, session.user.id),
-      eq(approvals.status, "PENDING"),
-    ),
-    with: {
-      revision: {
-        with: {
-          document: {
-            columns: {
-              id: true,
-              documentCode: true,
+    const approval = await db.query.approvals.findFirst({
+      where: and(
+        eq(approvals.id, approvalId),
+        eq(approvals.approverId, session.user.id),
+        eq(approvals.status, "PENDING"),
+      ),
+      with: {
+        revision: {
+          with: {
+            document: {
+              columns: {
+                id: true,
+                documentCode: true,
+              },
             },
-          },
-          createdBy: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
+            createdBy: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!approval) throw new Error("Approval not found or already processed");
-
-  const revision = approval.revision;
-  const documentId = revision.documentId;
-  const documentCode = revision.document.documentCode;
-
-  // Update approval status
-  await db
-    .update(approvals)
-    .set({
-      status: "APPROVED",
-      comment: comment ?? null,
-      respondedAt: new Date(),
-    })
-    .where(eq(approvals.id, approvalId));
-
-  if (approval.approvalType === "PREPARER") {
-    // PREPARER approved -> update revision to PREPARER_APPROVED
-    await db
-      .update(documentRevisions)
-      .set({ status: "PREPARER_APPROVED" })
-      .where(eq(documentRevisions.id, revision.id));
-
-    // Create APPROVER approval for revision.approverId
-    let finalApprover: { name: string; email: string } | null = null;
-
-    if (revision.approverId) {
-      await db.insert(approvals).values({
-        revisionId: revision.id,
-        approverId: revision.approverId,
-        approvalType: "APPROVER",
-        status: "PENDING",
-      });
-
-      finalApprover = await db.query.users.findFirst({
-        where: eq(users.id, revision.approverId),
-        columns: { name: true, email: true },
-      }) ?? null;
+    if (!approval) {
+      return { success: false, error: "Approval not found or already processed", errorCode: "APPROVAL_NOT_FOUND" };
     }
 
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: revision.id,
-      userId: session.user.id,
-      action: "PREPARER_APPROVED",
-      details: { comment, approvalType: "PREPARER" },
-    });
+    const revision = approval.revision;
+    const documentId = revision.documentId;
+    const documentCode = revision.document.documentCode;
 
-    // Real-time & cache
-    await publish(CHANNELS.approvals, {
-      targetUserId: revision.createdById,
-      data: {
+    // Update approval status
+    await db
+      .update(approvals)
+      .set({
+        status: "APPROVED",
+        comment: comment ?? null,
+        respondedAt: new Date(),
+      })
+      .where(eq(approvals.id, approvalId));
+
+    if (approval.approvalType === "PREPARER") {
+      // PREPARER approved -> update revision to PREPARER_APPROVED
+      await db
+        .update(documentRevisions)
+        .set({ status: "PREPARER_APPROVED" })
+        .where(eq(documentRevisions.id, revision.id));
+
+      // Create APPROVER approval for revision.approverId
+      let finalApprover: { name: string; email: string } | null = null;
+
+      if (revision.approverId) {
+        await db.insert(approvals).values({
+          revisionId: revision.id,
+          approverId: revision.approverId,
+          approvalType: "APPROVER",
+          status: "PENDING",
+        });
+
+        finalApprover = await db.query.users.findFirst({
+          where: eq(users.id, revision.approverId),
+          columns: { name: true, email: true },
+        }) ?? null;
+      }
+
+      // Log activity
+      await db.insert(activityLogs).values({
         documentId,
         revisionId: revision.id,
-        status: "PREPARER_APPROVED",
-        approvalType: "PREPARER",
-      },
-    });
+        userId: session.user.id,
+        action: "PREPARER_APPROVED",
+        details: { comment, approvalType: "PREPARER" },
+      });
 
-    revalidatePath("/approvals");
-    revalidatePath("/documents");
+      // Real-time & cache
+      await publish(CHANNELS.approvals, {
+        targetUserId: revision.createdById,
+        data: {
+          documentId,
+          revisionId: revision.id,
+          status: "PREPARER_APPROVED",
+          approvalType: "PREPARER",
+        },
+      });
 
-    // Async notifications
-    try {
-      const jobs: Promise<unknown>[] = [];
+      revalidatePath("/approvals");
+      revalidatePath("/documents");
 
-      // Notify uploader about preparer approval
-      jobs.push(enqueueNotification({
-        userId: revision.createdById,
-        type: "APPROVAL_REQUEST",
-        titleKey: "documentPreparerApproved",
-        messageParams: { docTitle: revision.title, docCode: documentCode },
-        relatedDocumentId: documentId,
-        relatedRevisionId: revision.id,
-      }));
+      // Async notifications
+      try {
+        const jobs: Promise<unknown>[] = [];
 
-      // Notify final approver
-      if (revision.approverId && finalApprover) {
+        // Notify uploader about preparer approval
         jobs.push(enqueueNotification({
-          userId: revision.approverId,
+          userId: revision.createdById,
           type: "APPROVAL_REQUEST",
-          titleKey: "newApprovalRequest",
+          titleKey: "documentPreparerApproved",
+          messageParams: { docTitle: revision.title, docCode: documentCode },
+          relatedDocumentId: documentId,
+          relatedRevisionId: revision.id,
+        }));
+
+        // Notify final approver
+        if (revision.approverId && finalApprover) {
+          jobs.push(enqueueNotification({
+            userId: revision.approverId,
+            type: "APPROVAL_REQUEST",
+            titleKey: "newApprovalRequest",
+            messageParams: { docTitle: revision.title, docCode: documentCode },
+            relatedDocumentId: documentId,
+            relatedRevisionId: revision.id,
+          }));
+
+          jobs.push(enqueueEmail({
+            to: finalApprover.email,
+            subjectKey: "approvalRequest",
+            subjectParams: { title: revision.title },
+            templateName: "approval-request",
+            templateProps: {
+              approverName: finalApprover.name,
+              documentTitle: revision.title,
+              documentCode,
+              uploaderName: revision.createdBy.name,
+              approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
+            },
+          }));
+        }
+
+        await Promise.allSettled(jobs);
+      } catch (error) {
+        console.error("[approveDocument:PREPARER] Failed to enqueue notifications:", error);
+      }
+    } else {
+      // APPROVER approved -> update revision to APPROVED
+      await db
+        .update(documentRevisions)
+        .set({ status: "APPROVED" })
+        .where(eq(documentRevisions.id, revision.id));
+
+      // Log activity
+      await db.insert(activityLogs).values({
+        documentId,
+        revisionId: revision.id,
+        userId: session.user.id,
+        action: "APPROVED",
+        details: { comment, approvalType: "APPROVER" },
+      });
+
+      // Real-time & cache
+      await publish(CHANNELS.approvals, {
+        targetUserId: revision.createdById,
+        data: {
+          documentId,
+          revisionId: revision.id,
+          status: "APPROVED",
+          approvalType: "APPROVER",
+        },
+      });
+
+      revalidatePath("/approvals");
+      revalidatePath("/documents");
+
+      // Async notifications
+      try {
+        const jobs: Promise<unknown>[] = [];
+
+        // Notify uploader
+        jobs.push(enqueueNotification({
+          userId: revision.createdById,
+          type: "APPROVAL_REQUEST",
+          titleKey: "documentApproved",
           messageParams: { docTitle: revision.title, docCode: documentCode },
           relatedDocumentId: documentId,
           relatedRevisionId: revision.id,
         }));
 
         jobs.push(enqueueEmail({
-          to: finalApprover.email,
-          subjectKey: "approvalRequest",
+          to: revision.createdBy.email,
+          subjectKey: "documentApproved",
           subjectParams: { title: revision.title },
-          templateName: "approval-request",
+          templateName: "document-approved",
           templateProps: {
-            approverName: finalApprover.name,
+            uploaderName: revision.createdBy.name,
             documentTitle: revision.title,
             documentCode,
-            uploaderName: revision.createdBy.name,
-            approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
+            approvedBy: session.user.name,
+            publishUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
           },
         }));
+
+        await Promise.allSettled(jobs);
+      } catch (error) {
+        console.error("[approveDocument:APPROVER] Failed to enqueue notifications:", error);
       }
-
-      await Promise.allSettled(jobs);
-    } catch (error) {
-      console.error("[approveDocument:PREPARER] Failed to enqueue notifications:", error);
     }
-  } else {
-    // APPROVER approved -> update revision to APPROVED
-    await db
-      .update(documentRevisions)
-      .set({ status: "APPROVED" })
-      .where(eq(documentRevisions.id, revision.id));
 
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: revision.id,
-      userId: session.user.id,
-      action: "APPROVED",
-      details: { comment, approvalType: "APPROVER" },
-    });
-
-    // Real-time & cache
-    await publish(CHANNELS.approvals, {
-      targetUserId: revision.createdById,
-      data: {
-        documentId,
-        revisionId: revision.id,
-        status: "APPROVED",
-        approvalType: "APPROVER",
-      },
-    });
-
-    revalidatePath("/approvals");
-    revalidatePath("/documents");
-
-    // Async notifications
-    try {
-      const jobs: Promise<unknown>[] = [];
-
-      // Notify uploader
-      jobs.push(enqueueNotification({
-        userId: revision.createdById,
-        type: "APPROVAL_REQUEST",
-        titleKey: "documentApproved",
-        messageParams: { docTitle: revision.title, docCode: documentCode },
-        relatedDocumentId: documentId,
-        relatedRevisionId: revision.id,
-      }));
-
-      jobs.push(enqueueEmail({
-        to: revision.createdBy.email,
-        subjectKey: "documentApproved",
-        subjectParams: { title: revision.title },
-        templateName: "document-approved",
-        templateProps: {
-          uploaderName: revision.createdBy.name,
-          documentTitle: revision.title,
-          documentCode,
-          approvedBy: session.user.name,
-          publishUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
-        },
-      }));
-
-      await Promise.allSettled(jobs);
-    } catch (error) {
-      console.error("[approveDocument:APPROVER] Failed to enqueue notifications:", error);
-    }
+    return { success: true };
+  } catch (error) {
+    return classifyError(error);
   }
 }
 
@@ -314,135 +323,143 @@ const rejectSchema = z.object({
   comment: z.string().min(10, "Rejection reason must be at least 10 characters"),
 });
 
-export async function rejectDocument(approvalId: string, comment: string) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error("Unauthorized");
+export async function rejectDocument(approvalId: string, comment: string): Promise<ActionResult> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) throw new Error("Unauthorized");
 
-  const parsed = rejectSchema.safeParse({ comment });
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
-  }
+    const parsed = rejectSchema.safeParse({ comment });
+    if (!parsed.success) {
+      return { success: false, error: "Rejection reason must be at least 10 characters", errorCode: "REJECTION_TOO_SHORT" };
+    }
 
-  const approval = await db.query.approvals.findFirst({
-    where: and(
-      eq(approvals.id, approvalId),
-      eq(approvals.approverId, session.user.id),
-      eq(approvals.status, "PENDING"),
-    ),
-    with: {
-      revision: {
-        with: {
-          document: {
-            columns: {
-              id: true,
-              documentCode: true,
+    const approval = await db.query.approvals.findFirst({
+      where: and(
+        eq(approvals.id, approvalId),
+        eq(approvals.approverId, session.user.id),
+        eq(approvals.status, "PENDING"),
+      ),
+      with: {
+        revision: {
+          with: {
+            document: {
+              columns: {
+                id: true,
+                documentCode: true,
+              },
             },
-          },
-          createdBy: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
+            createdBy: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
         },
       },
-    },
-  });
-
-  if (!approval) throw new Error("Approval not found or already processed");
-
-  const revision = approval.revision;
-  const documentId = revision.documentId;
-  const documentCode = revision.document.documentCode;
-
-  // Update approval status
-  await db
-    .update(approvals)
-    .set({
-      status: "REJECTED",
-      comment: parsed.data.comment,
-      respondedAt: new Date(),
-    })
-    .where(eq(approvals.id, approvalId));
-
-  if (approval.approvalType === "PREPARER") {
-    // PREPARER rejected -> LOCKED (PREPARER_REJECTED, no return to draft)
-    await db
-      .update(documentRevisions)
-      .set({ status: "PREPARER_REJECTED" })
-      .where(eq(documentRevisions.id, revision.id));
-
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: revision.id,
-      userId: session.user.id,
-      action: "PREPARER_REJECTED",
-      details: { comment: parsed.data.comment, approvalType: "PREPARER" },
     });
-  } else {
-    // APPROVER rejected -> LOCKED (APPROVER_REJECTED)
+
+    if (!approval) {
+      return { success: false, error: "Approval not found or already processed", errorCode: "APPROVAL_NOT_FOUND" };
+    }
+
+    const revision = approval.revision;
+    const documentId = revision.documentId;
+    const documentCode = revision.document.documentCode;
+
+    // Update approval status
     await db
-      .update(documentRevisions)
-      .set({ status: "APPROVER_REJECTED" })
-      .where(eq(documentRevisions.id, revision.id));
+      .update(approvals)
+      .set({
+        status: "REJECTED",
+        comment: parsed.data.comment,
+        respondedAt: new Date(),
+      })
+      .where(eq(approvals.id, approvalId));
 
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: revision.id,
-      userId: session.user.id,
-      action: "APPROVER_REJECTED",
-      details: { comment: parsed.data.comment, approvalType: "APPROVER" },
+    if (approval.approvalType === "PREPARER") {
+      // PREPARER rejected -> LOCKED (PREPARER_REJECTED, no return to draft)
+      await db
+        .update(documentRevisions)
+        .set({ status: "PREPARER_REJECTED" })
+        .where(eq(documentRevisions.id, revision.id));
+
+      // Log activity
+      await db.insert(activityLogs).values({
+        documentId,
+        revisionId: revision.id,
+        userId: session.user.id,
+        action: "PREPARER_REJECTED",
+        details: { comment: parsed.data.comment, approvalType: "PREPARER" },
+      });
+    } else {
+      // APPROVER rejected -> LOCKED (APPROVER_REJECTED)
+      await db
+        .update(documentRevisions)
+        .set({ status: "APPROVER_REJECTED" })
+        .where(eq(documentRevisions.id, revision.id));
+
+      // Log activity
+      await db.insert(activityLogs).values({
+        documentId,
+        revisionId: revision.id,
+        userId: session.user.id,
+        action: "APPROVER_REJECTED",
+        details: { comment: parsed.data.comment, approvalType: "APPROVER" },
+      });
+    }
+
+    // Real-time
+    await publish(CHANNELS.approvals, {
+      targetUserId: revision.createdById,
+      data: {
+        documentId,
+        revisionId: revision.id,
+        status: approval.approvalType === "PREPARER" ? "PREPARER_REJECTED" : "APPROVER_REJECTED",
+        comment: parsed.data.comment,
+      },
     });
-  }
 
-  // Real-time
-  await publish(CHANNELS.approvals, {
-    targetUserId: revision.createdById,
-    data: {
-      documentId,
-      revisionId: revision.id,
-      status: approval.approvalType === "PREPARER" ? "PREPARER_REJECTED" : "APPROVER_REJECTED",
-      comment: parsed.data.comment,
-    },
-  });
+    revalidatePath("/approvals");
+    revalidatePath("/documents");
 
-  revalidatePath("/approvals");
-  revalidatePath("/documents");
+    // Async notifications
+    try {
+      await Promise.allSettled([
+        enqueueNotification({
+          userId: revision.createdById,
+          type: "DOCUMENT_REJECTED",
+          titleKey: approval.approvalType === "PREPARER" ? "documentPreparerRejected" : "documentApproverRejected",
+          messageParams: {
+            docTitle: revision.title,
+            docCode: documentCode,
+            reason: parsed.data.comment,
+          },
+          relatedDocumentId: documentId,
+          relatedRevisionId: revision.id,
+        }),
+        enqueueEmail({
+          to: revision.createdBy.email,
+          subjectKey: "documentRejected",
+          subjectParams: { title: revision.title },
+          templateName: "document-rejected",
+          templateProps: {
+            uploaderName: revision.createdBy.name,
+            documentTitle: revision.title,
+            documentCode,
+            rejectedBy: session.user.name,
+            rejectionReason: parsed.data.comment,
+            editUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
+          },
+        }),
+      ]);
+    } catch (error) {
+      console.error("[rejectDocument] Failed to enqueue notifications:", error);
+    }
 
-  // Async notifications
-  try {
-    await Promise.allSettled([
-      enqueueNotification({
-        userId: revision.createdById,
-        type: "DOCUMENT_REJECTED",
-        titleKey: approval.approvalType === "PREPARER" ? "documentPreparerRejected" : "documentApproverRejected",
-        messageParams: {
-          docTitle: revision.title,
-          docCode: documentCode,
-          reason: parsed.data.comment,
-        },
-        relatedDocumentId: documentId,
-        relatedRevisionId: revision.id,
-      }),
-      enqueueEmail({
-        to: revision.createdBy.email,
-        subjectKey: "documentRejected",
-        subjectParams: { title: revision.title },
-        templateName: "document-rejected",
-        templateProps: {
-          uploaderName: revision.createdBy.name,
-          documentTitle: revision.title,
-          documentCode,
-          rejectedBy: session.user.name,
-          rejectionReason: parsed.data.comment,
-          editUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
-        },
-      }),
-    ]);
+    return { success: true };
   } catch (error) {
-    console.error("[rejectDocument] Failed to enqueue notifications:", error);
+    return classifyError(error);
   }
 }

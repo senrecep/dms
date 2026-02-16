@@ -162,13 +162,36 @@
       "fileInfo": "Dosya",
       "revisionInfo": "Revizyon Bilgisi"
     },
+    "activity": {
+      "uploaded": "Yüklendi",
+      "submitted": "Onaya Gönderildi",
+      "approved": "Onaylandı",
+      "preparerApproved": "Hazırlayan Onayladı",
+      "preparerRejected": "Hazırlayan Reddetti",
+      "approverRejected": "Onaylayıcı Reddetti",
+      "rejected": "Reddedildi",
+      "read": "Okundu",
+      "revised": "Revize Edildi",
+      "published": "Yayınlandı",
+      "cancelled": "İptal Edildi"
+    },
     "upload": {
       "title": "Belge Yükle",
       "dragDrop": "Dosyaları buraya sürükleyip bırakın veya göz atmak için tıklayın",
       "selectFile": "Dosya Seç",
       "uploading": "Yükleniyor...",
       "uploadSuccess": "Dosya başarıyla yüklendi.",
-      "uploadError": "Dosya yüklenemedi. Lütfen tekrar deneyin."
+      "uploadError": "Dosya yüklenemedi. Lütfen tekrar deneyin.",
+      "errors": {
+        "documentCodeExists": "Bu belge kodu zaten kullanımda. Lütfen farklı bir kod seçin.",
+        "fileTooLarge": "Dosya izin verilen maksimum boyutu aşıyor ({maxSize} MB).",
+        "fileRequired": "Lütfen yüklemek için bir dosya seçin.",
+        "fileSystemError": "Dosya kaydedilemedi. Lütfen sistem yöneticinizle iletişime geçin.",
+        "diskFull": "Sunucu depolama alanı dolu. Lütfen sistem yöneticinizle iletişime geçin.",
+        "documentNotFound": "Belge bulunamadı.",
+        "revisionNotDraft": "Sadece taslak durumundaki revizyonlar onaya gönderilebilir.",
+        "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+      }
     },
     "actions": {
       "approve": "Onayla",
@@ -312,11 +335,16 @@
       "addUser": "Kullanıcı Ekle",
       "editUser": "Kullanıcıyı Düzenle",
       "roles": "Rol",
+      "roleUser": "Kullanıcı",
+      "roleManager": "Yönetici",
+      "roleAdmin": "Yönetici (Admin)",
       "password": "Şifre",
       "selectRole": "Rol Seçin",
       "selectDepartment": "Departman Seçin",
       "userCreated": "Kullanıcı başarıyla oluşturuldu.",
-      "emailExists": "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut."
+      "emailExists": "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut.",
+      "passwordResetSent": "Şifre sıfırlama bağlantısı gönderildi.",
+      "sendResetLink": "Şifre sıfırlama bağlantısı gönder"
     },
     "email": {
       "language": "Email Dili",
@@ -353,7 +381,29 @@
     "networkError": "Ağ hatası. Lütfen bağlantınızı kontrol edin.",
     "validationError": "Lütfen doğrulama hatalarını düzeltin ve tekrar deneyin.",
     "fileTooBig": "Dosya izin verilen maksimum boyutu aşıyor.",
-    "unsupportedFormat": "Dosya formatı desteklenmiyor."
+    "unsupportedFormat": "Dosya formatı desteklenmiyor.",
+    "duplicateEntry": "Bu kayıt zaten mevcut.",
+    "referenceError": "İlişkili kayıt bulunamadı veya kullanımda.",
+    "requiredField": "Zorunlu bir alan eksik.",
+    "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
+    "departmentSlugExists": "Bu slug ile bir departman zaten mevcut.",
+    "departmentNotFound": "Departman bulunamadı.",
+    "emailExists": "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut.",
+    "userNotFound": "Kullanıcı bulunamadı.",
+    "userCreateFailed": "Kullanıcı oluşturulamadı.",
+    "passwordResetFailed": "Şifre sıfırlama e-postası gönderilemedi.",
+    "nameRequired": "Ad alanı zorunludur.",
+    "settingSaveFailed": "Ayarlar kaydedilemedi.",
+    "emailTestFailed": "Test e-postası gönderilemedi.",
+    "approvalNotFound": "Onay bulunamadı veya zaten işlenmiş.",
+    "rejectionTooShort": "Red nedeni en az 10 karakter olmalıdır.",
+    "readTaskNotFound": "Okuma görevi bulunamadı veya zaten onaylanmış.",
+    "onlyManagersCanConfirm": "Sadece yöneticiler belge okumayı onaylayabilir.",
+    "documentCodeExists": "Bu belge kodu zaten kullanımda.",
+    "fileTooLarge": "Dosya izin verilen maksimum boyutu aşıyor ({maxSize} MB).",
+    "fileRequired": "Lütfen yüklemek için bir dosya seçin.",
+    "fileSystemError": "Dosya kaydedilemedi. Lütfen sistem yöneticinizle iletişime geçin.",
+    "diskFull": "Sunucu depolama alanı dolu. Lütfen sistem yöneticinizle iletişime geçin."
   },
   "errorPages": {
     "forbidden": {

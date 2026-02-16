@@ -1,25 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sendPasswordReset } from "@/actions/users";
 import { toast } from "sonner";
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  USER_NOT_FOUND: "userNotFound",
+  PASSWORD_RESET_FAILED: "passwordResetFailed",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function ResetPasswordButton({ userId }: { userId: string }) {
+  const tErrors = useTranslations("errors");
+  const tCommon = useTranslations("settings.users");
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     setLoading(true);
     try {
       const result = await sendPasswordReset(userId);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        toast.error(tErrors(key));
       } else {
-        toast.success("Parola sifirlama linki gonderildi.");
+        toast.success(tCommon("passwordResetSent"));
       }
     } catch {
-      toast.error("Bir hata olustu.");
+      toast.error(tErrors("unexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -31,7 +43,7 @@ export function ResetPasswordButton({ userId }: { userId: string }) {
       size="icon"
       onClick={handleClick}
       disabled={loading}
-      title="Parola sifirlama linki gonder"
+      title={tCommon("sendResetLink")}
     >
       {loading ? (
         <Loader2 className="size-4 animate-spin" />

@@ -55,6 +55,27 @@ const uploadSchema = z.object({
 
 type UploadFormValues = z.infer<typeof uploadSchema>;
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  DOCUMENT_CODE_EXISTS: "documents.upload.errors.documentCodeExists",
+  FILE_TOO_LARGE: "documents.upload.errors.fileTooLarge",
+  FILE_REQUIRED: "documents.upload.errors.fileRequired",
+  FILE_SYSTEM_ERROR: "documents.upload.errors.fileSystemError",
+  DISK_FULL: "documents.upload.errors.diskFull",
+  DOCUMENT_NOT_FOUND: "documents.upload.errors.documentNotFound",
+  REVISION_NOT_DRAFT: "documents.upload.errors.revisionNotDraft",
+};
+
+function getUploadErrorMessage(
+  t: ReturnType<typeof useTranslations>,
+  errorCode?: string,
+  maxSize?: number,
+): string {
+  if (errorCode && ERROR_CODE_MAP[errorCode]) {
+    return t(ERROR_CODE_MAP[errorCode] as never, { maxSize: maxSize ?? 500 } as never);
+  }
+  return t("documents.upload.errors.unexpectedError");
+}
+
 export function UploadForm({ departments, approvers, allUsers, currentUserId }: UploadFormProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -141,6 +162,8 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
         success: boolean;
         id: string;
         error?: string;
+        errorCode?: string;
+        maxSize?: number;
       }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
@@ -157,30 +180,33 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve(response);
             } else {
-              reject(new Error(response.error || "Upload failed"));
+              resolve(response);
             }
           } catch {
-            reject(new Error("Invalid response"));
+            resolve({ success: false, id: "", error: "Invalid response", errorCode: "UNEXPECTED_ERROR" });
           }
         });
 
-        xhr.addEventListener("error", () => reject(new Error("Network error")));
+        xhr.addEventListener("error", () =>
+          resolve({ success: false, id: "", error: "Network error", errorCode: "NETWORK_ERROR" }),
+        );
         xhr.addEventListener("abort", () =>
-          reject(new Error("Upload cancelled")),
+          resolve({ success: false, id: "", error: "Upload cancelled", errorCode: "UPLOAD_CANCELLED" }),
         );
 
         xhr.open("POST", "/api/documents/upload");
         xhr.send(formData);
       });
 
-      toast.success(t("documents.upload.uploadSuccess"));
-      router.push(`/documents/${result.id}`);
+      if (result.success) {
+        toast.success(t("documents.upload.uploadSuccess"));
+        router.push(`/documents/${result.id}`);
+      } else {
+        const errorMessage = getUploadErrorMessage(t, result.errorCode, result.maxSize);
+        toast.error(errorMessage);
+      }
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("documents.upload.uploadError"),
-      );
+      toast.error(t("documents.upload.errors.unexpectedError"));
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);

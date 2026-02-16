@@ -12,6 +12,7 @@ import {
 import { enqueueEmail, enqueueNotification } from "@/lib/queue";
 import { env } from "@/lib/env";
 import { saveFile } from "@/lib/storage";
+import { classifyError } from "@/lib/errors";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v4";
@@ -31,6 +32,16 @@ const createDocumentSchema = z.object({
   startingRevisionNo: z.coerce.number().int().min(0).optional(),
   action: z.enum(["save", "submit"]).optional(),
 });
+
+const ERROR_HTTP_STATUS: Record<string, number> = {
+  DOCUMENT_CODE_EXISTS: 409,
+  DUPLICATE_ENTRY: 409,
+  EMAIL_EXISTS: 409,
+  SLUG_EXISTS: 409,
+  DISK_FULL: 507,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+};
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -63,7 +74,15 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file || file.size === 0) {
-      return NextResponse.json({ error: "File is required" }, { status: 400 });
+      return NextResponse.json({ error: "File is required", errorCode: "FILE_REQUIRED" }, { status: 400 });
+    }
+
+    const maxSizeBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return NextResponse.json(
+        { error: `File exceeds ${env.MAX_FILE_SIZE_MB} MB limit`, errorCode: "FILE_TOO_LARGE", maxSize: env.MAX_FILE_SIZE_MB },
+        { status: 413 },
+      );
     }
 
     const startingRevNo = parsed.startingRevisionNo ?? 0;
@@ -249,13 +268,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.issues.map((i) => i.message).join(", ") },
+        { error: error.issues.map((i) => i.message).join(", "), errorCode: "VALIDATION_ERROR" },
         { status: 400 },
       );
     }
+
+    const classified = classifyError(error);
+    const status = ERROR_HTTP_STATUS[classified.errorCode] ?? 500;
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed" },
-      { status: 400 },
+      { error: classified.error, errorCode: classified.errorCode },
+      { status },
     );
   }
 }

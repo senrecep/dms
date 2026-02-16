@@ -34,9 +34,19 @@ type Department = {
   isActive: boolean;
 };
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  SLUG_EXISTS: "departmentSlugExists",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  DUPLICATE_ENTRY: "duplicateEntry",
+  REFERENCE_ERROR: "referenceError",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function EditDepartmentDialog({ dept }: { dept: Department }) {
   const t = useTranslations("departments");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -79,14 +89,15 @@ export function EditDepartmentDialog({ dept }: { dept: Department }) {
         isActive,
       });
 
-      if (result.error) {
-        setError(result.error);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        setError(tErrors(key));
       } else {
         setOpen(false);
         router.refresh();
       }
     } catch {
-      setError(tCommon("status.error"));
+      setError(tErrors("unexpectedError"));
     } finally {
       setLoading(false);
     }

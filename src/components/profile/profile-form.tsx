@@ -26,8 +26,17 @@ type ProfileData = {
   createdAt: Date;
 };
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  NAME_REQUIRED: "nameRequired",
+  EMAIL_TEST_FAILED: "emailTestFailed",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function ProfileForm({ profile }: { profile: ProfileData }) {
   const t = useTranslations();
+  const tErrors = useTranslations("errors");
   const router = useRouter();
 
   // Name edit state
@@ -48,14 +57,15 @@ export function ProfileForm({ profile }: { profile: ProfileData }) {
     setNameError("");
     try {
       const result = await updateProfile({ name: name.trim() });
-      if (result.error) {
-        setNameError(result.error);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        setNameError(tErrors(key));
       } else {
         toast.success(t("common.status.success"));
         router.refresh();
       }
     } catch {
-      setNameError(t("common.status.error"));
+      setNameError(tErrors("unexpectedError"));
     } finally {
       setNameLoading(false);
     }

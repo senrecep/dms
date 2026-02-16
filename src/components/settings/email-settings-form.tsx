@@ -29,9 +29,20 @@ interface EmailSettingsFormProps {
   initialSettings: Record<string, string>;
 }
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  NAME_REQUIRED: "nameRequired",
+  EMAIL_TEST_FAILED: "emailTestFailed",
+  SETTING_SAVE_FAILED: "settingSaveFailed",
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  DUPLICATE_ENTRY: "duplicateEntry",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function EmailSettingsForm({ initialSettings }: EmailSettingsFormProps) {
   const router = useRouter();
   const t = useTranslations("settings.email");
+  const tErrors = useTranslations("errors");
 
   const [provider, setProvider] = useState(
     initialSettings.email_provider || "resend"
@@ -91,13 +102,16 @@ export function EmailSettingsForm({ initialSettings }: EmailSettingsFormProps) {
       };
 
       const result = await saveEmailSettings(settings);
-      if (result.success) {
-        setSaved(true);
-        router.refresh();
-        setTimeout(() => setSaved(false), 3000);
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        setSaveError(tErrors(key));
+        return;
       }
+      setSaved(true);
+      router.refresh();
+      setTimeout(() => setSaved(false), 3000);
     } catch {
-      setSaveError("Ayarlar kaydedilirken bir hata olustu.");
+      setSaveError(tErrors("unexpectedError"));
     } finally {
       setSaving(false);
     }
@@ -110,13 +124,14 @@ export function EmailSettingsForm({ initialSettings }: EmailSettingsFormProps) {
 
     try {
       const result = await sendTestEmail(testEmail);
-      if (result.error) {
-        setTestResult({ error: result.error });
+      if (!result.success) {
+        const key = ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError";
+        setTestResult({ error: tErrors(key) });
       } else {
         setTestResult({ success: true });
       }
     } catch {
-      setTestResult({ error: "Test emaili gonderilirken bir hata olustu." });
+      setTestResult({ error: tErrors("unexpectedError") });
     } finally {
       setTesting(false);
     }

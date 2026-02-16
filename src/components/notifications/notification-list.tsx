@@ -16,6 +16,7 @@ import {
   markAllNotificationsAsRead,
 } from "@/actions/notifications";
 import { useNotificationStore } from "@/stores/notification-store";
+import { toast } from "sonner";
 
 const typeIcons: Record<string, string> = {
   APPROVAL_REQUEST: "📋",
@@ -80,6 +81,12 @@ function formatDate(date: string) {
   });
 }
 
+const ERROR_CODE_MAP: Record<string, string> = {
+  UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
+  UNEXPECTED_ERROR: "unexpectedError",
+};
+
 export function NotificationList({
   notifications,
   page,
@@ -89,6 +96,7 @@ export function NotificationList({
   const router = useRouter();
   const t = useTranslations("notifications");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const markAsReadStore = useNotificationStore((s) => s.markAsRead);
   const markAllAsReadStore = useNotificationStore((s) => s.markAllAsRead);
 
@@ -96,13 +104,19 @@ export function NotificationList({
 
   async function handleMarkAsRead(id: string) {
     markAsReadStore(id);
-    await markNotificationAsRead(id);
+    const result = await markNotificationAsRead(id);
+    if (result && !result.success) {
+      toast.error(tErrors(ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError"));
+    }
     router.refresh();
   }
 
   async function handleMarkAllAsRead() {
     markAllAsReadStore();
-    await markAllNotificationsAsRead();
+    const result = await markAllNotificationsAsRead();
+    if (result && !result.success) {
+      toast.error(tErrors(ERROR_CODE_MAP[result.errorCode] ?? "unexpectedError"));
+    }
     router.refresh();
   }
 
