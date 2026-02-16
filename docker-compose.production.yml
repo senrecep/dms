@@ -72,6 +72,9 @@ services:
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-System Admin}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@dms.com}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD:-User123!}
+      SEED_EMAIL_DOMAIN: ${SEED_EMAIL_DOMAIN:-dms.com}
+      FORCE_SEED: ${FORCE_SEED:-false}
     depends_on:
       db:
         condition: service_healthy
