@@ -13,6 +13,7 @@ import {
   users,
   departments,
 } from "@/lib/db/schema";
+import { nanoid } from "nanoid";
 import { saveFile } from "@/lib/storage";
 import { and, eq, or, ilike, inArray, sql, desc, count, asc, ne } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -60,6 +61,11 @@ export type DocumentDetail = Awaited<ReturnType<typeof getDocumentById>>;
 
 // --- Helpers ---
 
+/** Escape LIKE pattern special characters to prevent wildcard injection */
+function escapeLikePattern(input: string): string {
+  return input.replace(/[%_\\]/g, "\\$&");
+}
+
 async function getSession() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
@@ -79,10 +85,11 @@ export async function getDocuments(filters: DocumentFilters = {}) {
   const conditions = [eq(documents.isDeleted, false)];
 
   if (search) {
+    const escaped = escapeLikePattern(search);
     conditions.push(
       or(
-        ilike(rev.title, `%${search}%`),
-        ilike(documents.documentCode, `%${search}%`),
+        ilike(rev.title, `%${escaped}%`),
+        ilike(documents.documentCode, `%${escaped}%`),
       )!,
     );
   }
@@ -330,92 +337,81 @@ export async function createDocument(formData: FormData) {
   const actionType = parsed.action ?? "save";
   const initialStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
 
-  // 1. Create master document
-  const [doc] = await db
-    .insert(documents)
-    .values({
-      documentCode: parsed.documentCode,
-    })
-    .returning();
+  // 1. Pre-generate document ID and save file (outside transaction — FS can't rollback)
+  const docId = nanoid();
+  const fileMeta = await saveFile(file, docId);
 
-  // 2. Save file
-  const fileMeta = await saveFile(file, doc.id);
+  // 2. Wrap all DB operations in a transaction for atomicity
+  const revision = await db.transaction(async (tx) => {
+    const [doc] = await tx
+      .insert(documents)
+      .values({ id: docId, documentCode: parsed.documentCode })
+      .returning();
 
-  // 3. Create first revision
-  const [revision] = await db
-    .insert(documentRevisions)
-    .values({
+    const [rev] = await tx
+      .insert(documentRevisions)
+      .values({
+        documentId: doc.id,
+        revisionNo: startingRevNo,
+        title: parsed.title,
+        description: parsed.description,
+        documentType: parsed.documentType as "PROCEDURE" | "INSTRUCTION" | "FORM",
+        status: initialStatus,
+        departmentId: parsed.departmentId,
+        preparerDepartmentId: parsed.preparerDepartmentId || null,
+        preparerId: parsed.preparerId,
+        approverId: parsed.approverId || null,
+        createdById: session.user.id,
+        filePath: fileMeta.path,
+        fileName: fileMeta.fileName,
+        fileSize: fileMeta.size,
+        mimeType: fileMeta.mimeType,
+        changes: "Initial upload",
+      })
+      .returning();
+
+    await tx
+      .update(documents)
+      .set({ currentRevisionId: rev.id, currentRevisionNo: startingRevNo })
+      .where(eq(documents.id, doc.id));
+
+    if (parsed.distributionDepartmentIds) {
+      const deptIds = parsed.distributionDepartmentIds.split(",").filter(Boolean);
+      if (deptIds.length > 0) {
+        await tx.insert(distributionLists).values(
+          deptIds.map((deptId) => ({ revisionId: rev.id, departmentId: deptId })),
+        );
+      }
+    }
+
+    if (parsed.distributionUserIds) {
+      const userIds = parsed.distributionUserIds.split(",").filter(Boolean);
+      if (userIds.length > 0) {
+        await tx.insert(distributionUsers).values(
+          userIds.map((userId) => ({ revisionId: rev.id, userId })),
+        );
+      }
+    }
+
+    await tx.insert(activityLogs).values({
       documentId: doc.id,
-      revisionNo: startingRevNo,
-      title: parsed.title,
-      description: parsed.description,
-      documentType: parsed.documentType as "PROCEDURE" | "INSTRUCTION" | "FORM",
-      status: initialStatus,
-      departmentId: parsed.departmentId,
-      preparerDepartmentId: parsed.preparerDepartmentId || null,
-      preparerId: parsed.preparerId,
-      approverId: parsed.approverId || null,
-      createdById: session.user.id,
-      filePath: fileMeta.path,
-      fileName: fileMeta.fileName,
-      fileSize: fileMeta.size,
-      mimeType: fileMeta.mimeType,
-      changes: "Initial upload",
-    })
-    .returning();
+      revisionId: rev.id,
+      userId: session.user.id,
+      action: "UPLOADED",
+      details: { title: parsed.title, documentCode: parsed.documentCode, revisionNo: startingRevNo },
+    });
 
-  // 4. Update master document with currentRevisionId
-  await db
-    .update(documents)
-    .set({
-      currentRevisionId: revision.id,
-      currentRevisionNo: startingRevNo,
-    })
-    .where(eq(documents.id, doc.id));
-
-  // 5. Create distribution lists with revisionId
-  if (parsed.distributionDepartmentIds) {
-    const deptIds = parsed.distributionDepartmentIds.split(",").filter(Boolean);
-    if (deptIds.length > 0) {
-      await db.insert(distributionLists).values(
-        deptIds.map((deptId) => ({
-          revisionId: revision.id,
-          departmentId: deptId,
-        })),
-      );
-    }
-  }
-
-  // 6. Create distribution users with revisionId
-  if (parsed.distributionUserIds) {
-    const userIds = parsed.distributionUserIds.split(",").filter(Boolean);
-    if (userIds.length > 0) {
-      await db.insert(distributionUsers).values(
-        userIds.map((userId) => ({
-          revisionId: revision.id,
-          userId,
-        })),
-      );
-    }
-  }
-
-  // 7. Handle approval flow if submitting
-  if (actionType === "submit") {
-    await createApprovalFlow(revision.id, parsed.preparerId, parsed.approverId || null, doc.id, parsed.title, parsed.documentCode, session.user.name);
-  }
-
-  // 8. Log activity
-  await db.insert(activityLogs).values({
-    documentId: doc.id,
-    revisionId: revision.id,
-    userId: session.user.id,
-    action: "UPLOADED",
-    details: { title: parsed.title, documentCode: parsed.documentCode, revisionNo: startingRevNo },
+    return rev;
   });
+
+  // 3. Handle approval flow outside transaction (includes async notifications)
+  if (actionType === "submit") {
+    await createApprovalFlow(revision.id, parsed.preparerId, parsed.approverId || null, docId, parsed.title, parsed.documentCode, session.user.name);
+  }
 
   revalidatePath("/documents");
 
-  return { success: true, id: doc.id };
+  return { success: true, id: docId };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues.map((i) => i.message).join(", "), errorCode: "VALIDATION_ERROR" };
@@ -800,34 +796,43 @@ export async function reviseDocument(formData: FormData) {
       updateData.status = "PENDING_APPROVAL";
     }
 
-    await db
-      .update(documentRevisions)
-      .set(updateData)
-      .where(eq(documentRevisions.id, currentRevision.id));
+    // Wrap DB operations in a transaction for atomicity
+    await db.transaction(async (tx) => {
+      await tx
+        .update(documentRevisions)
+        .set(updateData)
+        .where(eq(documentRevisions.id, currentRevision.id));
 
-    // Update distribution if provided
-    if (parsed.distributionDepartmentIds !== undefined) {
-      // Delete existing and recreate
-      await db.delete(distributionLists).where(eq(distributionLists.revisionId, currentRevision.id));
-      const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
-      if (deptIds.length > 0) {
-        await db.insert(distributionLists).values(
-          deptIds.map((deptId) => ({ revisionId: currentRevision.id, departmentId: deptId })),
-        );
+      if (parsed.distributionDepartmentIds !== undefined) {
+        await tx.delete(distributionLists).where(eq(distributionLists.revisionId, currentRevision.id));
+        const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
+        if (deptIds.length > 0) {
+          await tx.insert(distributionLists).values(
+            deptIds.map((deptId) => ({ revisionId: currentRevision.id, departmentId: deptId })),
+          );
+        }
       }
-    }
 
-    if (parsed.distributionUserIds !== undefined) {
-      await db.delete(distributionUsers).where(eq(distributionUsers.revisionId, currentRevision.id));
-      const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
-      if (userIds.length > 0) {
-        await db.insert(distributionUsers).values(
-          userIds.map((userId) => ({ revisionId: currentRevision.id, userId })),
-        );
+      if (parsed.distributionUserIds !== undefined) {
+        await tx.delete(distributionUsers).where(eq(distributionUsers.revisionId, currentRevision.id));
+        const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
+        if (userIds.length > 0) {
+          await tx.insert(distributionUsers).values(
+            userIds.map((userId) => ({ revisionId: currentRevision.id, userId })),
+          );
+        }
       }
-    }
 
-    // Handle approval flow if submitting
+      await tx.insert(activityLogs).values({
+        documentId,
+        revisionId: currentRevision.id,
+        userId: session.user.id,
+        action: "REVISED",
+        details: { revisionNo: currentRevision.revisionNo, changes: parsed.changes, overwrite: true },
+      });
+    });
+
+    // Approval flow outside transaction (includes async notifications)
     if (actionType === "submit") {
       const effectivePreparerId = parsed.preparerId || currentRevision.preparerId;
       const effectiveApproverId = parsed.approverId !== undefined ? (parsed.approverId || null) : currentRevision.approverId;
@@ -844,100 +849,96 @@ export async function reviseDocument(formData: FormData) {
       );
     }
 
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: currentRevision.id,
-      userId: session.user.id,
-      action: "REVISED",
-      details: { revisionNo: currentRevision.revisionNo, changes: parsed.changes, overwrite: true },
-    });
-
     revalidatePath("/documents");
     revalidatePath(`/documents/${documentId}`);
     return { success: true, revisionNo: currentRevision.revisionNo };
   } else {
-    // Create NEW revision
+    // Create NEW revision — wrap DB operations in a transaction
     const newRevisionNo = doc.currentRevisionNo + 1;
     const newStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
 
-    const [newRevision] = await db
-      .insert(documentRevisions)
-      .values({
+    const newRevision = await db.transaction(async (tx) => {
+      const [rev] = await tx
+        .insert(documentRevisions)
+        .values({
+          documentId,
+          revisionNo: newRevisionNo,
+          title: parsed.title || currentRevision.title,
+          description: parsed.description !== undefined ? parsed.description : currentRevision.description,
+          documentType: (parsed.documentType || currentRevision.documentType) as "PROCEDURE" | "INSTRUCTION" | "FORM",
+          status: newStatus,
+          departmentId: parsed.departmentId || currentRevision.departmentId,
+          preparerDepartmentId: parsed.preparerDepartmentId !== undefined
+            ? (parsed.preparerDepartmentId || null)
+            : currentRevision.preparerDepartmentId,
+          preparerId: parsed.preparerId || currentRevision.preparerId,
+          approverId: parsed.approverId !== undefined
+            ? (parsed.approverId || null)
+            : currentRevision.approverId,
+          createdById: session.user.id,
+          filePath: fileMeta.path,
+          fileName: fileMeta.fileName,
+          fileSize: fileMeta.size,
+          mimeType: fileMeta.mimeType,
+          changes: parsed.changes,
+        })
+        .returning();
+
+      await tx
+        .update(documents)
+        .set({ currentRevisionId: rev.id, currentRevisionNo: newRevisionNo })
+        .where(eq(documents.id, documentId));
+
+      if (parsed.distributionDepartmentIds !== undefined) {
+        const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
+        if (deptIds.length > 0) {
+          await tx.insert(distributionLists).values(
+            deptIds.map((deptId) => ({ revisionId: rev.id, departmentId: deptId })),
+          );
+        }
+      } else {
+        const prevDists = await tx
+          .select({ departmentId: distributionLists.departmentId })
+          .from(distributionLists)
+          .where(eq(distributionLists.revisionId, currentRevision.id));
+        if (prevDists.length > 0) {
+          await tx.insert(distributionLists).values(
+            prevDists.map((d) => ({ revisionId: rev.id, departmentId: d.departmentId })),
+          );
+        }
+      }
+
+      if (parsed.distributionUserIds !== undefined) {
+        const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
+        if (userIds.length > 0) {
+          await tx.insert(distributionUsers).values(
+            userIds.map((userId) => ({ revisionId: rev.id, userId })),
+          );
+        }
+      } else {
+        const prevUsers = await tx
+          .select({ userId: distributionUsers.userId })
+          .from(distributionUsers)
+          .where(eq(distributionUsers.revisionId, currentRevision.id));
+        if (prevUsers.length > 0) {
+          await tx.insert(distributionUsers).values(
+            prevUsers.map((u) => ({ revisionId: rev.id, userId: u.userId })),
+          );
+        }
+      }
+
+      await tx.insert(activityLogs).values({
         documentId,
-        revisionNo: newRevisionNo,
-        title: parsed.title || currentRevision.title,
-        description: parsed.description !== undefined ? parsed.description : currentRevision.description,
-        documentType: (parsed.documentType || currentRevision.documentType) as "PROCEDURE" | "INSTRUCTION" | "FORM",
-        status: newStatus,
-        departmentId: parsed.departmentId || currentRevision.departmentId,
-        preparerDepartmentId: parsed.preparerDepartmentId !== undefined
-          ? (parsed.preparerDepartmentId || null)
-          : currentRevision.preparerDepartmentId,
-        preparerId: parsed.preparerId || currentRevision.preparerId,
-        approverId: parsed.approverId !== undefined
-          ? (parsed.approverId || null)
-          : currentRevision.approverId,
-        createdById: session.user.id,
-        filePath: fileMeta.path,
-        fileName: fileMeta.fileName,
-        fileSize: fileMeta.size,
-        mimeType: fileMeta.mimeType,
-        changes: parsed.changes,
-      })
-      .returning();
+        revisionId: rev.id,
+        userId: session.user.id,
+        action: "REVISED",
+        details: { revisionNo: newRevisionNo, changes: parsed.changes },
+      });
 
-    // Update master document
-    await db
-      .update(documents)
-      .set({
-        currentRevisionId: newRevision.id,
-        currentRevisionNo: newRevisionNo,
-      })
-      .where(eq(documents.id, documentId));
+      return rev;
+    });
 
-    // Create distribution lists for new revision
-    if (parsed.distributionDepartmentIds !== undefined) {
-      const deptIds = (parsed.distributionDepartmentIds || "").split(",").filter(Boolean);
-      if (deptIds.length > 0) {
-        await db.insert(distributionLists).values(
-          deptIds.map((deptId) => ({ revisionId: newRevision.id, departmentId: deptId })),
-        );
-      }
-    } else {
-      // Copy from previous revision
-      const prevDists = await db
-        .select({ departmentId: distributionLists.departmentId })
-        .from(distributionLists)
-        .where(eq(distributionLists.revisionId, currentRevision.id));
-      if (prevDists.length > 0) {
-        await db.insert(distributionLists).values(
-          prevDists.map((d) => ({ revisionId: newRevision.id, departmentId: d.departmentId })),
-        );
-      }
-    }
-
-    if (parsed.distributionUserIds !== undefined) {
-      const userIds = (parsed.distributionUserIds || "").split(",").filter(Boolean);
-      if (userIds.length > 0) {
-        await db.insert(distributionUsers).values(
-          userIds.map((userId) => ({ revisionId: newRevision.id, userId })),
-        );
-      }
-    } else {
-      // Copy from previous revision
-      const prevUsers = await db
-        .select({ userId: distributionUsers.userId })
-        .from(distributionUsers)
-        .where(eq(distributionUsers.revisionId, currentRevision.id));
-      if (prevUsers.length > 0) {
-        await db.insert(distributionUsers).values(
-          prevUsers.map((u) => ({ revisionId: newRevision.id, userId: u.userId })),
-        );
-      }
-    }
-
-    // Handle approval flow if submitting
+    // Approval flow outside transaction (includes async notifications)
     if (actionType === "submit") {
       const effectivePreparerId = parsed.preparerId || currentRevision.preparerId;
       const effectiveApproverId = parsed.approverId !== undefined ? (parsed.approverId || null) : currentRevision.approverId;
@@ -953,15 +954,6 @@ export async function reviseDocument(formData: FormData) {
         session.user.name,
       );
     }
-
-    // Log activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId: newRevision.id,
-      userId: session.user.id,
-      action: "REVISED",
-      details: { revisionNo: newRevisionNo, changes: parsed.changes },
-    });
 
     revalidatePath("/documents");
     revalidatePath(`/documents/${documentId}`);

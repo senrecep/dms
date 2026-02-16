@@ -208,23 +208,16 @@ export async function getReadStatus(revisionId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
 
-  const [totalResult] = await db
-    .select({ count: count() })
+  const [result] = await db
+    .select({
+      total: count(),
+      confirmed: count(readConfirmations.confirmedAt),
+    })
     .from(readConfirmations)
     .where(eq(readConfirmations.revisionId, revisionId));
 
-  const [confirmedResult] = await db
-    .select({ count: count() })
-    .from(readConfirmations)
-    .where(
-      and(
-        eq(readConfirmations.revisionId, revisionId),
-        isNotNull(readConfirmations.confirmedAt),
-      ),
-    );
-
   return {
-    total: totalResult?.count ?? 0,
-    confirmed: confirmedResult?.count ?? 0,
+    total: result?.total ?? 0,
+    confirmed: result?.confirmed ?? 0,
   };
 }

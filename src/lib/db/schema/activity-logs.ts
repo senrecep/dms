@@ -42,5 +42,13 @@ export const activityLogs = pgTable(
     index("activity_logs_revision_id_idx").on(table.revisionId),
     index("activity_logs_user_id_idx").on(table.userId),
     index("activity_logs_action_idx").on(table.action),
+    index("activity_logs_document_created_idx").on(
+      table.documentId,
+      table.createdAt,
+    ),
+    index("activity_logs_user_created_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
   ],
 );

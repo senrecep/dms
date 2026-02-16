@@ -2,8 +2,16 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { users, departments } from "@/lib/db/schema";
-import { eq, and, ne } from "drizzle-orm";
+import {
+  users,
+  departments,
+  documentRevisions,
+  approvals,
+  readConfirmations,
+  activityLogs,
+  documents,
+} from "@/lib/db/schema";
+import { eq, and, ne, count, desc, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { env } from "@/lib/env";
@@ -171,4 +179,76 @@ export async function updateUser(
   } catch (error) {
     return classifyError(error);
   }
+}
+
+export async function getUserDetail(userId: string) {
+  const userInfo = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      isActive: users.isActive,
+      createdAt: users.createdAt,
+      departmentName: departments.name,
+    })
+    .from(users)
+    .leftJoin(departments, eq(users.departmentId, departments.id))
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (userInfo.length === 0) return null;
+
+  // Optimized: 3 queries instead of 6 using conditional aggregation
+  const [
+    documentsCreatedResult,
+    approvalStatsResult,
+    readStatsResult,
+  ] = await Promise.all([
+    db
+      .select({ count: count() })
+      .from(documentRevisions)
+      .where(eq(documentRevisions.createdById, userId)),
+    db
+      .select({
+        approved: sql<number>`count(*) filter (where ${approvals.status} = 'APPROVED')`.as("approved"),
+        rejected: sql<number>`count(*) filter (where ${approvals.status} = 'REJECTED')`.as("rejected"),
+        pending: sql<number>`count(*) filter (where ${approvals.status} = 'PENDING')`.as("pending"),
+      })
+      .from(approvals)
+      .where(eq(approvals.approverId, userId)),
+    db
+      .select({
+        confirmed: count(readConfirmations.confirmedAt),
+        total: count(),
+      })
+      .from(readConfirmations)
+      .where(eq(readConfirmations.userId, userId)),
+  ]);
+
+  const recentActivities = await db
+    .select({
+      id: activityLogs.id,
+      action: activityLogs.action,
+      createdAt: activityLogs.createdAt,
+      documentCode: documents.documentCode,
+    })
+    .from(activityLogs)
+    .innerJoin(documents, eq(activityLogs.documentId, documents.id))
+    .where(eq(activityLogs.userId, userId))
+    .orderBy(desc(activityLogs.createdAt))
+    .limit(10);
+
+  return {
+    ...userInfo[0],
+    stats: {
+      documentsCreated: Number(documentsCreatedResult[0].count),
+      approvalsApproved: Number(approvalStatsResult[0].approved),
+      approvalsRejected: Number(approvalStatsResult[0].rejected),
+      approvalsPending: Number(approvalStatsResult[0].pending),
+      documentsRead: Number(readStatsResult[0].confirmed),
+      readsPending: Number(readStatsResult[0].total) - Number(readStatsResult[0].confirmed),
+    },
+    recentActivities,
+  };
 }

@@ -24,5 +24,10 @@ export const readConfirmations = pgTable(
   (table) => [
     index("read_confirmations_revision_id_idx").on(table.revisionId),
     index("read_confirmations_user_id_idx").on(table.userId),
+    index("read_confirmations_user_confirmed_created_idx").on(
+      table.userId,
+      table.confirmedAt,
+      table.createdAt,
+    ),
   ],
 );

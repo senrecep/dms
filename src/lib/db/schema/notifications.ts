@@ -51,5 +51,10 @@ export const notifications = pgTable(
     index("notifications_related_revision_id_idx").on(
       table.relatedRevisionId,
     ),
+    index("notifications_user_read_created_idx").on(
+      table.userId,
+      table.isRead,
+      table.createdAt,
+    ),
   ],
 );

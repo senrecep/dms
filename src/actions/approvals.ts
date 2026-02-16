@@ -142,6 +142,11 @@ export async function approveDocument(approvalId: string, comment?: string): Pro
       return { success: false, error: "Approval not found or already processed", errorCode: "APPROVAL_NOT_FOUND" };
     }
 
+    // Prevent self-approval: the document creator cannot approve their own document
+    if (approval.revision.createdBy.id === session.user.id) {
+      return { success: false, error: "You cannot approve your own document", errorCode: "SELF_APPROVAL" };
+    }
+
     const revision = approval.revision;
     const documentId = revision.documentId;
     const documentCode = revision.document.documentCode;

@@ -1,21 +1,18 @@
 import { existsSync } from "node:fs";
 import { stat } from "node:fs/promises";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { getFileStream, getMimeType } from "@/lib/storage";
 import { resolveSecurePath } from "@/lib/storage/path";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  // Authentication: require session cookie
-  const cookieStore = await cookies();
-  const sessionCookie =
-    cookieStore.get("better-auth.session_token") ??
-    cookieStore.get("__Secure-better-auth.session_token");
-
-  if (!sessionCookie?.value) {
+  // Authentication: validate session via Better Auth (not just cookie presence)
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

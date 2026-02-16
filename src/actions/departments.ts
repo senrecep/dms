@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { departments } from "@/lib/db/schema";
+import { departments, users } from "@/lib/db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -101,4 +101,39 @@ export async function toggleDepartmentActive(id: string, isActive: boolean): Pro
   } catch (error) {
     return classifyError(error);
   }
+}
+
+export async function getDepartmentBySlug(slug: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error("Unauthorized");
+
+  const dept = await db
+    .select({
+      id: departments.id,
+      name: departments.name,
+      slug: departments.slug,
+      description: departments.description,
+      isActive: departments.isActive,
+      managerId: departments.managerId,
+      managerName: users.name,
+    })
+    .from(departments)
+    .leftJoin(users, eq(departments.managerId, users.id))
+    .where(and(eq(departments.slug, slug), eq(departments.isDeleted, false)))
+    .limit(1);
+
+  if (dept.length === 0) return null;
+
+  const members = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      isActive: users.isActive,
+    })
+    .from(users)
+    .where(and(eq(users.departmentId, dept[0].id), eq(users.isActive, true)));
+
+  return { ...dept[0], members };
 }

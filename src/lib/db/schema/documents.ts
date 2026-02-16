@@ -28,6 +28,6 @@ export const documents = pgTable(
       .$onUpdateFn(() => new Date()),
   },
   (table) => [
-    index("documents_document_code_idx").on(table.documentCode),
+    index("documents_is_deleted_idx").on(table.isDeleted),
   ],
 );

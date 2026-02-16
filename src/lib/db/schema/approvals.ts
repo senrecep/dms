@@ -34,5 +34,10 @@ export const approvals = pgTable(
     index("approvals_revision_id_idx").on(table.revisionId),
     index("approvals_approver_id_idx").on(table.approverId),
     index("approvals_status_idx").on(table.status),
+    index("approvals_approver_status_created_idx").on(
+      table.approverId,
+      table.status,
+      table.createdAt,
+    ),
   ],
 );

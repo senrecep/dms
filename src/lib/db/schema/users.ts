@@ -34,5 +34,6 @@ export const users = pgTable(
     index("users_email_idx").on(table.email),
     index("users_department_id_idx").on(table.departmentId),
     index("users_role_idx").on(table.role),
+    index("users_is_active_idx").on(table.isActive),
   ],
 );

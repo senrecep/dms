@@ -31,5 +31,6 @@ export const departments = pgTable(
   (table) => [
     index("departments_slug_idx").on(table.slug),
     index("departments_manager_id_idx").on(table.managerId),
+    index("departments_is_deleted_idx").on(table.isDeleted),
   ],
 );

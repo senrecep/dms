@@ -15,6 +15,10 @@ import * as XLSX from "xlsx";
 
 import type { DocumentFilters } from "./documents";
 
+function escapeLikePattern(input: string): string {
+  return input.replace(/[%_\\]/g, "\\$&");
+}
+
 export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error("Unauthorized");
@@ -25,10 +29,11 @@ export async function exportDocumentsToExcel(filters: DocumentFilters = {}) {
   const conditions = [eq(documents.isDeleted, false)];
 
   if (search) {
+    const escaped = escapeLikePattern(search);
     conditions.push(
       or(
-        ilike(rev.title, `%${search}%`),
-        ilike(documents.documentCode, `%${search}%`),
+        ilike(rev.title, `%${escaped}%`),
+        ilike(documents.documentCode, `%${escaped}%`),
       )!,
     );
   }
