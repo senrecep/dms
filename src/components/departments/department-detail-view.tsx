@@ -168,7 +168,7 @@ export function DepartmentDetailView({
               <CreateUserDialog
                 presetDepartmentId={department.id}
                 presetDepartmentName={department.name}
-                allowedRoles={["USER", "MANAGER"]}
+                allowedRoles={editMode === "manager" ? ["USER"] : ["USER", "MANAGER"]}
                 triggerLabel={tUsers("addUser")}
               />
             )}

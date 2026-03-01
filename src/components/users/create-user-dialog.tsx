@@ -52,7 +52,7 @@ type CreateUserDialogProps = {
 export function CreateUserDialog({
   presetDepartmentId,
   presetDepartmentName,
-  allowedRoles = ["USER", "MANAGER", "ADMIN"],
+  allowedRoles = ["USER", "MANAGER"],
   triggerLabel,
 }: CreateUserDialogProps) {
   const t = useTranslations("settings.users");

@@ -57,11 +57,13 @@ export async function createUser(formData: {
 
     if (role !== "ADMIN" && role !== "MANAGER") throw new Error("Forbidden");
 
+    if (role === "ADMIN" && formData.role === "ADMIN") throw new Error("Forbidden");
+
     if (role === "MANAGER") {
       const managerDeptIds = await getManagerDepartmentIds(session.user.id);
       if (managerDeptIds.length === 0) throw new Error("Forbidden");
 
-      if (formData.role === "ADMIN") throw new Error("Forbidden");
+      if (formData.role !== "USER") throw new Error("Forbidden");
 
       if (!formData.departmentIds || formData.departmentIds.length === 0) {
         return { success: false, error: "Managers must be assigned to at least one department", errorCode: "MANAGER_NEEDS_DEPARTMENT" };
