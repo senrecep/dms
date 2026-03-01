@@ -18,7 +18,11 @@ import { env } from "@/lib/env";
 import { classifyError, type ActionResult } from "@/lib/errors";
 import { publishDocument } from "@/actions/documents";
 
-const ACTIVE_PENDING_REVISION_STATUSES = ["PENDING_APPROVAL", "PREPARER_APPROVED"] as const;
+type ActivePendingRevisionStatus = "PENDING_APPROVAL" | "PREPARER_APPROVED";
+
+function isActivePendingRevisionStatus(status: string): status is ActivePendingRevisionStatus {
+  return status === "PENDING_APPROVAL" || status === "PREPARER_APPROVED";
+}
 
 // --- Queries ---
 
@@ -62,9 +66,7 @@ export async function getPendingApprovals() {
     orderBy: (approvals, { desc }) => [desc(approvals.createdAt)],
   });
 
-  return items.filter((item) =>
-    ACTIVE_PENDING_REVISION_STATUSES.includes(item.revision.status),
-  );
+  return items.filter((item) => isActivePendingRevisionStatus(item.revision.status));
 }
 
 export async function getCompletedApprovals() {
@@ -147,7 +149,7 @@ export async function approveDocument(approvalId: string, comment?: string): Pro
       return { success: false, error: "Approval not found or already processed", errorCode: "APPROVAL_NOT_FOUND" };
     }
 
-    if (!ACTIVE_PENDING_REVISION_STATUSES.includes(approval.revision.status)) {
+    if (!isActivePendingRevisionStatus(approval.revision.status)) {
       return { success: false, error: "Approval is no longer active", errorCode: "APPROVAL_NOT_ACTIVE" };
     }
 
@@ -385,7 +387,7 @@ export async function rejectDocument(approvalId: string, comment: string): Promi
       return { success: false, error: "Approval not found or already processed", errorCode: "APPROVAL_NOT_FOUND" };
     }
 
-    if (!ACTIVE_PENDING_REVISION_STATUSES.includes(approval.revision.status)) {
+    if (!isActivePendingRevisionStatus(approval.revision.status)) {
       return { success: false, error: "Approval is no longer active", errorCode: "APPROVAL_NOT_ACTIVE" };
     }
 
