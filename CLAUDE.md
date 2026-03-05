@@ -33,17 +33,26 @@ bun run worker:dev   # Start worker (watch mode)
 src/
 ├── app/              # Next.js pages and API routes
 │   ├── (dashboard)/  # Authenticated dashboard layout
+│   │   ├── documents/  # DMS pages
+│   │   ├── approvals/  # Document approvals
+│   │   ├── car/        # CAR module pages (dashboard, list, create, detail, print, my-tasks, guide)
+│   │   └── settings/   # System & CAR settings
 │   ├── api/auth/     # Better Auth endpoints
 │   ├── api/files/    # File serving (authenticated)
 │   └── api/sse/      # Real-time notifications
-├── actions/          # Server Actions (mutations)
-├── components/       # UI components (layout/ + ui/)
+├── actions/          # Server Actions (mutations) - includes car-*.ts for CAR module
+├── components/
+│   ├── car/          # CAR components (form, detail, workflow stepper, dashboard, print, etc.)
+│   ├── layout/       # Sidebar, header
+│   ├── settings/     # Settings forms (general, email, CAR settings)
+│   └── ui/           # shadcn/ui components
 ├── hooks/            # Custom React hooks
-├── i18n/messages/    # Translation files (nested JSON)
+├── i18n/messages/    # Translation files (nested JSON, 1000+ keys)
 ├── lib/
 │   ├── auth/         # Better Auth config
-│   ├── db/schema/    # Drizzle schema (12 tables)
-│   ├── email/        # Resend + templates
+│   ├── car/          # CAR workflow engine (status transitions, validations)
+│   ├── db/schema/    # Drizzle schema (25+ tables including CAR module)
+│   ├── email/        # Resend + templates (DMS + CAR email templates)
 │   ├── queue/        # BullMQ job queue (email + notifications)
 │   ├── redis/        # Client, cache, pub/sub
 │   ├── sse/          # SSE server utilities
@@ -72,12 +81,22 @@ src/
 - Corporate, professional dashboard aesthetic
 
 ## Key Workflows
+
+### DMS (Document Management)
 - **Upload**: User/Admin uploads → selects approver → distribution list → submit
 - **Approval**: Pending → Intermediate (proxy) → Final → Published
 - **Rejection**: Red with reason → Draft → notify uploader
 - **Revision**: New file → increment rev number → archive old
 - **Read Tracking**: Published → notify distribution → confirm reading
 - **Escalation**: Configurable reminders → escalate to upper management
+
+### CAR (Corrective Action Request / DFI)
+- **Workflow**: Open → Root Cause Analysis → Immediate Action → Planned Action → Action Results → Pending Closure → Closed
+- **Root Cause**: Document and analyze root causes for nonconformities
+- **Corrective Actions**: Assign actions with owners, teams, target dates, and cost tracking
+- **Closure**: Request closure with approval notes, authorized closure by admin/manager
+- **Reports**: Print/PDF report generation with full audit trail
+- **Settings**: Configurable lookup tables (sources, systems, processes, customers, products, operations)
 
 ## Ecosystem (.claude/)
 - **Agents**: code-reviewer, db-architect, workflow-designer, frontend-developer, security-auditor, i18n-specialist

@@ -106,6 +106,7 @@ This creates:
 - **11 sample documents** covering all 8 workflow statuses
 - **14 revisions** with full approval, distribution, and read tracking data
 - **13 system settings** (email config, reminder periods, etc.)
+- **CAR lookup tables**: Sources, systems, processes, customers, products, and operations for the Corrective Action Request module
 
 > **Warning:** The seed script **clears all existing data** before inserting. It is NOT idempotent - do not run on a database with real data.
 

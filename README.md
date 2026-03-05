@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  A full-featured, enterprise-grade quality management system built for organizations that need structured document creation, multi-level approval workflows, controlled distribution, and auditable read confirmations. Designed with a corporate aesthetic and role-based access control.
+  A full-featured, enterprise-grade quality management system built for organizations that need structured document management, multi-level approval workflows, controlled distribution, auditable read confirmations, and corrective action tracking following ISO 9001 standards. Designed with a corporate aesthetic and role-based access control.
 </p>
 
 ## Table of Contents
@@ -22,6 +22,7 @@
 - [Getting Started](#getting-started)
 - [Available Commands](#available-commands)
 - [Document Lifecycle](#document-lifecycle)
+- [CAR - Corrective Action Requests](#car---corrective-action-requests)
 - [Authentication & Roles](#authentication--roles)
 - [Email System](#email-system)
 - [Real-Time Notifications](#real-time-notifications)
@@ -51,6 +52,22 @@
 - **Dark Mode** - Full dark mode support via CSS variables
 - **Mobile-Responsive** - Mobile-first design with responsive breakpoints
 - **Progressive Web App (PWA)** - Installable on mobile and desktop with offline-capable service worker
+
+### CAR Module (Corrective Action Request / DFI)
+
+- **8-Step Workflow** - Open > Root Cause Analysis > Immediate Action > Planned Action > Action Results > Pending Closure > Closed (+ Cancelled)
+- **Root Cause Analysis** - Document and track root cause investigations with multiple entries per CAR
+- **Immediate Actions** - Record urgent containment actions taken before corrective planning
+- **Corrective Actions** - Plan, assign, and track corrective action items with owners, teams, target dates, cost tracking, and results
+- **Closure Management** - Request closure with approval notes, authorized closure by admin/manager
+- **Dashboard & Analytics** - Visual charts for status distribution, department performance, trend analysis, overdue tracking
+- **My Tasks View** - Personalized view of assigned corrective actions and pending tasks
+- **Print/PDF Reports** - Professional PDF report generation with full audit trail for each CAR
+- **Configurable Lookups** - Admin-managed lookup tables for sources, systems, processes, customers, products, and operations
+- **Activity Logging** - Complete audit trail of every action and status change
+- **File Attachments** - Attach supporting documents and evidence to CARs
+- **Email Notifications** - Automated notifications for assignments, status changes, reminders, overdue actions, and closure
+- **User Guide** - In-app guide for CAR module workflows and best practices
 
 ## Tech Stack
 
@@ -116,15 +133,16 @@ src/
 ├── app/                          # Next.js pages and API routes
 │   ├── (dashboard)/              # Authenticated dashboard layout
 │   │   ├── approvals/            #   Approval management
+│   │   ├── car/                  #   CAR module (dashboard, list, create, detail, print, my-tasks, guide)
 │   │   ├── dashboard/            #   Stats overview
-│   │   ├── departments/          #   Department CRUD
+│   │   ├── departments/          #   Department CRUD (+ CAR stats tab)
 │   │   ├── documents/            #   Document list, detail, upload, revise
 │   │   ├── guide/                #   User guide page
 │   │   ├── notifications/        #   Notification center
 │   │   ├── profile/              #   User profile & password change
 │   │   ├── read-tasks/           #   Read confirmation tasks
-│   │   ├── settings/             #   System settings (admin only)
-│   │   └── users/                #   User management (admin only)
+│   │   ├── settings/             #   System settings + CAR settings (admin only)
+│   │   └── users/                #   User management (+ CAR stats tab)
 │   ├── api/
 │   │   ├── auth/[...all]/        #   Better Auth catch-all
 │   │   ├── documents/upload/     #   File upload endpoint
@@ -133,10 +151,18 @@ src/
 │   └── login/                    # Public login page
 ├── actions/                      # Server Actions (all mutations)
 │   ├── approvals.ts              #   Approve, reject documents
+│   ├── car.ts                    #   CAR CRUD operations
+│   ├── car-corrective-actions.ts #   Corrective action management
+│   ├── car-dashboard.ts          #   CAR dashboard stats & charts
+│   ├── car-immediate-action.ts   #   Immediate action management
+│   ├── car-root-cause.ts         #   Root cause analysis
+│   ├── car-settings.ts           #   CAR lookup table management
+│   ├── car-workflow.ts           #   CAR status transitions
 │   ├── documents.ts              #   Create, cancel, publish, revise
 │   ├── read-confirmations.ts     #   Confirm document reading
 │   └── settings.ts               #   System & email settings
 ├── components/
+│   ├── car/                      #   CAR module components (form, detail, workflow stepper, dashboard, print, etc.)
 │   ├── layout/                   #   App shell, sidebar, header
 │   └── ui/                       #   shadcn/ui components
 ├── hooks/                        # Custom React hooks
@@ -145,8 +171,9 @@ src/
 │   └── tr.json                   #   Turkish translations
 ├── lib/
 │   ├── auth/                     #   Better Auth configuration
+│   ├── car/                      #   CAR workflow engine (status transitions, validations)
 │   ├── db/
-│   │   ├── schema/               #   Drizzle schema (15 files)
+│   │   ├── schema/               #   Drizzle schema (25+ files including CAR module)
 │   │   ├── index.ts              #   Database connection
 │   │   └── seed.ts               #   Initial data seeding
 │   ├── email/
@@ -273,6 +300,60 @@ Preparer Approved → Approver Rejected → (new revision required)
 3. Automated reminders after configurable days (default: 3)
 4. Unread tasks escalate to department managers after configurable days (default: 7)
 
+## CAR - Corrective Action Requests
+
+The CAR (Corrective Action Request) module - also known as DFI (Duzeltici Faaliyet Istegi) - manages the full corrective action lifecycle following ISO 9001 quality management standards.
+
+### CAR Workflow
+
+```
+Open --> Root Cause Analysis --> Immediate Action --> Planned Action --> Action Results --> Pending Closure --> Closed
+  |                                                                                                            ^
+  +--> Cancelled                                                                                               |
+                                                                                                    (closure approved)
+```
+
+### CAR Status Reference
+
+| Status | Description |
+|--------|-------------|
+| `OPEN` | New CAR created, nonconformity documented |
+| `ROOT_CAUSE_ANALYSIS` | Root cause investigation in progress |
+| `IMMEDIATE_ACTION` | Containment actions being recorded |
+| `PLANNED_ACTION` | Corrective actions planned and assigned |
+| `ACTION_RESULTS` | Actions completed, results documented |
+| `PENDING_CLOSURE` | Closure requested, awaiting approval |
+| `CLOSED` | CAR closed with approval note |
+| `CANCELLED` | CAR cancelled (can happen from any status) |
+
+### CAR Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `corrective_action_requests` | Main CAR records with status, dates, assignments |
+| `car_root_cause_analyses` | Root cause entries per CAR |
+| `car_immediate_actions` | Immediate containment actions per CAR |
+| `car_corrective_actions` | Planned corrective action items with owner, team, cost |
+| `car_action_team_members` | Team member assignments per corrective action |
+| `car_attachments` | File attachments per CAR |
+| `car_activity_logs` | Full audit trail of all CAR actions |
+| `car_notification_users` | Users to notify about CAR updates |
+| `car_sources` / `car_systems` / `car_processes` | Configurable lookup tables |
+| `car_customers` / `car_products` / `car_operations` | Configurable lookup tables |
+
+### CAR Email Notifications
+
+| Template | Trigger |
+|----------|---------|
+| CAR Created | New CAR opened |
+| Status Changed | CAR advances to next workflow step |
+| Action Assigned | Corrective action assigned to user |
+| Closure Requested | CAR closure request submitted |
+| CAR Closed | CAR officially closed |
+| CAR Rejected | CAR closure rejected |
+| CAR Reminder | Pending actions approaching deadline |
+| CAR Overdue | Actions past target completion date |
+
 ## Authentication & Roles
 
 Built on [Better Auth](https://www.better-auth.com/) with email + password authentication and session-based authorization.
@@ -311,6 +392,14 @@ All 12 email templates are built with [React Email](https://react.email/) and su
 | Read Reminder | Unread document exceeds reminder threshold |
 | Escalation Notice | Unread/unapproved item escalated to management |
 | Test Email | Sent from admin settings to verify configuration |
+| CAR Created | New corrective action request opened |
+| CAR Status Changed | CAR advances to next workflow step |
+| CAR Action Assigned | Corrective action assigned to user |
+| CAR Closure Requested | CAR closure request submitted |
+| CAR Closed | CAR officially closed |
+| CAR Rejected | CAR closure rejected |
+| CAR Reminder | Pending actions approaching deadline |
+| CAR Overdue | Actions past target completion date |
 
 The email language is configurable from **Settings > Email Settings** and defaults to Turkish.
 
@@ -387,7 +476,9 @@ The email language is stored in `system_settings` (`email_language` key) and cac
 
 ## Database Schema
 
-PostgreSQL 17 with 15 schema files managed by Drizzle ORM:
+PostgreSQL 17 with 25+ schema files managed by Drizzle ORM:
+
+**DMS Tables:**
 
 | Table | Purpose |
 |-------|---------|
@@ -403,6 +494,22 @@ PostgreSQL 17 with 15 schema files managed by Drizzle ORM:
 | `notifications` | In-app notification records |
 | `activity_logs` | Full audit trail (JSONB details) |
 | `system_settings` | Key-value system configuration |
+
+**CAR Tables:**
+
+| Table | Purpose |
+|-------|---------|
+| `corrective_action_requests` | Main CAR records with status, assignments, dates |
+| `car_root_cause_analyses` | Root cause entries per CAR |
+| `car_immediate_actions` | Immediate containment actions |
+| `car_corrective_actions` | Planned corrective action items with owner, cost, results |
+| `car_action_team_members` | Team member assignments per corrective action |
+| `car_attachments` | File attachments per CAR |
+| `car_activity_logs` | CAR-specific audit trail |
+| `car_notification_users` | Notification recipients per CAR |
+| `car_sources` / `car_systems` / `car_processes` | Configurable lookup tables |
+| `car_customers` / `car_products` / `car_operations` | Configurable lookup tables |
+| `user_permissions` | Extended user permission flags |
 
 Documents use a master/revision pattern: `documents` holds only the unique code and a pointer to the current revision; all metadata (title, type, status, file, approvals) lives in `document_revisions`.
 
@@ -501,6 +608,12 @@ QMS has three roles with distinct capabilities. Permissions are enforced at the 
 | Notifications | Yes | Yes | Yes |
 | Profile & Password | Yes | Yes | Yes |
 | Guide | Yes | Yes | Yes |
+| CAR Dashboard | Yes | Yes | Yes |
+| CAR List | Yes | Yes | Yes |
+| CAR Create | Yes | Yes | Yes |
+| CAR Detail | Yes | Yes | Yes |
+| CAR My Tasks | Yes | Yes | Yes |
+| CAR Guide | Yes | Yes | Yes |
 | **Departments** | **Yes** | No | No |
 | **Users** | **Yes** | No | No |
 | **Settings** | **Yes** | No | No |
@@ -544,6 +657,21 @@ QMS has three roles with distinct capabilities. Permissions are enforced at the 
 | Configure email settings | **Yes** | No | No |
 | Send test emails | **Yes** | No | No |
 | View system-wide statistics | **Yes** | No | No |
+| Manage CAR lookup tables | **Yes** | No | No |
+
+### CAR Actions
+
+| Action | Admin | Manager | User |
+|--------|:-----:|:-------:|:----:|
+| Create CAR | Yes | Yes | Yes |
+| View all CARs | Yes | Yes | Yes |
+| Add root cause / immediate action | Yes | Yes | Yes |
+| Add corrective action | Yes | Yes | Yes |
+| Advance CAR workflow | Yes | Yes | No |
+| Request closure | Yes | Yes | No |
+| Approve closure (close CAR) | **Yes** | **Yes** | No |
+| Cancel CAR | **Yes** | **Yes** | No |
+| Print/PDF report | Yes | Yes | Yes |
 
 ### Notifications & Escalation
 
