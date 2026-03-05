@@ -59,7 +59,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            DMS
+            QMS
           </CardTitle>
           <CardDescription>{t("title")}</CardDescription>
         </CardHeader>

@@ -1,4 +1,4 @@
-// DMS Service Worker
+// QMS Service Worker
 const CACHE_VERSION = "dms-v1";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;

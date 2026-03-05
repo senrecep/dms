@@ -6,7 +6,7 @@ const serverSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   RESEND_API_KEY: z.string().default(""),
-  EMAIL_FROM: z.string().default("DMS <noreply@example.com>"),
+  EMAIL_FROM: z.string().default("QMS <noreply@example.com>"),
   UPLOAD_DIR: z.string().default("./uploads"),
   MAX_FILE_SIZE_MB: z.coerce.number().default(500),
   DEFAULT_REMINDER_DAYS: z.coerce.number().default(3),
@@ -16,7 +16,7 @@ const serverSchema = z.object({
 
 const clientSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url(),
-  NEXT_PUBLIC_APP_NAME: z.string().default("DMS"),
+  NEXT_PUBLIC_APP_NAME: z.string().default("QMS"),
 });
 
 export const env = {

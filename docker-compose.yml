@@ -5,13 +5,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: dms
-      POSTGRES_USER: dms
-      POSTGRES_PASSWORD: dms_password
+      POSTGRES_DB: qms
+      POSTGRES_USER: qms
+      POSTGRES_PASSWORD: qms_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dms -d dms"]
+      test: ["CMD-SHELL", "pg_isready -U qms -d qms"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,7 +39,7 @@ services:
   #   ports:
   #     - "3000:3000"
   #   environment:
-  #     DATABASE_URL: postgresql://dms:dms_password@db:5432/dms
+  #     DATABASE_URL: postgresql://qms:qms_password@db:5432/qms
   #     REDIS_URL: redis://redis:6379
   #     UPLOAD_DIR: /app/uploads
   #   volumes:
@@ -50,10 +50,10 @@ services:
   #     redis:
   #       condition: service_healthy
   #   networks:
-  #     - dms_network
+  #     - qms_network
 
 networks:
-  dms_network:
+  qms_network:
     driver: bridge
 
 volumes:

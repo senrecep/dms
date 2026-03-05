@@ -1,8 +1,8 @@
 ---
 name: dev-setup
-description: Set up local development environment for DMS
+description: Set up local development environment for QMS
 ---
-Follow these steps to set up the DMS development environment:
+Follow these steps to set up the QMS development environment:
 
 1. **Prerequisites check**: Verify bun, Docker, and Docker Compose are installed
 2. **Start services**: Run `docker compose up -d` to start PostgreSQL 17 and Redis 7

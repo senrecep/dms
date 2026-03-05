@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Quality, security, and best practices review for DMS project
+description: Quality, security, and best practices review for QMS project
 ---
 Review code for:
 1. Security vulnerabilities (OWASP Top 10) - especially file upload, path traversal, auth bypass

@@ -43,7 +43,7 @@
 - Redis
   - Connection: `REDIS_URL` env var
   - Client: `ioredis` npm package
-  - Usage 1: BullMQ job queue backend (`dms-jobs` queue)
+  - Usage 1: BullMQ job queue backend (`qms-jobs` queue)
   - Usage 2: Pub/Sub for SSE real-time notifications (`src/lib/redis/pubsub.ts`)
   - Singleton pattern: `src/lib/redis/index.ts` (`getRedis()`)
 
@@ -87,7 +87,7 @@
 
 ## Background Jobs (Internal)
 
-**BullMQ Queue (`dms-jobs`):**
+**BullMQ Queue (`qms-jobs`):**
 - Job types defined in `src/lib/queue/`:
   - `send-email` - Send single email via Resend/SMTP
   - `send-bulk-email` - Send batch emails
@@ -110,8 +110,8 @@
 - Endpoint: `GET /api/sse` (`src/app/api/sse/route.ts`)
 - Authentication required (Better Auth session)
 - Redis pub/sub channels:
-  - `dms:notifications:{userId}` - Per-user notifications
-  - `dms:approvals` - Approval updates (filtered by targetUserId client-side)
+  - `qms:notifications:{userId}` - Per-user notifications
+  - `qms:approvals` - Approval updates (filtered by targetUserId client-side)
 - Client hook: `src/hooks/use-sse.ts`
 - Events: `NOTIFICATION`, `APPROVAL_UPDATE`, `DOCUMENT_STATUS`, `READ_CONFIRMATION`
 
@@ -133,7 +133,7 @@
 - `NEXT_PUBLIC_APP_URL` - Public app URL (client-side)
 
 **Optional env vars:**
-- `NEXT_PUBLIC_APP_NAME` - App display name (default: "DMS")
+- `NEXT_PUBLIC_APP_NAME` - App display name (default: "QMS")
 - `UPLOAD_DIR` - File storage path (default: `./uploads`)
 - `MAX_FILE_SIZE_MB` - Upload limit (default: 500)
 - `DEFAULT_REMINDER_DAYS` - Approval reminder threshold (default: 3)

@@ -1,4 +1,4 @@
-# DMS - Document Management System
+# QMS - Quality Management System
 
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router, Turbopack)

@@ -1,6 +1,6 @@
-# Contributing to DMS
+# Contributing to QMS
 
-Thank you for your interest in contributing to the Document Management System. This guide will help you get started.
+Thank you for your interest in contributing to the Quality Management System. This guide will help you get started.
 
 ## Prerequisites
 

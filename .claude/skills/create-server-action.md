@@ -2,7 +2,7 @@
 name: create-server-action
 description: Create a new Server Action with auth, validation, logging, and cache invalidation
 ---
-Create a new Server Action for the DMS project.
+Create a new Server Action for the QMS project.
 
 Ask the user for:
 1. Action name and purpose (e.g., "createDocument", "approveDocument")

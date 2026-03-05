@@ -2,7 +2,7 @@
 
 ## Overview
 
-DMS is deployed as a Docker Compose stack with six services:
+QMS is deployed as a Docker Compose stack with six services:
 
 - **app** - Next.js application (Bun runtime)
 - **worker** - BullMQ background job processor (email + notifications)
@@ -41,9 +41,9 @@ REDIS_PASSWORD=<generate_strong_password>
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
 
 # App
-BETTER_AUTH_URL=https://dms.yourdomain.com
-NEXT_PUBLIC_APP_URL=https://dms.yourdomain.com
-NEXT_PUBLIC_APP_NAME=DMS
+BETTER_AUTH_URL=https://qms.yourdomain.com
+NEXT_PUBLIC_APP_URL=https://qms.yourdomain.com
+NEXT_PUBLIC_APP_NAME=QMS
 
 # File Storage
 UPLOAD_DIR=/app/uploads
@@ -111,10 +111,10 @@ The `app` and `worker` services wait for `init` to complete before starting (`se
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SEED_ADMIN_NAME` | `System Admin` | Admin display name |
-| `SEED_ADMIN_EMAIL` | `admin@dms.com` | Admin login email |
+| `SEED_ADMIN_EMAIL` | `admin@qms.com` | Admin login email |
 | `SEED_ADMIN_PASSWORD` | - | Admin password (required) |
 | `SEED_DEFAULT_PASSWORD` | `User123!` | Password for test users |
-| `SEED_EMAIL_DOMAIN` | `dms.com` | Email domain for test users |
+| `SEED_EMAIL_DOMAIN` | `qms.com` | Email domain for test users |
 | `FORCE_SEED` | `false` | Force re-seed (clears existing data) |
 
 ## 4. Deploy via Dokploy
@@ -132,7 +132,7 @@ The `app` and `worker` services wait for `init` to complete before starting (`se
 Add all environment variables from the list above via the Dokploy panel.
 
 ### Step 4: Domain & SSL
-1. Configure your domain in Dokploy: `dms.yourdomain.com`
+1. Configure your domain in Dokploy: `qms.yourdomain.com`
 2. SSL is provisioned automatically via Let's Encrypt
 3. Update `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` to match the domain
 
@@ -152,13 +152,13 @@ services:
     image: postgres:17-alpine
     restart: always
     environment:
-      POSTGRES_DB: dms
-      POSTGRES_USER: dms
+      POSTGRES_DB: qms
+      POSTGRES_USER: qms
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dms -d dms"]
+      test: ["CMD-SHELL", "pg_isready -U qms -d qms"]
 
   redis:
     image: redis:7-alpine
@@ -176,7 +176,7 @@ services:
       target: init
     restart: "no"
     environment:
-      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      DATABASE_URL: postgresql://qms:${POSTGRES_PASSWORD}@db:5432/qms
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
@@ -196,7 +196,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      DATABASE_URL: postgresql://qms:${POSTGRES_PASSWORD}@db:5432/qms
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       UPLOAD_DIR: /app/uploads
     volumes:
@@ -214,7 +214,7 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://dms:${POSTGRES_PASSWORD}@db:5432/dms
+      DATABASE_URL: postgresql://qms:${POSTGRES_PASSWORD}@db:5432/qms
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
     depends_on:

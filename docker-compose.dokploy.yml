@@ -1,5 +1,5 @@
 # =============================================================================
-# DMS - Dokploy Docker Compose
+# QMS - Dokploy Docker Compose
 # =============================================================================
 # Optimized for Dokploy deployment. No exposed ports - Dokploy's built-in
 # Traefik reverse proxy handles domain routing and SSL termination.
@@ -23,13 +23,13 @@ services:
     image: postgres:17-alpine
     restart: always
     environment:
-      POSTGRES_DB: dms
-      POSTGRES_USER: dms
+      POSTGRES_DB: qms
+      POSTGRES_USER: qms
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dms -d dms"]
+      test: ["CMD-SHELL", "pg_isready -U qms -d qms"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,12 +74,12 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-QMS}
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-System Admin}
-      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@dms.com}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@qms.com}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD:-User123!}
-      SEED_EMAIL_DOMAIN: ${SEED_EMAIL_DOMAIN:-dms.com}
+      SEED_EMAIL_DOMAIN: ${SEED_EMAIL_DOMAIN:-qms.com}
       FORCE_SEED: ${FORCE_SEED:-false}
     depends_on:
       db:
@@ -101,7 +101,7 @@ services:
       target: runner
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-QMS}
     restart: always
     environment:
       NODE_ENV: production
@@ -110,7 +110,7 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-QMS}
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
       MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-500}
       DEFAULT_REMINDER_DAYS: ${DEFAULT_REMINDER_DAYS:-3}
@@ -146,7 +146,7 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DMS}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-QMS}
     depends_on:
       db:
         condition: service_healthy

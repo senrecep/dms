@@ -47,12 +47,12 @@ export function EmailLayout({ preview, children, locale = "tr" }: EmailLayoutPro
                     src={`${appUrl}/logo.svg`}
                     width="36"
                     height="36"
-                    alt="DMS"
+                    alt="QMS"
                     style={logoImg}
                   />
                 </td>
                 <td style={{ verticalAlign: "middle", paddingLeft: "12px" }}>
-                  <Text style={logoText}>DMS</Text>
+                  <Text style={logoText}>QMS</Text>
                 </td>
               </tr>
             </table>

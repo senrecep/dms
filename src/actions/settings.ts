@@ -131,7 +131,7 @@ export async function sendTestEmail(toEmail: string): Promise<ActionResult> {
 
     const template = React.createElement(
       EmailLayout,
-      { preview: "DMS Test Email", locale, children: body }
+      { preview: "QMS Test Email", locale, children: body }
     );
 
     const result = await sendEmail({

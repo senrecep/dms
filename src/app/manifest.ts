@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "DMS - Document Management System",
-    short_name: "DMS",
-    description: "Corporate Document Management System",
+    name: "QMS - Quality Management System",
+    short_name: "QMS",
+    description: "Corporate Quality Management System",
     start_url: "/",
     display: "standalone",
     orientation: "portrait-primary",

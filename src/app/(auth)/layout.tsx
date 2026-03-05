@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 
-const appName = process.env.NEXT_PUBLIC_APP_NAME || "DMS";
+const appName = process.env.NEXT_PUBLIC_APP_NAME || "QMS";
 
 export const metadata: Metadata = {
   title: `Login | ${appName}`,
-  description: `Sign in to ${appName} - Corporate Document Management System`,
+  description: `Sign in to ${appName} - Corporate Quality Management System`,
   robots: {
     index: false,
     follow: false,

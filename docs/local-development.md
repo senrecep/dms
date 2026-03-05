@@ -23,7 +23,7 @@ Edit `.env.local` with your values:
 
 ```env
 # Database - matches docker-compose defaults
-DATABASE_URL=postgresql://dms:dms_password@localhost:5432/dms
+DATABASE_URL=postgresql://qms:qms_password@localhost:5432/qms
 
 # Redis - matches docker-compose defaults
 REDIS_URL=redis://localhost:6379
@@ -34,7 +34,7 @@ BETTER_AUTH_URL=http://localhost:3000
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=DMS
+NEXT_PUBLIC_APP_NAME=QMS
 
 # File Storage
 UPLOAD_DIR=./uploads
@@ -45,10 +45,10 @@ CRON_SECRET=dev-cron-secret-change-in-production
 
 # Seed (Initial Admin User)
 SEED_ADMIN_NAME=System Admin
-SEED_ADMIN_EMAIL=admin@dms.com
+SEED_ADMIN_EMAIL=admin@qms.com
 SEED_ADMIN_PASSWORD=admin123456
 SEED_DEFAULT_PASSWORD=User123!
-SEED_EMAIL_DOMAIN=dms.com
+SEED_EMAIL_DOMAIN=qms.com
 ```
 
 > **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address) is managed through the **admin panel** at `/settings` after first login. The seed script creates default settings. You do not need to set email-related environment variables for local development - configure them from the UI instead.
@@ -113,7 +113,7 @@ This creates:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `SEED_ADMIN_EMAIL` (default: `admin@dms.com`) | `SEED_ADMIN_PASSWORD` |
+| Admin | `SEED_ADMIN_EMAIL` (default: `admin@qms.com`) | `SEED_ADMIN_PASSWORD` |
 | Managers | `quality.manager@{SEED_EMAIL_DOMAIN}`, etc. | `SEED_DEFAULT_PASSWORD` |
 | Users | `quality.user@{SEED_EMAIL_DOMAIN}`, etc. | `SEED_DEFAULT_PASSWORD` |
 
@@ -122,10 +122,10 @@ This creates:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SEED_ADMIN_NAME` | `System Admin` | Admin display name |
-| `SEED_ADMIN_EMAIL` | `admin@dms.com` | Admin login email |
+| `SEED_ADMIN_EMAIL` | `admin@qms.com` | Admin login email |
 | `SEED_ADMIN_PASSWORD` | `Admin123!` | Admin password |
 | `SEED_DEFAULT_PASSWORD` | `User123!` | Password for all other seed users |
-| `SEED_EMAIL_DOMAIN` | `dms.com` | Email domain for seed users |
+| `SEED_EMAIL_DOMAIN` | `qms.com` | Email domain for seed users |
 
 **Document status coverage in seed data:**
 
@@ -195,7 +195,7 @@ Email settings are managed entirely from the admin panel (`/settings`):
 3. Under **Email Settings**, choose a provider:
    - **Resend** - Enter your API key from [resend.com](https://resend.com)
    - **SMTP** - Enter host, port, username, password, and SSL toggle
-4. Set the **sender address** (e.g., `DMS <noreply@yourcompany.com>`)
+4. Set the **sender address** (e.g., `QMS <noreply@yourcompany.com>`)
 5. Choose the **email language** (Turkish or English)
 6. Use the **Send Test Email** button to verify the configuration
 

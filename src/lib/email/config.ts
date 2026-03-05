@@ -75,7 +75,7 @@ export async function getEmailConfig(): Promise<EmailConfig> {
 
   cachedConfig = {
     provider: (map.email_provider as EmailProvider) || "resend",
-    fromAddress: map.email_from || "DMS <noreply@example.com>",
+    fromAddress: map.email_from || "QMS <noreply@example.com>",
     resendApiKey: map.email_resend_api_key || "",
     smtpHost: map.email_smtp_host || "",
     smtpPort: parseInt(map.email_smtp_port || "587", 10),

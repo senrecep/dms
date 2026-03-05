@@ -1,6 +1,6 @@
-# DMS Cron Jobs
+# QMS Cron Jobs
 
-Bu klasör, DMS sisteminin arka plan görevlerini (cron jobs) içerir.
+Bu klasör, QMS sisteminin arka plan görevlerini (cron jobs) içerir.
 
 ## Görevler
 
@@ -101,7 +101,7 @@ DEFAULT_ESCALATION_DAYS=7
 
 `.github/workflows/cron.yml` oluşturun:
 ```yaml
-name: Run DMS Cron Jobs
+name: Run QMS Cron Jobs
 on:
   schedule:
     - cron: '0 9 * * *'  # Her gün saat 09:00 UTC
@@ -118,7 +118,7 @@ jobs:
 ```
 
 Repository secrets ekleyin:
-- `APP_URL`: Production URL (örn: https://dms.example.com)
+- `APP_URL`: Production URL (örn: https://qms.example.com)
 - `CRON_SECRET`: `.env.production` ile aynı secret
 
 #### EasyCron / Cron-Job.org (Üçüncü Parti)

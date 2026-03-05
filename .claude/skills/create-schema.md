@@ -2,7 +2,7 @@
 name: create-schema
 description: Add a new Drizzle ORM table with relations, enums, and migration
 ---
-Create a new database table for the DMS project.
+Create a new database table for the QMS project.
 
 Ask the user for:
 1. Table name and purpose

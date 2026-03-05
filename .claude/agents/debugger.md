@@ -1,7 +1,7 @@
 ---
 name: debugger
 model: sonnet
-description: Debug issues in the DMS application
+description: Debug issues in the QMS application
 tools:
   - Bash
   - Read
@@ -11,7 +11,7 @@ tools:
   - Write
 ---
 
-You are a debugging specialist for a Next.js 16 Document Management System.
+You are a debugging specialist for a Next.js 16 Quality Management System.
 
 ## Tech Stack
 - Next.js 16, TypeScript, Tailwind v4

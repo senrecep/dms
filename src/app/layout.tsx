@@ -13,18 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const appName = process.env.NEXT_PUBLIC_APP_NAME || "DMS";
+const appName = process.env.NEXT_PUBLIC_APP_NAME || "QMS";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000";
-const appDescription = "Corporate Document Management System - Securely manage, approve, and distribute documents across your organization.";
+const appDescription = "Corporate Quality Management System - Securely manage, approve, and distribute documents across your organization.";
 
 export const metadata: Metadata = {
   title: {
-    default: `${appName} - Document Management System`,
+    default: `${appName} - Quality Management System`,
     template: `%s | ${appName}`,
   },
   description: appDescription,
   applicationName: appName,
-  keywords: ["document management", "DMS", "corporate documents", "approval workflow", "document tracking"],
+  keywords: ["quality management", "QMS", "corporate documents", "approval workflow", "document tracking"],
   authors: [{ name: appName }],
   icons: {
     icon: "/icon.svg",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: appName,
-    title: `${appName} - Document Management System`,
+    title: `${appName} - Quality Management System`,
     description: appDescription,
     url: appUrl,
     locale: "en_US",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: `${appName} - Document Management System`,
+    title: `${appName} - Quality Management System`,
     description: appDescription,
     images: [`${appUrl}/icon.svg`],
   },
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: `${appName} - Document Management System`,
+  name: `${appName} - Quality Management System`,
   description: appDescription,
   url: appUrl,
   applicationCategory: "BusinessApplication",

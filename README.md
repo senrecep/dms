@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/logo.svg" width="120" alt="DMS Logo" />
+  <img src="public/logo.svg" width="120" alt="QMS Logo" />
 </p>
 
-<h1 align="center">DMS - Document Management System</h1>
+<h1 align="center">QMS - Quality Management System</h1>
 
 <p align="center">
   <a href="https://github.com/senrecep/dms"><img src="https://img.shields.io/badge/GitHub-senrecep%2Fdms-181717?logo=github" alt="GitHub"></a>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  A full-featured, enterprise-grade document management system built for organizations that need structured document creation, multi-level approval workflows, controlled distribution, and auditable read confirmations. Designed with a corporate aesthetic and role-based access control.
+  A full-featured, enterprise-grade quality management system built for organizations that need structured document creation, multi-level approval workflows, controlled distribution, and auditable read confirmations. Designed with a corporate aesthetic and role-based access control.
 </p>
 
 ## Table of Contents
@@ -289,7 +289,7 @@ Built on [Better Auth](https://www.better-auth.com/) with email + password authe
 
 ## Email System
 
-DMS supports two email providers, configurable from the admin settings panel:
+QMS supports two email providers, configurable from the admin settings panel:
 
 - **Resend** - API-based delivery (recommended for most deployments)
 - **SMTP** - Traditional SMTP for on-premise or custom mail servers
@@ -316,7 +316,7 @@ The email language is configurable from **Settings > Email Settings** and defaul
 
 ## Real-Time Notifications
 
-DMS uses **Server-Sent Events (SSE)** with **Redis Pub/Sub** for real-time in-app notifications:
+QMS uses **Server-Sent Events (SSE)** with **Redis Pub/Sub** for real-time in-app notifications:
 
 1. A Server Action enqueues a notification via BullMQ
 2. The worker processes it, saves to database, and publishes to Redis Pub/Sub
@@ -414,7 +414,7 @@ Documents use a master/revision pattern: `documents` holds only the unique code 
 
 ## Deployment
 
-DMS is containerized with a multi-stage Dockerfile:
+QMS is containerized with a multi-stage Dockerfile:
 
 | Stage | Base | Purpose |
 |-------|------|---------|
@@ -461,17 +461,17 @@ docker compose -f docker-compose.production.yml up -d --build
 | `BETTER_AUTH_SECRET` | Yes | Auth secret (min 32 chars, `openssl rand -base64 32`) |
 | `BETTER_AUTH_URL` | Yes | Public application URL |
 | `NEXT_PUBLIC_APP_URL` | Yes | Public application URL (client-side) |
-| `NEXT_PUBLIC_APP_NAME` | No | Display name (default: `DMS`) |
+| `NEXT_PUBLIC_APP_NAME` | No | Display name (default: `QMS`) |
 | `UPLOAD_DIR` | No | File storage path (default: `./uploads`) |
 | `MAX_FILE_SIZE_MB` | No | Max upload size in MB (default: `500`) |
 | `DEFAULT_REMINDER_DAYS` | No | Days before unread reminders (default: `3`) |
 | `DEFAULT_ESCALATION_DAYS` | No | Days before approval escalation (default: `7`) |
 | `CRON_SECRET` | No | Secret for authenticating cron job requests |
 | `SEED_ADMIN_NAME` | No | Initial admin name (default: `System Admin`) |
-| `SEED_ADMIN_EMAIL` | No | Initial admin email (default: `admin@dms.com`) |
+| `SEED_ADMIN_EMAIL` | No | Initial admin email (default: `admin@qms.com`) |
 | `SEED_ADMIN_PASSWORD` | Seed | Initial admin password (required for seeding) |
 | `SEED_DEFAULT_PASSWORD` | No | Default password for seed test users (default: `User123!`) |
-| `SEED_EMAIL_DOMAIN` | No | Email domain for seed test users (default: `dms.com`) |
+| `SEED_EMAIL_DOMAIN` | No | Email domain for seed test users (default: `qms.com`) |
 | `FORCE_SEED` | No | Set to `true` to force re-seed (clears existing data) |
 
 > **Email configuration** (provider, API keys, SMTP credentials, sender address, language) is managed through the admin panel at `/settings` - not via environment variables. The seed script creates sensible defaults.
@@ -487,7 +487,7 @@ All variables are validated at startup via Zod (`src/lib/env.ts`).
 
 ## Role-Based Permissions
 
-DMS has three roles with distinct capabilities. Permissions are enforced at the Server Action level - UI elements are hidden for convenience, but security is never client-side only.
+QMS has three roles with distinct capabilities. Permissions are enforced at the Server Action level - UI elements are hidden for convenience, but security is never client-side only.
 
 ### Pages & Navigation
 
@@ -562,4 +562,4 @@ DMS has three roles with distinct capabilities. Permissions are enforced at the 
 
 This project is licensed under the [MIT License](LICENSE).
 
-Copyright (c) 2026 DMS Contributors.
+Copyright (c) 2026 QMS Contributors.

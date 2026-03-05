@@ -20,7 +20,7 @@ import {
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-const EMAIL_DOMAIN = process.env.SEED_EMAIL_DOMAIN || "dms.com";
+const EMAIL_DOMAIN = process.env.SEED_EMAIL_DOMAIN || "qms.com";
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME || "System Admin";
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || `admin@${EMAIL_DOMAIN}`;
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "Admin123!";
@@ -84,7 +84,7 @@ async function createUser(
 
 async function seed() {
   console.log("╔══════════════════════════════════════╗");
-  console.log("║    DMS Database Seed Script          ║");
+  console.log("║    QMS Database Seed Script          ║");
   console.log("╚══════════════════════════════════════╝\n");
 
   // ── 1. Clear tables (FK order) ───────────────────────────────────
@@ -156,7 +156,7 @@ async function seed() {
   // ── 4. System Settings ──────────────────────────────────────────
   console.log("Creating system settings...");
   await db.insert(systemSettings).values([
-    { key: "app_name", value: "DMS", description: "Application display name" },
+    { key: "app_name", value: "QMS", description: "Application display name" },
     {
       key: "default_reminder_days",
       value: "3",
@@ -179,7 +179,7 @@ async function seed() {
     },
     {
       key: "email_from",
-      value: process.env.EMAIL_FROM || "DMS <noreply@example.com>",
+      value: process.env.EMAIL_FROM || "QMS <noreply@example.com>",
       description: "Default sender email address",
     },
     {

@@ -132,7 +132,7 @@ export const emailStrings: Record<
   tr: {
     common: {
       footer:
-        "Bu e-posta DMS (Document Management System) tarafından otomatik olarak gönderilmiştir.",
+        "Bu e-posta QMS (Kalite Yönetim Sistemi) tarafından otomatik olarak gönderilmiştir.",
       greeting: "Merhaba {name},",
     },
     subjects: {
@@ -149,8 +149,8 @@ export const emailStrings: Record<
       approvalReminder: "Hatırlatma: {title} onay bekliyor",
       readReminder: "Hatırlatma: {title} okuma onayı bekliyor",
       escalation: "Eskalasyon: {title}",
-      welcome: "DMS - Parolanızı Belirleyin",
-      testEmail: "DMS - Test Email",
+      welcome: "QMS - Parolanızı Belirleyin",
+      testEmail: "QMS - Test Email",
     },
     approvalRequest: {
       preview: "Onay Talebi: {title}",
@@ -240,9 +240,9 @@ export const emailStrings: Record<
       button: "Belgeyi İncele",
     },
     welcome: {
-      preview: "DMS'e Hoşgeldiniz",
+      preview: "QMS'e Hoşgeldiniz",
       heading: "Hoşgeldiniz!",
-      body: "Merhaba {userName}, DMS (Document Management System) hesabınız oluşturulmuştur. Aşağıdaki butona tıklayarak parolanızı belirleyebilirsiniz.",
+      body: "Merhaba {userName}, QMS (Kalite Yönetim Sistemi) hesabınız oluşturulmuştur. Aşağıdaki butona tıklayarak parolanızı belirleyebilirsiniz.",
       info: "Bu link 24 saat geçerlidir. Süresi dolduğunda yeni link talep edebilirsiniz.",
       button: "Parolamı Belirle",
     },
@@ -253,7 +253,7 @@ export const emailStrings: Record<
   en: {
     common: {
       footer:
-        "This email was sent automatically by DMS (Document Management System).",
+        "This email was sent automatically by QMS (Quality Management System).",
       greeting: "Hello {name},",
     },
     subjects: {
@@ -270,8 +270,8 @@ export const emailStrings: Record<
       approvalReminder: "Reminder: {title} pending approval",
       readReminder: "Reminder: {title} pending read confirmation",
       escalation: "Escalation: {title}",
-      welcome: "DMS - Set Your Password",
-      testEmail: "DMS - Test Email",
+      welcome: "QMS - Set Your Password",
+      testEmail: "QMS - Test Email",
     },
     approvalRequest: {
       preview: "Approval Request: {title}",
@@ -363,9 +363,9 @@ export const emailStrings: Record<
       button: "Review Document",
     },
     welcome: {
-      preview: "Welcome to DMS",
+      preview: "Welcome to QMS",
       heading: "Welcome!",
-      body: "Hello {userName}, your DMS (Document Management System) account has been created. Click the button below to set your password.",
+      body: "Hello {userName}, your QMS (Quality Management System) account has been created. Click the button below to set your password.",
       info: "This link is valid for 24 hours. You can request a new link if it expires.",
       button: "Set My Password",
     },

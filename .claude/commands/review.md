@@ -1,8 +1,8 @@
 ---
 name: review
-description: Code review checklist for DMS pull requests
+description: Code review checklist for QMS pull requests
 ---
-Review the current changes against this DMS-specific checklist:
+Review the current changes against this QMS-specific checklist:
 
 ## Security
 - [ ] Server Actions validate session and check role permissions

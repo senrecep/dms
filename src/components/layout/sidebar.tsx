@@ -65,7 +65,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>DMS</SidebarGroupLabel>
+          <SidebarGroupLabel>QMS</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {dmsNavItems.map((item) => (

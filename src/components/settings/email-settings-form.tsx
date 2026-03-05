@@ -188,13 +188,13 @@ export function EmailSettingsForm({ initialSettings }: EmailSettingsFormProps) {
           <Label htmlFor="email-from">Gonderen Adresi</Label>
           <Input
             id="email-from"
-            placeholder="DMS <noreply@example.com>"
+            placeholder="QMS <noreply@example.com>"
             value={fromAddress}
             onChange={(e) => setFromAddress(e.target.value)}
             className="max-w-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Ornek: DMS &lt;noreply@sirket.com&gt;
+            Ornek: QMS &lt;noreply@sirket.com&gt;
           </p>
         </div>
 

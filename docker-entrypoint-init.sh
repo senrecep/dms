@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "=== DMS Init ==="
+echo "=== QMS Init ==="
 
 echo "[1/2] Pushing database schema..."
 expect -c '
@@ -29,4 +29,4 @@ else
   echo "  FORCE_SEED not set. Skipping seed."
 fi
 
-echo "=== DMS Init Done ==="
+echo "=== QMS Init Done ==="

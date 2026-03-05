@@ -1,8 +1,8 @@
 ---
 name: add-feature
-description: Guided workflow for adding a new feature to DMS
+description: Guided workflow for adding a new feature to QMS
 ---
-When adding a new feature to DMS, follow this checklist:
+When adding a new feature to QMS, follow this checklist:
 
 1. **Branch**: Create `feature/short-description` from main
 2. **Schema** (if needed):

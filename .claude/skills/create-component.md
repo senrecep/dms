@@ -1,8 +1,8 @@
 ---
 name: create-component
-description: Create a React component following DMS conventions with shadcn/ui and i18n
+description: Create a React component following QMS conventions with shadcn/ui and i18n
 ---
-Create a new React component for the DMS project.
+Create a new React component for the QMS project.
 
 Ask the user for:
 1. Component name and purpose

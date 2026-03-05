@@ -1,6 +1,6 @@
 import { createWorker } from "./lib/queue/worker";
 
-console.log("[Worker] Starting DMS job worker...");
+console.log("[Worker] Starting QMS job worker...");
 
 const worker = createWorker();
 

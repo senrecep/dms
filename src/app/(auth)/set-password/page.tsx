@@ -71,7 +71,7 @@ export default function SetPasswordPage() {
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold tracking-tight">
-              DMS
+              QMS
             </CardTitle>
             <CardDescription>Parola Belirleme</CardDescription>
           </CardHeader>
@@ -92,7 +92,7 @@ export default function SetPasswordPage() {
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold tracking-tight">
-              DMS
+              QMS
             </CardTitle>
             <CardDescription>Parola Belirleme</CardDescription>
           </CardHeader>
@@ -120,7 +120,7 @@ export default function SetPasswordPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            DMS
+            QMS
           </CardTitle>
           <CardDescription>Parolanizi Belirleyin</CardDescription>
         </CardHeader>

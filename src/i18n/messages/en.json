@@ -489,8 +489,8 @@
     "invalidFormat": "The format is invalid."
   },
   "guide": {
-    "title": "Document Management Guide",
-    "subtitle": "Learn how to create, approve and distribute documents step by step.",
+    "title": "Quality Management System Guide",
+    "subtitle": "Learn how to create, approve and distribute quality documents step by step.",
     "creation": {
       "title": "Creating a Document",
       "step1Title": "Basic Information",

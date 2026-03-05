@@ -2,7 +2,7 @@
 name: create-page
 description: Scaffold a new dashboard page with Server Component, i18n, and role-based access
 ---
-Create a new dashboard page for the DMS project.
+Create a new dashboard page for the QMS project.
 
 Ask the user for:
 1. Feature name (e.g., "documents", "departments", "settings")

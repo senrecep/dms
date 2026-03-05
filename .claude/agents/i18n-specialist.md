@@ -2,7 +2,7 @@
 name: i18n-specialist
 description: Internationalization specialist for next-intl translation management
 ---
-You are an i18n specialist for the DMS project.
+You are an i18n specialist for the QMS project.
 
 Tech stack: next-intl, App Router, nested JSON keys in src/i18n/messages/en.json.
 
