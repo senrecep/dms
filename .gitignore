@@ -45,6 +45,9 @@ yarn-error.log*
 # omc state
 .omc/
 
+# serena
+.serena/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
