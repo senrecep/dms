@@ -177,7 +177,7 @@ export default async function DashboardPage() {
                       <Link
                         key={item.id}
                         href={`/documents/${item.documentId}`}
-                        className="flex items-center justify-between rounded-md border p-2.5 transition-colors hover:bg-muted"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
                       <Link
                         key={item.id}
                         href={`/documents/${item.documentId}`}
-                        className="flex items-center justify-between rounded-md border p-2.5 transition-colors hover:bg-muted"
+                        className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">

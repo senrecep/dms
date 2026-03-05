@@ -112,14 +112,14 @@ export function DocumentTable({ initialData, initialTotal, departments }: Docume
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <DocumentFiltersBar departments={departments} />
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1">
+          <Button variant="outline" size="default" onClick={handleExport} className="gap-1">
             <Download className="size-4" />
             {t("common.actions.export")}
           </Button>
-          <Button asChild size="sm" className="gap-1">
+          <Button asChild size="default" className="gap-1">
             <Link href="/documents/upload">
               <Plus className="size-4" />
               {t("common.actions.upload")}
@@ -129,7 +129,7 @@ export function DocumentTable({ initialData, initialTotal, departments }: Docume
       </div>
 
       <div className="overflow-x-auto rounded-md border">
-        <Table>
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -170,7 +170,7 @@ export function DocumentTable({ initialData, initialTotal, departments }: Docume
       </div>
 
       {totalPages > 1 && (
-        <div className="flex flex-col items-center gap-3 px-2 sm:flex-row sm:justify-between">
+        <div className="flex flex-col items-start gap-3 px-2 sm:flex-row sm:justify-between">
           <p className="text-muted-foreground text-sm">
             {t("common.pagination.showing")} {(page - 1) * pageSize + 1}-
             {Math.min(page * pageSize, total)} {t("common.pagination.of")} {total}{" "}

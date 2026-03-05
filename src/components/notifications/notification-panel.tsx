@@ -101,7 +101,7 @@ export function NotificationPanel() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative size-11">
           <Bell className="size-4" />
           {unreadCount > 0 && (
             <Badge
@@ -113,7 +113,7 @@ export function NotificationPanel() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0 sm:w-96">
+      <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-96 p-0">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
           <h4 className="text-sm font-semibold">{t("title")}</h4>
@@ -175,7 +175,7 @@ export function NotificationPanel() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 shrink-0"
+                      className="size-9 shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleMarkAsRead(notification.id);
@@ -199,7 +199,6 @@ export function NotificationPanel() {
               <Button
                 variant="ghost"
                 className="w-full justify-center gap-1 text-xs"
-                size="sm"
                 onClick={() => router.push("/notifications")}
               >
                 <ExternalLink className="size-3" />

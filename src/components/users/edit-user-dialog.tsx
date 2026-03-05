@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { updateUser, getDepartmentsList } from "@/actions/users";
 import { Pencil } from "lucide-react";
 
@@ -138,13 +139,15 @@ export function EditUserDialog({ user }: { user: User }) {
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {tCommon("actions.edit")} - {user.name}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ScrollArea className="max-h-[60vh]">
+          <div className="space-y-4 pr-1">
           <div className="space-y-2">
             <Label htmlFor={`edit-name-${user.id}`}>
               {tCommon("labels.name")}
@@ -217,7 +220,7 @@ export function EditUserDialog({ user }: { user: User }) {
                     departments.map((d) => (
                       <label
                         key={d.id}
-                        className="flex items-center gap-2 cursor-pointer text-sm"
+                        className="flex items-center gap-2 cursor-pointer text-sm py-2"
                       >
                         <Checkbox
                           checked={selectedDepartmentIds.includes(d.id)}
@@ -244,6 +247,8 @@ export function EditUserDialog({ user }: { user: User }) {
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          </ScrollArea>
 
           <div className="flex justify-end gap-2">
             <Button

@@ -84,7 +84,7 @@ export default async function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <BulkCreateUserDialog />
           <CreateUserDialog allowedRoles={["USER", "MANAGER"]} />
         </div>
@@ -95,6 +95,7 @@ export default async function UsersPage() {
           <CardTitle>{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -148,6 +149,7 @@ export default async function UsersPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

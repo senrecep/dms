@@ -17,8 +17,8 @@ export default async function ReadTasksPage() {
           {t("notifications.types.readAssignment")}
         </h1>
       </div>
-      <Tabs defaultValue="pending">
-        <TabsList>
+      <Tabs defaultValue="pending" className="space-y-4">
+        <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="pending">
             {t("readTasks.pending")} ({pendingTasks.length})
           </TabsTrigger>

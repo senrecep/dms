@@ -93,7 +93,7 @@ export function SettingsForm({ settings }: { settings: Setting[] }) {
                 {setting.description}
               </p>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 id={setting.key}
                 type={SETTING_TYPES[setting.key] ?? "text"}
@@ -101,7 +101,7 @@ export function SettingsForm({ settings }: { settings: Setting[] }) {
                 onChange={(e) =>
                   setValues((prev) => ({ ...prev, [setting.key]: e.target.value }))
                 }
-                className="max-w-sm"
+                className="w-full sm:max-w-sm"
               />
               {values[setting.key] !== original[setting.key] && (
                 <Button

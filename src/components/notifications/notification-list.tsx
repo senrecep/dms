@@ -178,7 +178,7 @@ export function NotificationList({
                 <div className="flex-1 space-y-1 overflow-hidden">
                   <div className="flex items-center gap-2">
                     <p
-                      className={`text-sm ${!notification.isRead ? "font-semibold" : ""}`}
+                      className={`text-sm line-clamp-1 ${!notification.isRead ? "font-semibold" : ""}`}
                     >
                       {display.title}
                     </p>
@@ -186,7 +186,7 @@ export function NotificationList({
                       <span className="size-2 shrink-0 rounded-full bg-primary" />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {display.message}
                   </p>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground/70">
@@ -205,7 +205,7 @@ export function NotificationList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-8 shrink-0"
+                    className="size-9 shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleMarkAsRead(notification.id);
@@ -229,7 +229,7 @@ export function NotificationList({
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 disabled={page <= 1}
                 onClick={() => router.push(`/notifications?page=${page - 1}`)}
               >
@@ -237,7 +237,7 @@ export function NotificationList({
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 disabled={page >= totalPages}
                 onClick={() => router.push(`/notifications?page=${page + 1}`)}
               >

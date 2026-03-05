@@ -255,7 +255,7 @@ export function RevisionForm({
           </Alert>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
             name="title"
@@ -392,7 +392,7 @@ export function RevisionForm({
                 key={dept.id}
                 type="button"
                 variant={selectedDistDepts.includes(dept.id) ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => toggleDistributionDept(dept.id)}
               >
                 {dept.name}
@@ -442,7 +442,7 @@ export function RevisionForm({
                   )}
                   <button
                     type="button"
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                    className={`flex w-full items-center justify-between px-3 py-3 text-left text-sm transition-colors hover:bg-muted ${
                       selectedDistUsers.includes(user.id) ? "bg-primary/10" : ""
                     }`}
                     onClick={() => toggleDistributionUser(user.id)}

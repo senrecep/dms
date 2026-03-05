@@ -15,7 +15,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="-ml-3 h-8"
+          className="-ml-3 h-10"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {t("documents.form.documentCode")}
@@ -31,7 +31,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="-ml-3 h-8"
+          className="-ml-3 h-10"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {t("documents.form.documentName")}
@@ -39,7 +39,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
         </Button>
       ),
       cell: ({ row }) => (
-        <span className="max-w-[200px] truncate sm:max-w-[400px]">{row.getValue("title")}</span>
+        <span className="block max-w-[200px] truncate sm:max-w-[400px]">{row.getValue("title")}</span>
       ),
     },
     {
@@ -88,7 +88,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="-ml-3 h-8"
+          className="-ml-3 h-10"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {t("common.labels.date")}
@@ -110,7 +110,7 @@ export function getDocumentColumns(t: (key: string) => string): ColumnDef<Docume
           <div className="flex flex-col gap-0.5">
             <StatusBadge status={status} />
             {previousStatus && status !== "PUBLISHED" && (
-              <span className="text-muted-foreground text-[10px]">
+              <span className="text-muted-foreground text-xs">
                 {t("documents.detail.previousStatus")}: {t(`documents.status.${statusToKey(previousStatus)}`)}
               </span>
             )}

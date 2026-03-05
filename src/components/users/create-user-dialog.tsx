@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { createUser, getDepartmentsList } from "@/actions/users";
 import { Plus } from "lucide-react";
 
@@ -161,11 +162,13 @@ export function CreateUserDialog({
           {triggerLabel ?? t("addUser")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("addUser")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ScrollArea className="max-h-[60vh]">
+          <div className="space-y-4 pr-1">
           <div className="space-y-2">
             <Label htmlFor="user-name">{tCommon("labels.name")}</Label>
             <Input
@@ -255,7 +258,7 @@ export function CreateUserDialog({
                     departments.map((d) => (
                       <label
                         key={d.id}
-                        className="flex items-center gap-2 cursor-pointer text-sm"
+                        className="flex items-center gap-2 cursor-pointer text-sm py-2"
                       >
                         <Checkbox
                           checked={selectedDepartmentIds.includes(d.id)}
@@ -279,6 +282,8 @@ export function CreateUserDialog({
           )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          </ScrollArea>
 
           <div className="flex justify-end gap-2">
             <Button

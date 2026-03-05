@@ -107,7 +107,7 @@ export function ProfileForm({ profile }: { profile: ProfileData }) {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 md:grid-cols-2">
       {/* Profile Info Card */}
       <Card>
         <CardHeader>
@@ -125,6 +125,7 @@ export function ProfileForm({ profile }: { profile: ProfileData }) {
                 id="profile-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="min-w-0 flex-1"
               />
               {name.trim() !== profile.name && (
                 <Button

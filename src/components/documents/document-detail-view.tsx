@@ -161,10 +161,10 @@ export function DocumentDetailView({ document: doc }: Props) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <Button variant="ghost" size="default" onClick={() => router.back()}>
               <ArrowLeft className="size-4" />
             </Button>
-            <h2 className="text-xl font-semibold truncate max-w-[200px] sm:max-w-[400px]">{title}</h2>
+            <h2 className="text-xl font-semibold truncate max-w-[150px] sm:max-w-[400px]">{title}</h2>
             <StatusBadge status={status} />
           </div>
           <p className="text-muted-foreground ml-10 text-sm">
@@ -173,7 +173,7 @@ export function DocumentDetailView({ document: doc }: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {currentRevision && (
-            <Button asChild size="sm" variant="outline" className="gap-1">
+            <Button asChild size="sm" variant="outline" className="gap-1 whitespace-nowrap">
               <a
                 href={`/api/files/${currentRevision.filePath}`}
                 download={currentRevision.fileName}
@@ -191,12 +191,12 @@ export function DocumentDetailView({ document: doc }: Props) {
                 size="sm"
                 onClick={handleSubmitForApproval}
                 disabled={isLoading}
-                className="gap-1"
+                className="gap-1 whitespace-nowrap"
               >
                 <Send className="size-4" />
                 {t("documents.form.submitForApproval")}
               </Button>
-              <Button asChild size="sm" variant="outline" className="gap-1">
+              <Button asChild size="sm" variant="outline" className="gap-1 whitespace-nowrap">
                 <Link href={`/documents/${doc.id}/revise`}>
                   <Pencil className="size-4" />
                   {t("common.actions.edit")}
@@ -208,11 +208,11 @@ export function DocumentDetailView({ document: doc }: Props) {
           {/* APPROVED: Publish + Revise */}
           {status === "APPROVED" && (
             <>
-              <Button size="sm" onClick={handlePublish} disabled={isLoading} className="gap-1">
+              <Button size="sm" onClick={handlePublish} disabled={isLoading} className="gap-1 whitespace-nowrap">
                 <Send className="size-4" />
                 {t("documents.actions.publish")}
               </Button>
-              <Button asChild size="sm" variant="outline" className="gap-1">
+              <Button asChild size="sm" variant="outline" className="gap-1 whitespace-nowrap">
                 <Link href={`/documents/${doc.id}/revise`}>
                   <Pencil className="size-4" />
                   {t("documents.actions.revise")}
@@ -223,7 +223,7 @@ export function DocumentDetailView({ document: doc }: Props) {
 
           {/* PUBLISHED: Revise only */}
           {status === "PUBLISHED" && (
-            <Button asChild size="sm" variant="outline" className="gap-1">
+            <Button asChild size="sm" variant="outline" className="gap-1 whitespace-nowrap">
               <Link href={`/documents/${doc.id}/revise`}>
                 <Pencil className="size-4" />
                 {t("documents.actions.revise")}
@@ -233,7 +233,7 @@ export function DocumentDetailView({ document: doc }: Props) {
 
           {/* REJECTED statuses: New Revision */}
           {(status === "PREPARER_REJECTED" || status === "APPROVER_REJECTED") && (
-            <Button asChild size="sm" className="gap-1">
+            <Button asChild size="sm" className="gap-1 whitespace-nowrap">
               <Link href={`/documents/${doc.id}/revise`}>
                 <Pencil className="size-4" />
                 {t("documents.detail.newRevision")}
@@ -248,7 +248,7 @@ export function DocumentDetailView({ document: doc }: Props) {
               size="sm"
               onClick={handleCancel}
               disabled={isLoading}
-              className="gap-1"
+              className="gap-1 whitespace-nowrap"
             >
               <Ban className="size-4" />
               {t("documents.actions.cancel")}
@@ -274,8 +274,8 @@ export function DocumentDetailView({ document: doc }: Props) {
       {status === "PENDING_APPROVAL" && (
         <Card className="border-amber-200 bg-amber-50">
           <CardContent className="flex items-center gap-3 p-4">
-            <Clock className="size-5 text-amber-600" />
-            <p className="text-sm text-amber-800">
+            <Clock className="size-5 shrink-0 text-amber-600" />
+            <p className="min-w-0 truncate text-sm text-amber-800">
               {currentRevision?.approvals?.some((a) => a.approvalType === "PREPARER" && a.status === "PENDING")
                 ? t("documents.detail.waitingForPreparer")
                 : t("documents.detail.waitingForApprover")}
@@ -292,8 +292,8 @@ export function DocumentDetailView({ document: doc }: Props) {
       {status === "PREPARER_APPROVED" && (
         <Card className="border-indigo-200 bg-indigo-50">
           <CardContent className="flex items-center gap-3 p-4">
-            <Clock className="size-5 text-indigo-600" />
-            <p className="text-sm text-indigo-800">
+            <Clock className="size-5 shrink-0 text-indigo-600" />
+            <p className="min-w-0 truncate text-sm text-indigo-800">
               {t("documents.detail.waitingForApprover")}
               {approverName && ` - ${approverName}`}
             </p>
@@ -316,7 +316,7 @@ export function DocumentDetailView({ document: doc }: Props) {
       )}
 
       {/* Info cards */}
-      <div className={`grid gap-4 sm:grid-cols-2 ${status === "PUBLISHED" && readTotal > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
+      <div className={`grid gap-4 sm:grid-cols-2 ${status === "PUBLISHED" && readTotal > 0 ? "lg:grid-cols-4 xl:grid-cols-5" : "lg:grid-cols-4"}`}>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <Building2 className="text-muted-foreground size-5" />
@@ -379,7 +379,7 @@ export function DocumentDetailView({ document: doc }: Props) {
 
       {/* Tabs */}
       <Tabs defaultValue="revisions">
-        <TabsList className="w-full justify-start overflow-x-auto">
+        <TabsList className="w-full justify-start overflow-x-auto flex-nowrap whitespace-nowrap">
           <TabsTrigger value="revisions">{t("documents.detail.revisionHistory")}</TabsTrigger>
           <TabsTrigger value="distribution">{t("documents.detail.distributionStatus")}</TabsTrigger>
           <TabsTrigger value="activity">{t("documents.detail.activityLog")}</TabsTrigger>
@@ -406,7 +406,7 @@ export function DocumentDetailView({ document: doc }: Props) {
                           <div className="flex-1 min-w-0">
                             <AccordionTrigger className="py-3 hover:no-underline">
                               <div className="flex flex-1 flex-wrap items-center gap-2 text-left sm:gap-3">
-                                <span className="text-sm font-medium truncate max-w-[180px] sm:max-w-none">
+                                <span className="text-sm font-medium truncate max-w-[140px] sm:max-w-none">
                                   Rev.{String(rev.revisionNo).padStart(2, "0")} &mdash; {rev.title}
                                 </span>
                                 <StatusBadge status={rev.status} />
@@ -519,7 +519,7 @@ export function DocumentDetailView({ document: doc }: Props) {
                                     <div className="space-y-1">
                                       {rev.readConfirmations.map((rc) => (
                                         <div key={rc.id} className="flex items-center justify-between rounded border px-3 py-2">
-                                          <span className="text-sm">
+                                          <span className="min-w-0 truncate text-sm">
                                             {rc.user?.name ?? ""}
                                             {rc.user?.departmentMemberships && rc.user.departmentMemberships.length > 0 && (
                                               <span className="text-muted-foreground ml-1 text-xs">
@@ -623,7 +623,7 @@ export function DocumentDetailView({ document: doc }: Props) {
                       <div className="space-y-2">
                         {readConfirmations.map((rc) => (
                           <div key={rc.id} className="flex items-center justify-between rounded border px-3 py-2">
-                            <span className="text-sm">
+                            <span className="min-w-0 truncate text-sm">
                               {rc.user?.name ?? ""}
                               {rc.user?.departmentMemberships && rc.user.departmentMemberships.length > 0 && (
                                 <span className="text-muted-foreground ml-1 text-xs">

@@ -21,7 +21,7 @@ export function ApprovalsClient({ pending, completed }: ApprovalsClientProps) {
 
   return (
     <Tabs defaultValue="pending" className="space-y-4">
-      <TabsList>
+      <TabsList className="w-full sm:w-auto">
         <TabsTrigger value="pending">
           {t("list.pending")}
           {pending.length > 0 && (

@@ -41,6 +41,7 @@ export function ResetPasswordButton({ userId }: { userId: string }) {
     <Button
       variant="ghost"
       size="icon"
+      className="size-10"
       onClick={handleClick}
       disabled={loading}
       title={tCommon("sendResetLink")}

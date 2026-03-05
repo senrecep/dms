@@ -81,7 +81,7 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
                   {task.revision.title}
                 </Link>
               </CardTitle>
-              <Badge variant={typeVariants[task.revision.documentType]}>
+              <Badge variant={typeVariants[task.revision.documentType]} className="shrink-0">
                 {t(`documents.type.${task.revision.documentType.toLowerCase()}`)}
               </Badge>
             </div>
@@ -90,15 +90,15 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
                 <span>{t("documents.form.documentCode")}</span>
-                <span className="font-mono">{task.revision.document.documentCode}</span>
+                <span className="font-mono truncate text-right">{task.revision.document.documentCode}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("common.labels.publishedBy")}</span>
-                <span>{task.revision.createdBy.name}</span>
+                <span className="truncate text-right">{task.revision.createdBy.name}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("common.labels.date")}</span>
-                <span>{formatDate(task.revision.publishedAt ?? task.createdAt)}</span>
+                <span className="truncate text-right">{formatDate(task.revision.publishedAt ?? task.createdAt)}</span>
               </div>
               {task.confirmedAt && (
                 <div className="flex items-center justify-between text-green-600">
@@ -111,7 +111,7 @@ export function ReadTaskList({ tasks, showConfirmButton = false }: ReadTaskListP
               )}
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-1">
+              <Button asChild variant="outline" size="default" className="gap-1">
                 <Link href={`/documents/${task.revision.documentId}`}>
                   <ExternalLink className="size-3.5" />
                   {t("common.actions.view")}

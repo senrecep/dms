@@ -423,7 +423,7 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
                 key={dept.id}
                 type="button"
                 variant={selectedDistDepts.includes(dept.id) ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => toggleDistributionDept(dept.id)}
               >
                 {dept.name}
@@ -440,7 +440,6 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
             placeholder={t("documents.form.searchUsers")}
             value={userSearch}
             onChange={(e) => setUserSearch(e.target.value)}
-            className="mb-2"
           />
           {selectedDistUsers.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2">
@@ -473,7 +472,7 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
                   )}
                   <button
                     type="button"
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                    className={`flex w-full items-center justify-between px-3 py-3 text-left text-sm transition-colors hover:bg-muted ${
                       selectedDistUsers.includes(user.id) ? "bg-primary/10" : ""
                     }`}
                     onClick={() => toggleDistributionUser(user.id)}
@@ -510,7 +509,7 @@ export function UploadForm({ departments, approvers, allUsers, currentUserId }: 
             {file ? (
               <div className="flex items-center gap-2">
                 <FileText className="text-primary size-6" />
-                <span className="text-sm font-medium">{file.name}</span>
+                <span className="truncate max-w-[200px] text-sm font-medium">{file.name}</span>
                 <Button
                   type="button"
                   variant="ghost"

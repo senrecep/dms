@@ -93,6 +93,7 @@ export default async function DepartmentsPage() {
           {enrichedList.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("list.empty")}</p>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -139,6 +140,7 @@ export default async function DepartmentsPage() {
                 ))}
             </TableBody>
           </Table>
+            </div>
           )}
         </CardContent>
       </Card>

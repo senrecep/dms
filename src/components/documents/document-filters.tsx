@@ -97,7 +97,7 @@ export function DocumentFilters({ departments }: DocumentFiltersProps) {
       </Select>
 
       {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 gap-1">
+        <Button variant="ghost" size="sm" onClick={resetFilters} className="h-10 gap-1">
           <X className="size-4" />
           {t("common.actions.cancel")}
         </Button>

@@ -85,6 +85,7 @@ export function usePendingColumns(): ColumnDef<ApprovalRow>[] {
     {
       accessorKey: "revision.documentType",
       header: t("common.labels.type"),
+      meta: { className: "hidden md:table-cell" },
       cell: ({ row }) => {
         const type = row.original.revision.documentType;
         return (
@@ -97,6 +98,7 @@ export function usePendingColumns(): ColumnDef<ApprovalRow>[] {
     {
       accessorKey: "approvalType",
       header: t("common.labels.approvalType"),
+      meta: { className: "hidden md:table-cell" },
       cell: ({ row }) => (
         <Badge variant={row.original.approvalType === "APPROVER" ? "default" : "secondary"}>
           {t(`approvals.type.${row.original.approvalType.toLowerCase()}`)}
@@ -146,6 +148,7 @@ export function useCompletedColumns(): ColumnDef<ApprovalRow>[] {
     {
       accessorKey: "revision.documentType",
       header: t("common.labels.type"),
+      meta: { className: "hidden md:table-cell" },
       cell: ({ row }) => {
         const type = row.original.revision.documentType;
         return (
@@ -181,7 +184,7 @@ export function useCompletedColumns(): ColumnDef<ApprovalRow>[] {
       accessorKey: "comment",
       header: t("approvals.form.rejectionReason"),
       cell: ({ row }) => (
-        <div className="max-w-[100px] truncate text-sm text-muted-foreground sm:max-w-[200px]">
+        <div className="max-w-[150px] truncate text-sm text-muted-foreground sm:max-w-[200px]">
           {row.original.comment ?? "-"}
         </div>
       ),

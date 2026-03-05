@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { createDepartment } from "@/actions/departments";
 import { getDepartmentManagerCandidates } from "@/actions/departments-helpers";
 import { Plus } from "lucide-react";
@@ -121,11 +122,13 @@ export function CreateDepartmentDialog() {
           {t("list.addNew")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("list.addNew")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ScrollArea className="max-h-[60vh]">
+          <div className="space-y-4 pr-1">
           <div className="space-y-2">
             <Label htmlFor="dept-name">{t("form.name")}</Label>
             <Input
@@ -162,7 +165,7 @@ export function CreateDepartmentDialog() {
                 managers.map((m) => (
                   <label
                     key={m.id}
-                    className="flex items-center gap-2 cursor-pointer text-sm"
+                    className="flex items-center gap-2 cursor-pointer text-sm py-2"
                   >
                     <Checkbox
                       checked={selectedManagerIds.includes(m.id)}
@@ -183,6 +186,8 @@ export function CreateDepartmentDialog() {
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          </ScrollArea>
 
           <div className="flex justify-end gap-2">
             <Button

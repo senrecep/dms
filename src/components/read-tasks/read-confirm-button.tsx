@@ -38,7 +38,7 @@ export function ReadConfirmButton({ revisionId }: ReadConfirmButtonProps) {
 
   if (confirmed) {
     return (
-      <Button size="sm" variant="outline" disabled className="bg-green-50 text-green-700 border-green-200">
+      <Button size="default" variant="outline" disabled className="bg-green-50 text-green-700 border-green-200">
         {t("common.actions.confirm")}
       </Button>
     );
@@ -46,7 +46,7 @@ export function ReadConfirmButton({ revisionId }: ReadConfirmButtonProps) {
 
   return (
     <Button
-      size="sm"
+      size="default"
       onClick={handleConfirm}
       disabled={isPending}
     >

@@ -221,6 +221,7 @@ export function UserDetailView({ user }: { user: UserDetail }) {
           {user.recentActivities.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noActivity")}</p>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -249,6 +250,7 @@ export function UserDetailView({ user }: { user: UserDetail }) {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
