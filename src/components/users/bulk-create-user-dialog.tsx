@@ -178,7 +178,7 @@ export function BulkCreateUserDialog() {
             {rows.map((row, idx) => (
               <div
                 key={row.id}
-                className={`grid grid-cols-[1fr_1.5fr_120px_1fr_40px] gap-3 items-start p-3 rounded-lg border ${
+                className={`flex flex-col gap-2 p-3 rounded-lg border md:grid md:grid-cols-[1fr_1.5fr_120px_1fr_40px] md:gap-3 md:items-start ${
                   row.result
                     ? row.result.success
                       ? "border-green-200 bg-green-50"
@@ -188,9 +188,9 @@ export function BulkCreateUserDialog() {
               >
                 {/* Name */}
                 <div className="space-y-1">
-                  {idx === 0 && (
-                    <Label className="text-xs text-muted-foreground">{t("bulk.name")}</Label>
-                  )}
+                  <Label className={`text-xs text-muted-foreground ${idx !== 0 ? "md:hidden" : ""}`}>
+                    {t("bulk.name")}
+                  </Label>
                   <Input
                     placeholder={t("bulk.name")}
                     value={row.name}
@@ -201,9 +201,9 @@ export function BulkCreateUserDialog() {
 
                 {/* Email */}
                 <div className="space-y-1">
-                  {idx === 0 && (
-                    <Label className="text-xs text-muted-foreground">{t("bulk.email")}</Label>
-                  )}
+                  <Label className={`text-xs text-muted-foreground ${idx !== 0 ? "md:hidden" : ""}`}>
+                    {t("bulk.email")}
+                  </Label>
                   <Input
                     type="email"
                     placeholder={t("bulk.email")}
@@ -213,112 +213,115 @@ export function BulkCreateUserDialog() {
                   />
                 </div>
 
-                {/* Role */}
-                <div className="space-y-1">
-                  {idx === 0 && (
-                    <Label className="text-xs text-muted-foreground">{t("bulk.role")}</Label>
-                  )}
-                  <Select
-                    value={row.role}
-                    onValueChange={(v) => updateRow(row.id, "role", v)}
-                    disabled={loading || (submitted && row.result?.success)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USER">{t("roleUser")}</SelectItem>
-                      <SelectItem value="MANAGER">{t("roleManager")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Department */}
-                <div className="space-y-1">
-                  {idx === 0 && (
-                    <Label className="text-xs text-muted-foreground">{t("bulk.department")}</Label>
-                  )}
-                  {row.role === "USER" ? (
+                {/* Role + Department + Delete: row on mobile, grid cells on desktop */}
+                <div className="flex items-end gap-2 md:contents">
+                  {/* Role */}
+                  <div className="w-[120px] shrink-0 space-y-1 md:w-auto">
+                    <Label className={`text-xs text-muted-foreground ${idx !== 0 ? "md:hidden" : ""}`}>
+                      {t("bulk.role")}
+                    </Label>
                     <Select
-                      value={row.departmentIds[0] ?? ""}
-                      onValueChange={(v) => updateRow(row.id, "departmentIds", [v])}
+                      value={row.role}
+                      onValueChange={(v) => updateRow(row.id, "role", v)}
                       disabled={loading || (submitted && row.result?.success)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t("bulk.selectDepartment")} />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {departments.map((d) => (
-                          <SelectItem key={d.id} value={d.id}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="USER">{t("roleUser")}</SelectItem>
+                        <SelectItem value="MANAGER">{t("roleManager")}</SelectItem>
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <div className="space-y-1">
-                      {row.departmentIds.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {row.departmentIds.map((id) => (
-                            <Badge key={id} variant="secondary" className="text-xs">
-                              {departments.find((d) => d.id === id)?.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                  </div>
+
+                  {/* Department */}
+                  <div className="min-w-0 flex-1 space-y-1 md:flex-none">
+                    <Label className={`text-xs text-muted-foreground ${idx !== 0 ? "md:hidden" : ""}`}>
+                      {t("bulk.department")}
+                    </Label>
+                    {row.role === "USER" ? (
                       <Select
-                        value=""
-                        onValueChange={(v) => toggleDepartment(row.id, v, row.role)}
+                        value={row.departmentIds[0] ?? ""}
+                        onValueChange={(v) => updateRow(row.id, "departmentIds", [v])}
                         disabled={loading || (submitted && row.result?.success)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t("bulk.selectDepartments")} />
+                          <SelectValue placeholder={t("bulk.selectDepartment")} />
                         </SelectTrigger>
                         <SelectContent>
                           {departments.map((d) => (
                             <SelectItem key={d.id} value={d.id}>
-                              <span className="flex items-center gap-2">
-                                {row.departmentIds.includes(d.id) && (
-                                  <CheckCircle2 className="size-3 text-green-500" />
-                                )}
-                                {d.name}
-                              </span>
+                              {d.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions / Status */}
-                <div className="flex items-center justify-center pt-1">
-                  {idx === 0 && <div className="h-4" />}
-                  {row.result ? (
-                    row.result.success ? (
-                      <CheckCircle2 className="size-5 text-green-600" />
                     ) : (
-                      <div className="group relative">
-                        <XCircle className="size-5 text-red-600" />
-                        {row.result.error && (
-                          <div className="absolute right-0 top-6 z-10 hidden group-hover:block w-48 p-2 text-xs bg-popover border rounded-md shadow-md">
-                            {row.result.error}
+                      <div className="space-y-1">
+                        {row.departmentIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {row.departmentIds.map((id) => (
+                              <Badge key={id} variant="secondary" className="text-xs">
+                                {departments.find((d) => d.id === id)?.name}
+                              </Badge>
+                            ))}
                           </div>
                         )}
+                        <Select
+                          value=""
+                          onValueChange={(v) => toggleDepartment(row.id, v, row.role)}
+                          disabled={loading || (submitted && row.result?.success)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("bulk.selectDepartments")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departments.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                <span className="flex items-center gap-2">
+                                  {row.departmentIds.includes(d.id) && (
+                                    <CheckCircle2 className="size-3 text-green-500" />
+                                  )}
+                                  {d.name}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeRow(row.id)}
-                      disabled={loading || rows.length <= 1}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Actions / Status */}
+                  <div className="flex shrink-0 items-center justify-center self-end pb-1 md:self-auto md:pb-0 md:pt-1">
+                    {idx === 0 && <div className="hidden h-4 md:block" />}
+                    {row.result ? (
+                      row.result.success ? (
+                        <CheckCircle2 className="size-5 text-green-600" />
+                      ) : (
+                        <div className="group relative">
+                          <XCircle className="size-5 text-red-600" />
+                          {row.result.error && (
+                            <div className="absolute right-0 top-6 z-10 hidden group-hover:block w-48 p-2 text-xs bg-popover border rounded-md shadow-md">
+                              {row.result.error}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeRow(row.id)}
+                        disabled={loading || rows.length <= 1}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

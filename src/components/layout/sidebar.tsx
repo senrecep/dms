@@ -33,14 +33,11 @@ const dmsNavItems = [
   { key: "documents", href: "/documents", icon: FileText },
   { key: "approvals", href: "/approvals", icon: CheckSquare },
   { key: "readTasks", href: "/read-tasks", icon: BookCheck },
-];
-
-const otherNavItems = [
   { key: "guide", href: "/guide", icon: BookOpenText },
-  { key: "departments", href: "/departments", icon: Building2 },
 ];
 
 const adminNavItems = [
+  { key: "departments", href: "/departments", icon: Building2 },
   { key: "users", href: "/users", icon: Users },
   { key: "settings", href: "/settings", icon: Settings },
 ];
@@ -65,31 +62,10 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>QMS</SidebarGroupLabel>
+          <SidebarGroupLabel>DMS</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {dmsNavItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={t(item.key)}
-                  >
-                    <Link href={item.href}>
-                      <item.icon />
-                      <span>{t(item.key)}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>{t("navigation")}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {otherNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
