@@ -13,7 +13,7 @@
 #   docker compose -f docker-compose.production.yml up -d --build
 #
 # The init service automatically runs db:push + db:seed on every deploy.
-# Both commands are idempotent — safe to run multiple times.
+# Both commands are idempotent - safe to run multiple times.
 # =============================================================================
 
 services:

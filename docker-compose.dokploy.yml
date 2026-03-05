@@ -1,7 +1,7 @@
 # =============================================================================
 # DMS - Dokploy Docker Compose
 # =============================================================================
-# Optimized for Dokploy deployment. No exposed ports — Dokploy's built-in
+# Optimized for Dokploy deployment. No exposed ports - Dokploy's built-in
 # Traefik reverse proxy handles domain routing and SSL termination.
 #
 # For self-hosted VPS without Dokploy, use docker-compose.production.yml.

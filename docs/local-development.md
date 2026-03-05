@@ -22,13 +22,13 @@ cp .env.example .env.local
 Edit `.env.local` with your values:
 
 ```env
-# Database — matches docker-compose defaults
+# Database - matches docker-compose defaults
 DATABASE_URL=postgresql://dms:dms_password@localhost:5432/dms
 
-# Redis — matches docker-compose defaults
+# Redis - matches docker-compose defaults
 REDIS_URL=redis://localhost:6379
 
-# Auth — generate a 32+ character secret
+# Auth - generate a 32+ character secret
 BETTER_AUTH_SECRET=<generate with: openssl rand -base64 32>
 BETTER_AUTH_URL=http://localhost:3000
 
@@ -51,7 +51,7 @@ SEED_DEFAULT_PASSWORD=User123!
 SEED_EMAIL_DOMAIN=dms.com
 ```
 
-> **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address) is managed through the **admin panel** at `/settings` after first login. The seed script creates default settings. You do not need to set email-related environment variables for local development — configure them from the UI instead.
+> **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address) is managed through the **admin panel** at `/settings` after first login. The seed script creates default settings. You do not need to set email-related environment variables for local development - configure them from the UI instead.
 
 To generate a secure auth secret:
 
@@ -107,7 +107,7 @@ This creates:
 - **14 revisions** with full approval, distribution, and read tracking data
 - **13 system settings** (email config, reminder periods, etc.)
 
-> **Warning:** The seed script **clears all existing data** before inserting. It is NOT idempotent — do not run on a database with real data.
+> **Warning:** The seed script **clears all existing data** before inserting. It is NOT idempotent - do not run on a database with real data.
 
 **Login credentials:**
 
@@ -193,8 +193,8 @@ Email settings are managed entirely from the admin panel (`/settings`):
 1. Log in as the admin user
 2. Navigate to **Settings**
 3. Under **Email Settings**, choose a provider:
-   - **Resend** — Enter your API key from [resend.com](https://resend.com)
-   - **SMTP** — Enter host, port, username, password, and SSL toggle
+   - **Resend** - Enter your API key from [resend.com](https://resend.com)
+   - **SMTP** - Enter host, port, username, password, and SSL toggle
 4. Set the **sender address** (e.g., `DMS <noreply@yourcompany.com>`)
 5. Choose the **email language** (Turkish or English)
 6. Use the **Send Test Email** button to verify the configuration

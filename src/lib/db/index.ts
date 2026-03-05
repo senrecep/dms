@@ -32,7 +32,7 @@ function getDb(): Database {
   return globalForDb.db;
 }
 
-// Lazy proxy — connection created on first use, not at import time
+// Lazy proxy - connection created on first use, not at import time
 export const db = new Proxy({} as Database, {
   get(_target, prop, receiver) {
     const realDb = getDb();

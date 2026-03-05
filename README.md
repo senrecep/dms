@@ -2,7 +2,7 @@
   <img src="public/logo.svg" width="120" alt="DMS Logo" />
 </p>
 
-<h1 align="center">DMS — Document Management System</h1>
+<h1 align="center">DMS - Document Management System</h1>
 
 <p align="center">
   <a href="https://github.com/senrecep/dms"><img src="https://img.shields.io/badge/GitHub-senrecep%2Fdms-181717?logo=github" alt="GitHub"></a>
@@ -36,21 +36,21 @@
 
 ## Features
 
-- **Document Management** — Upload, version, and organize documents with unique codes and classification (Procedure, Instruction, Form)
-- **Multi-Level Approval Workflow** — Two-stage approval (preparer + approver) with same-person shortcut, rejection with comments, and configurable escalation
-- **Controlled Distribution** — Distribute published documents to specific departments and/or individual users
-- **Read Confirmation Tracking** — Track who has read published documents in real time
-- **Automated Reminders & Escalation** — Configurable reminder periods for unread documents and pending approvals, with automatic escalation to management
-- **Revision Control** — Full revision history with master/revision architecture — each revision independently tracks metadata, files, approvals, distribution, and read confirmations
-- **Role-Based Access Control** — Three roles (Admin, Manager, User) with granular permissions enforced at the server level
-- **Real-Time Notifications** — Server-Sent Events (SSE) powered by Redis Pub/Sub for instant in-app notifications
-- **Async Email Delivery** — All emails processed through BullMQ job queue for reliability and retry support
-- **Multi-Language Support** — Full TR/EN support for both the UI (next-intl) and email templates (standalone dictionary)
-- **Audit Trail** — Every mutation logged to an activity log with before/after state
-- **Soft Delete** — No data is ever permanently deleted; all records use soft-delete flags
-- **Dark Mode** — Full dark mode support via CSS variables
-- **Mobile-Responsive** — Mobile-first design with responsive breakpoints
-- **Progressive Web App (PWA)** — Installable on mobile and desktop with offline-capable service worker
+- **Document Management** - Upload, version, and organize documents with unique codes and classification (Procedure, Instruction, Form)
+- **Multi-Level Approval Workflow** - Two-stage approval (preparer + approver) with same-person shortcut, rejection with comments, and configurable escalation
+- **Controlled Distribution** - Distribute published documents to specific departments and/or individual users
+- **Read Confirmation Tracking** - Track who has read published documents in real time
+- **Automated Reminders & Escalation** - Configurable reminder periods for unread documents and pending approvals, with automatic escalation to management
+- **Revision Control** - Full revision history with master/revision architecture - each revision independently tracks metadata, files, approvals, distribution, and read confirmations
+- **Role-Based Access Control** - Three roles (Admin, Manager, User) with granular permissions enforced at the server level
+- **Real-Time Notifications** - Server-Sent Events (SSE) powered by Redis Pub/Sub for instant in-app notifications
+- **Async Email Delivery** - All emails processed through BullMQ job queue for reliability and retry support
+- **Multi-Language Support** - Full TR/EN support for both the UI (next-intl) and email templates (standalone dictionary)
+- **Audit Trail** - Every mutation logged to an activity log with before/after state
+- **Soft Delete** - No data is ever permanently deleted; all records use soft-delete flags
+- **Dark Mode** - Full dark mode support via CSS variables
+- **Mobile-Responsive** - Mobile-first design with responsive breakpoints
+- **Progressive Web App (PWA)** - Installable on mobile and desktop with offline-capable service worker
 
 ## Tech Stack
 
@@ -104,10 +104,10 @@
 
 **Key architectural decisions:**
 
-- **Server Components by default** — Pages and layouts are Server Components; `"use client"` only when hooks, event handlers, or browser APIs are needed.
-- **Server Actions for mutations** — All data mutations go through Server Actions (`src/actions/`), never through API routes.
-- **Async job processing** — Emails and notifications are enqueued via BullMQ and processed by a standalone worker process, keeping Server Actions fast.
-- **SSE over WebSockets** — Simpler to deploy behind reverse proxies; Redis Pub/Sub bridges multiple server instances.
+- **Server Components by default** - Pages and layouts are Server Components; `"use client"` only when hooks, event handlers, or browser APIs are needed.
+- **Server Actions for mutations** - All data mutations go through Server Actions (`src/actions/`), never through API routes.
+- **Async job processing** - Emails and notifications are enqueued via BullMQ and processed by a standalone worker process, keeping Server Actions fast.
+- **SSE over WebSockets** - Simpler to deploy behind reverse proxies; Redis Pub/Sub bridges multiple server instances.
 
 ## Project Structure
 
@@ -235,12 +235,12 @@ Every document follows a structured lifecycle with full audit trail. Documents u
 
 **Two-person flow** (preparer ≠ approver):
 ```
-Draft → Pending Approval → Preparer Approved → Approved → Published
+Draft → Pending Approval → Preparer Approved → Published
 ```
 
 **Same-person flow** (preparer = approver):
 ```
-Draft → Pending Approval → Approved → Published
+Draft → Pending Approval → Published
 ```
 
 **Rejection paths:**
@@ -261,7 +261,7 @@ Preparer Approved → Approver Rejected → (new revision required)
 | `PENDING_APPROVAL` | Submitted, awaiting preparer approval |
 | `PREPARER_APPROVED` | Preparer approved, awaiting final approver |
 | `PREPARER_REJECTED` | Preparer rejected with comment |
-| `APPROVED` | Final approver approved, ready to publish |
+| `APPROVED` | Final approver approved, auto-publishes immediately |
 | `APPROVER_REJECTED` | Final approver rejected with comment |
 | `PUBLISHED` | Live document, distributed to users |
 | `CANCELLED` | Document cancelled, no longer active |
@@ -291,8 +291,8 @@ Built on [Better Auth](https://www.better-auth.com/) with email + password authe
 
 DMS supports two email providers, configurable from the admin settings panel:
 
-- **Resend** — API-based delivery (recommended for most deployments)
-- **SMTP** — Traditional SMTP for on-premise or custom mail servers
+- **Resend** - API-based delivery (recommended for most deployments)
+- **SMTP** - Traditional SMTP for on-premise or custom mail servers
 
 All 12 email templates are built with [React Email](https://react.email/) and support **TR/EN localization** via a standalone translation dictionary (since templates render in the BullMQ worker process where React context is unavailable).
 
@@ -425,12 +425,12 @@ DMS is containerized with a multi-stage Dockerfile:
 | `init` | `oven/bun:1-slim` | One-shot: schema push + conditional seed |
 
 Production deploys as six Docker Compose services:
-- **db** — PostgreSQL 17 (Alpine)
-- **redis** — Redis 7 (Alpine, AOF persistence, password auth)
-- **init** — One-shot container: runs `db:push` on every deploy; seed only runs if database is empty or `FORCE_SEED=true`
-- **app** — Next.js application (Bun runtime), starts after init completes
-- **worker** — BullMQ background job processor (Bun runtime), starts after init completes
-- **cron** — Alpine cron container, calls `/api/cron` twice daily for reminders and escalations
+- **db** - PostgreSQL 17 (Alpine)
+- **redis** - Redis 7 (Alpine, AOF persistence, password auth)
+- **init** - One-shot container: runs `db:push` on every deploy; seed only runs if database is empty or `FORCE_SEED=true`
+- **app** - Next.js application (Bun runtime), starts after init completes
+- **worker** - BullMQ background job processor (Bun runtime), starts after init completes
+- **cron** - Alpine cron container, calls `/api/cron` twice daily for reminders and escalations
 
 ### Compose Files
 
@@ -440,7 +440,7 @@ The project provides three compose files for different environments:
 |------|-------------|-------|----------|
 | `docker-compose.yml` | Local development | db: 5432, redis: 6379 | Only starts db + redis; app runs via `bun dev` |
 | `docker-compose.production.yml` | Self-hosted VPS | `${APP_PORT:-3000}:3000` | All 6 services, port configurable via env |
-| `docker-compose.dokploy.yml` | Dokploy | None (internal) | All 6 services, no ports exposed — Dokploy's Traefik reverse proxy handles domain routing and SSL |
+| `docker-compose.dokploy.yml` | Dokploy | None (internal) | All 6 services, no ports exposed - Dokploy's Traefik reverse proxy handles domain routing and SSL |
 
 **Self-hosted VPS:**
 
@@ -474,7 +474,7 @@ docker compose -f docker-compose.production.yml up -d --build
 | `SEED_EMAIL_DOMAIN` | No | Email domain for seed test users (default: `dms.com`) |
 | `FORCE_SEED` | No | Set to `true` to force re-seed (clears existing data) |
 
-> **Email configuration** (provider, API keys, SMTP credentials, sender address, language) is managed through the admin panel at `/settings` — not via environment variables. The seed script creates sensible defaults.
+> **Email configuration** (provider, API keys, SMTP credentials, sender address, language) is managed through the admin panel at `/settings` - not via environment variables. The seed script creates sensible defaults.
 
 All variables are validated at startup via Zod (`src/lib/env.ts`).
 
@@ -487,7 +487,7 @@ All variables are validated at startup via Zod (`src/lib/env.ts`).
 
 ## Role-Based Permissions
 
-DMS has three roles with distinct capabilities. Permissions are enforced at the Server Action level — UI elements are hidden for convenience, but security is never client-side only.
+DMS has three roles with distinct capabilities. Permissions are enforced at the Server Action level - UI elements are hidden for convenience, but security is never client-side only.
 
 ### Pages & Navigation
 

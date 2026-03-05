@@ -270,7 +270,16 @@ export async function getDocumentById(id: string) {
             with: { user: { columns: { id: true, name: true, email: true } } },
           },
           readConfirmations: {
-            with: { user: { columns: { id: true, name: true, email: true } } },
+            with: {
+              user: {
+                columns: { id: true, name: true, email: true },
+                with: {
+                  departmentMemberships: {
+                    with: { department: { columns: { id: true, name: true } } },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -338,7 +347,7 @@ export async function createDocument(formData: FormData) {
   const actionType = parsed.action ?? "save";
   const initialStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
 
-  // 1. Pre-generate document ID and save file (outside transaction — FS can't rollback)
+  // 1. Pre-generate document ID and save file (outside transaction - FS can't rollback)
   const docId = nanoid();
   const fileMeta = await saveFile(file, docId);
 
@@ -407,7 +416,7 @@ export async function createDocument(formData: FormData) {
 
   // 3. Handle approval flow outside transaction (includes async notifications)
   if (actionType === "submit") {
-    await createApprovalFlow(revision.id, parsed.preparerId, parsed.approverId || null, docId, parsed.title, parsed.documentCode, session.user.name, session.user.id);
+    await createApprovalFlow(revision.id, parsed.preparerId, parsed.approverId || null, docId, parsed.title, parsed.documentCode, session.user.name);
   }
 
   revalidatePath("/documents");
@@ -430,7 +439,6 @@ async function createApprovalFlow(
   title: string,
   documentCode: string,
   uploaderName: string,
-  createdById: string,
 ) {
   if (!approverId) return;
 
@@ -477,75 +485,6 @@ async function createApprovalFlow(
       }
     } catch (error) {
       console.error("[createApprovalFlow] Failed to notify approver:", error);
-    }
-  } else if (createdById === preparerId) {
-    // Auto-skip preparer: uploader IS the preparer, skip to approver directly
-    await db.insert(approvals).values({
-      revisionId,
-      approverId: preparerId,
-      approvalType: "PREPARER",
-      status: "APPROVED",
-      comment: "Auto-approved: uploader is the preparer",
-      respondedAt: new Date(),
-    });
-
-    // Update revision status to PREPARER_APPROVED
-    await db
-      .update(documentRevisions)
-      .set({ status: "PREPARER_APPROVED" })
-      .where(eq(documentRevisions.id, revisionId));
-
-    // Create APPROVER approval
-    await db.insert(approvals).values({
-      revisionId,
-      approverId,
-      approvalType: "APPROVER",
-      status: "PENDING",
-    });
-
-    // Log auto-approval activity
-    await db.insert(activityLogs).values({
-      documentId,
-      revisionId,
-      userId: createdById,
-      action: "PREPARER_APPROVED",
-      details: { autoApproved: true, reason: "Uploader is the preparer" },
-    });
-
-    // Notify approver (not preparer since they uploaded it themselves)
-    try {
-      const approver = await db.query.users.findFirst({
-        where: eq(users.id, approverId),
-        columns: { name: true, email: true },
-      });
-
-      if (approver) {
-        await Promise.allSettled([
-          enqueueNotification({
-            userId: approverId,
-            type: "APPROVAL_REQUEST",
-            titleKey: "newApprovalRequest",
-            messageParams: { docTitle: title, docCode: documentCode },
-            relatedDocumentId: documentId,
-            relatedRevisionId: revisionId,
-          }),
-          enqueueEmail({
-            to: approver.email,
-            subjectKey: "approvalRequest",
-            subjectParams: { title },
-            templateName: "approval-request",
-            templateProps: {
-              approverName: approver.name,
-              documentTitle: title,
-              documentCode,
-              uploaderName,
-              approvalUrl: `${env.NEXT_PUBLIC_APP_URL}/documents/${documentId}`,
-            },
-          }),
-        ]);
-      }
-    } catch (error) {
-      console.error("[createApprovalFlow] Failed to notify approver (auto-skip):", error);
     }
   } else {
     // Two-step: PREPARER first, then APPROVER
@@ -624,7 +563,6 @@ export async function submitForApproval(revisionId: string) {
     revision.title,
     revision.document.documentCode,
     session.user.name,
-    session.user.id,
   );
 
   // Log activity
@@ -972,7 +910,6 @@ export async function reviseDocument(formData: FormData) {
         effectiveTitle,
         doc.documentCode,
         session.user.name,
-        session.user.id,
       );
     }
 
@@ -980,7 +917,7 @@ export async function reviseDocument(formData: FormData) {
     revalidatePath(`/documents/${documentId}`);
     return { success: true, revisionNo: currentRevision.revisionNo };
   } else {
-    // Create NEW revision — wrap DB operations in a transaction
+    // Create NEW revision - wrap DB operations in a transaction
     const newRevisionNo = doc.currentRevisionNo + 1;
     const newStatus = actionType === "submit" ? "PENDING_APPROVAL" : "DRAFT";
 
@@ -1079,7 +1016,6 @@ export async function reviseDocument(formData: FormData) {
         effectiveTitle,
         doc.documentCode,
         session.user.name,
-        session.user.id,
       );
     }
 
@@ -1234,6 +1170,38 @@ export async function cancelDocument(documentId: string) {
   } catch (error) {
     console.error("[cancelDocument] Failed to enqueue notifications:", error);
   }
+
+  return { success: true };
+}
+
+// --- deleteDocument (SOFT DELETE, ADMIN ONLY) ---
+
+export async function deleteDocument(documentId: string) {
+  const session = await getSession();
+
+  if ((session.user as { role?: string }).role !== "ADMIN") {
+    throw new Error("Forbidden");
+  }
+
+  const doc = await db.query.documents.findFirst({
+    where: and(eq(documents.id, documentId), eq(documents.isDeleted, false)),
+  });
+
+  if (!doc) throw new Error("Document not found");
+
+  await db
+    .update(documents)
+    .set({ isDeleted: true, deletedAt: new Date() })
+    .where(eq(documents.id, documentId));
+
+  await db.insert(activityLogs).values({
+    documentId,
+    userId: session.user.id,
+    action: "DELETED",
+    details: { documentCode: doc.documentCode },
+  });
+
+  revalidatePath("/documents");
 
   return { success: true };
 }

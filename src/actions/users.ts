@@ -151,6 +151,49 @@ export async function createUser(formData: {
   }
 }
 
+export async function bulkCreateUsers(
+  usersData: Array<{
+    name: string;
+    email: string;
+    role: "ADMIN" | "MANAGER" | "USER";
+    departmentIds?: string[];
+  }>
+): Promise<{ results: Array<{ email: string; success: boolean; error?: string; errorCode?: string }> }> {
+  try {
+    await requireAdmin();
+
+    const results: Array<{ email: string; success: boolean; error?: string; errorCode?: string }> = [];
+
+    for (const userData of usersData) {
+      const result = await createUser(userData);
+      if (result.success) {
+        results.push({ email: userData.email, success: true });
+      } else {
+        results.push({
+          email: userData.email,
+          success: false,
+          error: result.error,
+          errorCode: result.errorCode,
+        });
+      }
+    }
+
+    revalidatePath("/users");
+    revalidatePath("/departments");
+    return { results };
+  } catch (error) {
+    // If requireAdmin fails, all fail
+    return {
+      results: usersData.map((u) => ({
+        email: u.email,
+        success: false,
+        error: "Unauthorized",
+        errorCode: "UNAUTHORIZED",
+      })),
+    };
+  }
+}
+
 export async function sendPasswordReset(userId: string): Promise<ActionResult> {
   try {
     const session = await getSessionOrThrow();

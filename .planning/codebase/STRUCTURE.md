@@ -68,11 +68,11 @@ dms/
 - Purpose: HTTP API routes only (not for business logic mutations)
 - Contains: Auth handler, SSE, file serving, cron trigger, document upload
 - Key files:
-  - `src/app/api/auth/[...all]/route.ts` — Better Auth
-  - `src/app/api/sse/route.ts` — Real-time events
-  - `src/app/api/files/[...path]/route.ts` — Authenticated file download
-  - `src/app/api/cron/route.ts` — Scheduled job runner
-  - `src/app/api/documents/upload/route.ts` — Multipart upload endpoint
+  - `src/app/api/auth/[...all]/route.ts` - Better Auth
+  - `src/app/api/sse/route.ts` - Real-time events
+  - `src/app/api/files/[...path]/route.ts` - Authenticated file download
+  - `src/app/api/cron/route.ts` - Scheduled job runner
+  - `src/app/api/documents/upload/route.ts` - Multipart upload endpoint
 
 **`src/actions/`:**
 - Purpose: All Server Actions for mutations and data queries
@@ -94,7 +94,7 @@ dms/
 **`src/lib/queue/`:**
 - Purpose: BullMQ queue infrastructure
 - Key files: `src/lib/queue/index.ts` (enqueue helpers), `src/lib/queue/worker.ts` (Worker factory), `src/lib/queue/types.ts` (job type definitions), `src/lib/queue/templates.ts` (email template resolver)
-- Subdirectory: `jobs/` — individual job processors
+- Subdirectory: `jobs/` - individual job processors
 
 **`src/lib/jobs/`:**
 - Purpose: Cron job business logic (approval reminders, escalations, read reminders)
@@ -118,31 +118,31 @@ dms/
 ## Key File Locations
 
 **Entry Points:**
-- `src/app/layout.tsx` — Root HTML layout (fonts, PWA, metadata)
-- `src/app/(dashboard)/layout.tsx` — Auth guard, sidebar, i18n provider
-- `src/app/page.tsx` — Root page (likely redirects to dashboard or login)
-- `src/worker.ts` — BullMQ worker process entry point
+- `src/app/layout.tsx` - Root HTML layout (fonts, PWA, metadata)
+- `src/app/(dashboard)/layout.tsx` - Auth guard, sidebar, i18n provider
+- `src/app/page.tsx` - Root page (likely redirects to dashboard or login)
+- `src/worker.ts` - BullMQ worker process entry point
 
 **Configuration:**
-- `src/lib/env.ts` — All environment variable definitions and Zod validation
-- `src/lib/auth/index.ts` — Better Auth configuration
-- `src/lib/db/index.ts` — Drizzle DB client singleton
-- `src/lib/redis/index.ts` — Redis client singleton
-- `src/i18n/request.ts` — next-intl server config
-- `src/i18n/messages/en.json` — English translations (source of truth)
-- `src/i18n/messages/tr.json` — Turkish translations
+- `src/lib/env.ts` - All environment variable definitions and Zod validation
+- `src/lib/auth/index.ts` - Better Auth configuration
+- `src/lib/db/index.ts` - Drizzle DB client singleton
+- `src/lib/redis/index.ts` - Redis client singleton
+- `src/i18n/request.ts` - next-intl server config
+- `src/i18n/messages/en.json` - English translations (source of truth)
+- `src/i18n/messages/tr.json` - Turkish translations
 
 **Core Logic:**
-- `src/actions/documents.ts` — Document CRUD, approval flow, publish, revise (1172 lines)
-- `src/actions/approvals.ts` — Approval accept/reject logic
-- `src/lib/errors.ts` — Error classification shared by all actions and routes
-- `src/lib/storage/index.ts` — File save/delete/stream operations
-- `src/lib/sse/index.ts` — SSE connection management + Redis pub/sub bridge
+- `src/actions/documents.ts` - Document CRUD, approval flow, publish, revise (1172 lines)
+- `src/actions/approvals.ts` - Approval accept/reject logic
+- `src/lib/errors.ts` - Error classification shared by all actions and routes
+- `src/lib/storage/index.ts` - File save/delete/stream operations
+- `src/lib/sse/index.ts` - SSE connection management + Redis pub/sub bridge
 
 **Schema:**
-- `src/lib/db/schema/index.ts` — Re-exports all schema entities
-- `src/lib/db/schema/enums.ts` — All PostgreSQL enums (roles, statuses, types)
-- `src/lib/db/schema/relations.ts` — All Drizzle relation definitions
+- `src/lib/db/schema/index.ts` - Re-exports all schema entities
+- `src/lib/db/schema/enums.ts` - All PostgreSQL enums (roles, statuses, types)
+- `src/lib/db/schema/relations.ts` - All Drizzle relation definitions
 
 ## Naming Conventions
 

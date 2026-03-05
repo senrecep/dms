@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 /**
- * Cached getSession — deduplicates DB queries within the same
+ * Cached getSession - deduplicates DB queries within the same
  * React Server Component render pass (layout + page + nested layouts).
  */
 export const getSession = cache(async () => {

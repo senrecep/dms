@@ -1,7 +1,7 @@
 "use client";
 
 import type { DocumentDetail } from "@/actions/documents";
-import { cancelDocument, publishDocument, submitForApproval } from "@/actions/documents";
+import { cancelDocument, deleteDocument, publishDocument, submitForApproval } from "@/actions/documents";
 import { StatusBadge } from "./status-badge";
 import { ReadStatusIndicator } from "./read-status-indicator";
 import {
@@ -35,8 +35,10 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth/client";
 
 type Props = {
   document: DocumentDetail;
@@ -65,12 +67,15 @@ const ACTION_KEY_MAP: Record<string, string> = {
   REVISED: "revised",
   PUBLISHED: "published",
   CANCELLED: "cancelled",
+  DELETED: "deleted",
 };
 
 export function DocumentDetailView({ document: doc }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { data: session } = authClient.useSession();
+  const userRole = (session?.user as { role?: string } | undefined)?.role;
 
   // Current revision is the first in the list (ordered by revisionNo DESC)
   const currentRevision = doc.revisions[0];
@@ -83,6 +88,20 @@ export function DocumentDetailView({ document: doc }: Props) {
       router.refresh();
     } catch {
       toast.error(t("documents.toast.cancelFailed"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(t("documents.confirmDelete"))) return;
+    setIsLoading(true);
+    try {
+      await deleteDocument(doc.id);
+      toast.success(t("documents.toast.deleted"));
+      router.push("/documents");
+    } catch {
+      toast.error(t("documents.toast.deleteFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -233,6 +252,19 @@ export function DocumentDetailView({ document: doc }: Props) {
             >
               <Ban className="size-4" />
               {t("documents.actions.cancel")}
+            </Button>
+          )}
+          {/* Delete button - admin only */}
+          {userRole === "ADMIN" && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="gap-1"
+            >
+              <Trash2 className="size-4" />
+              {t("documents.actions.delete")}
             </Button>
           )}
         </div>
@@ -487,7 +519,14 @@ export function DocumentDetailView({ document: doc }: Props) {
                                     <div className="space-y-1">
                                       {rev.readConfirmations.map((rc) => (
                                         <div key={rc.id} className="flex items-center justify-between rounded border px-3 py-2">
-                                          <span className="text-sm">{rc.user?.name ?? ""}</span>
+                                          <span className="text-sm">
+                                            {rc.user?.name ?? ""}
+                                            {rc.user?.departmentMemberships && rc.user.departmentMemberships.length > 0 && (
+                                              <span className="text-muted-foreground ml-1 text-xs">
+                                                ({rc.user.departmentMemberships.map((m) => m.department?.name).filter(Boolean).join(", ")})
+                                              </span>
+                                            )}
+                                          </span>
                                           {rc.confirmedAt ? (
                                             <span className="text-xs text-green-600">
                                               {t("readTasks.readAt")}: {format(rc.confirmedAt, "dd.MM.yyyy HH:mm")}
@@ -584,7 +623,14 @@ export function DocumentDetailView({ document: doc }: Props) {
                       <div className="space-y-2">
                         {readConfirmations.map((rc) => (
                           <div key={rc.id} className="flex items-center justify-between rounded border px-3 py-2">
-                            <span className="text-sm">{rc.user?.name ?? ""}</span>
+                            <span className="text-sm">
+                              {rc.user?.name ?? ""}
+                              {rc.user?.departmentMemberships && rc.user.departmentMemberships.length > 0 && (
+                                <span className="text-muted-foreground ml-1 text-xs">
+                                  ({rc.user.departmentMemberships.map((m) => m.department?.name).filter(Boolean).join(", ")})
+                                </span>
+                              )}
+                            </span>
                             {rc.confirmedAt ? (
                               <span className="text-xs text-green-600">
                                 {t("readTasks.readAt")}: {format(rc.confirmedAt, "dd.MM.yyyy HH:mm")}

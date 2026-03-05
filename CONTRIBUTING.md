@@ -42,13 +42,13 @@ git commit -m "feat(documents): add bulk download support"
 
 **Commit types:**
 
-- `feat` — New feature
-- `fix` — Bug fix
-- `refactor` — Code restructuring (no behavior change)
-- `style` — Formatting, whitespace
-- `docs` — Documentation only
-- `test` — Adding or updating tests
-- `chore` — Tooling, config, dependencies
+- `feat` - New feature
+- `fix` - Bug fix
+- `refactor` - Code restructuring (no behavior change)
+- `style` - Formatting, whitespace
+- `docs` - Documentation only
+- `test` - Adding or updating tests
+- `chore` - Tooling, config, dependencies
 
 **Scopes:** `auth`, `documents`, `approvals`, `notifications`, `db`, `ui`, `api`, `config`, `i18n`
 
@@ -63,7 +63,7 @@ git commit -m "feat(documents): add bulk download support"
 
 ### TypeScript
 
-- Strict mode enabled — no `any` types
+- Strict mode enabled - no `any` types
 - Use Zod for runtime validation at system boundaries
 - Prefer `type` over `interface` unless extending
 - Use path aliases: `@/` maps to `src/`
@@ -102,7 +102,7 @@ git commit -m "feat(documents): add bulk download support"
 
 ### Never
 
-- Use raw SQL — always use Drizzle query builder
+- Use raw SQL - always use Drizzle query builder
 - Hard-delete database records
 - Skip authentication/authorization checks
 - Commit `.env.local` or secrets to Git

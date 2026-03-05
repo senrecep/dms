@@ -49,7 +49,7 @@ ENV HOSTNAME="0.0.0.0"
 
 CMD ["bun", "server.js"]
 
-# Stage 4: Worker runner (no build stage dependency — only needs src + deps)
+# Stage 4: Worker runner (no build stage dependency - only needs src + deps)
 FROM oven/bun:1-slim AS worker
 WORKDIR /app
 ENV NODE_ENV=production
@@ -59,7 +59,7 @@ COPY tsconfig.json ./
 CMD ["bun", "run", "src/worker.ts"]
 
 # Stage 5: Init runner (db:push + db:seed, runs once then exits)
-# No build stage dependency — only needs src + deps + drizzle config
+# No build stage dependency - only needs src + deps + drizzle config
 FROM oven/bun:1-slim AS init
 WORKDIR /app
 ENV NODE_ENV=production

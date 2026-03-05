@@ -22,7 +22,7 @@ echo "  Schema push complete."
 
 echo "[2/2] Checking seed..."
 if [ "$FORCE_SEED" = "true" ]; then
-  echo "  FORCE_SEED=true — Running seed..."
+  echo "  FORCE_SEED=true - Running seed..."
   bun run src/lib/db/seed.ts
   echo "  Seed complete."
 else

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CreateUserDialog } from "@/components/users/create-user-dialog";
+import { BulkCreateUserDialog } from "@/components/users/bulk-create-user-dialog";
 import { EditUserDialog } from "@/components/users/edit-user-dialog";
 import { ResetPasswordButton } from "@/components/users/reset-password-button";
 
@@ -66,17 +67,27 @@ export default async function UsersPage() {
     deptMap.set(m.userId, existing);
   }
 
-  const enrichedUsers = userList.map((u) => ({
-    ...u,
-    departmentIds: deptMap.get(u.id)?.map((d) => d.departmentId) ?? [],
-    departmentNames: deptMap.get(u.id)?.map((d) => d.departmentName).join(", ") ?? "-",
-  }));
+  const enrichedUsers = userList
+    .map((u) => ({
+      ...u,
+      departmentIds: deptMap.get(u.id)?.map((d) => d.departmentId) ?? [],
+      departmentNames: deptMap.get(u.id)?.map((d) => d.departmentName).join(", ") ?? "-",
+    }))
+    .sort((a, b) => {
+      // Passive users go to bottom
+      if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+      // Then sort by name alphabetically
+      return a.name.localeCompare(b.name, "tr");
+    });
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <CreateUserDialog allowedRoles={["USER", "MANAGER"]} />
+        <div className="flex items-center gap-2">
+          <BulkCreateUserDialog />
+          <CreateUserDialog allowedRoles={["USER", "MANAGER"]} />
+        </div>
       </div>
 
       <Card>

@@ -4,12 +4,12 @@
 
 DMS is deployed as a Docker Compose stack with six services:
 
-- **app** — Next.js application (Bun runtime)
-- **worker** — BullMQ background job processor (email + notifications)
-- **init** — One-shot container: schema push + conditional seed
-- **cron** — Alpine container for scheduled reminders and escalations
-- **db** — PostgreSQL 17 (Alpine)
-- **redis** — Redis 7 (Alpine, AOF persistence, password auth)
+- **app** - Next.js application (Bun runtime)
+- **worker** - BullMQ background job processor (email + notifications)
+- **init** - One-shot container: schema push + conditional seed
+- **cron** - Alpine container for scheduled reminders and escalations
+- **db** - PostgreSQL 17 (Alpine)
+- **redis** - Redis 7 (Alpine, AOF persistence, password auth)
 
 ### Compose Files
 
@@ -17,8 +17,8 @@ Two production compose files are provided:
 
 | File | Use Case | Ports |
 |------|----------|-------|
-| `docker-compose.production.yml` | Self-hosted VPS / bare-metal (6 services) | `${APP_PORT:-3000}:3000` — configurable via env |
-| `docker-compose.dokploy.yml` | Dokploy (6 services) | None — Dokploy's Traefik reverse proxy handles domain routing, SSL, and container networking internally |
+| `docker-compose.production.yml` | Self-hosted VPS / bare-metal (6 services) | `${APP_PORT:-3000}:3000` - configurable via env |
+| `docker-compose.dokploy.yml` | Dokploy (6 services) | None - Dokploy's Traefik reverse proxy handles domain routing, SSL, and container networking internally |
 
 > Local development uses `docker-compose.yml` (only db + redis, app runs via `bun dev`).
 
@@ -28,14 +28,14 @@ Choose the appropriate file based on your deployment target. The sections below 
 
 - Docker & Docker Compose v2+
 - Minimum 2 GB RAM, 2 vCPU
-- [Dokploy](https://dokploy.com) installed (optional — can also deploy manually)
+- [Dokploy](https://dokploy.com) installed (optional - can also deploy manually)
 
 ## 2. Environment Variables
 
 Create a `.env` file on the server or configure via Dokploy panel:
 
 ```env
-# Required — use strong, unique values!
+# Required - use strong, unique values!
 POSTGRES_PASSWORD=<generate_strong_password>
 REDIS_PASSWORD=<generate_strong_password>
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
@@ -59,11 +59,11 @@ SEED_ADMIN_PASSWORD=<generate_strong_password>
 SEED_DEFAULT_PASSWORD=<password_for_test_users>
 SEED_EMAIL_DOMAIN=yourdomain.com
 
-# First deploy only — remove after initial setup
+# First deploy only - remove after initial setup
 FORCE_SEED=true
 ```
 
-> **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address, language) is managed through the **admin panel** at `/settings` after first login. The seed script creates sensible defaults. You do **not** need email-related environment variables in production — configure everything from the UI.
+> **Note on email settings:** Email configuration (provider, API keys, SMTP credentials, sender address, language) is managed through the **admin panel** at `/settings` after first login. The seed script creates sensible defaults. You do **not** need email-related environment variables in production - configure everything from the UI.
 
 To generate strong secrets:
 
@@ -97,8 +97,8 @@ docker compose -f docker-compose.production.yml up -d --build
 ### Automatic Database Setup
 
 The `init` service runs automatically on every deploy:
-1. **db:push** — Applies the latest Drizzle schema to PostgreSQL (safe, only applies diffs)
-2. **Seed check** — Seed only runs if the database is empty (no users) or `FORCE_SEED=true`
+1. **db:push** - Applies the latest Drizzle schema to PostgreSQL (safe, only applies diffs)
+2. **Seed check** - Seed only runs if the database is empty (no users) or `FORCE_SEED=true`
 
 The `app` and `worker` services wait for `init` to complete before starting (`service_completed_successfully`).
 
@@ -112,7 +112,7 @@ The `app` and `worker` services wait for `init` to complete before starting (`se
 |----------|---------|-------------|
 | `SEED_ADMIN_NAME` | `System Admin` | Admin display name |
 | `SEED_ADMIN_EMAIL` | `admin@dms.com` | Admin login email |
-| `SEED_ADMIN_PASSWORD` | — | Admin password (required) |
+| `SEED_ADMIN_PASSWORD` | - | Admin password (required) |
 | `SEED_DEFAULT_PASSWORD` | `User123!` | Password for test users |
 | `SEED_EMAIL_DOMAIN` | `dms.com` | Email domain for test users |
 | `FORCE_SEED` | `false` | Force re-seed (clears existing data) |
@@ -245,9 +245,9 @@ volumes:
 
 | Volume | Contents | Importance |
 |--------|----------|------------|
-| `postgres_data` | All database records | **Critical** — back up regularly |
+| `postgres_data` | All database records | **Critical** - back up regularly |
 | `redis_data` | Redis AOF files, session data, cache | Medium |
-| `uploads_data` | User-uploaded files (PDF, Office, etc.) | **Critical** — back up regularly |
+| `uploads_data` | User-uploaded files (PDF, Office, etc.) | **Critical** - back up regularly |
 
 ### Backup
 

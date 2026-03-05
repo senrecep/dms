@@ -174,7 +174,8 @@
       "read": "Read",
       "revised": "Revised",
       "published": "Published",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "deleted": "Deleted"
     },
     "upload": {
       "title": "Upload Document",
@@ -200,7 +201,8 @@
       "revise": "Request Revision",
       "cancel": "Cancel Document",
       "publish": "Publish",
-      "markAsRead": "Mark as Read"
+      "markAsRead": "Mark as Read",
+      "delete": "Delete Document"
     },
     "toast": {
       "cancelled": "Document cancelled",
@@ -209,8 +211,11 @@
       "publishFailed": "Failed to publish document",
       "revisionCreated": "Revision {revNo} created",
       "revisionFailed": "Failed to create revision",
-      "fileRequired": "Please select a file"
-    }
+      "fileRequired": "Please select a file",
+      "deleted": "Document deleted",
+      "deleteFailed": "Failed to delete document"
+    },
+    "confirmDelete": "Are you sure you want to delete this document? This action cannot be undone."
   },
   "approvals": {
     "list": {
@@ -375,6 +380,28 @@
         },
         "recentActivity": "Recent Activity",
         "noActivity": "No activity yet."
+      },
+      "bulkAdd": "Bulk Add Users",
+      "bulk": {
+        "title": "Bulk Add Users",
+        "subtitle": "Add multiple users at once. Each user will receive a password setup email.",
+        "addRow": "Add Row",
+        "removeRow": "Remove",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "department": "Department",
+        "departments": "Departments",
+        "submit": "Create All Users",
+        "processing": "Creating users...",
+        "resultSuccess": "{count} user(s) created successfully",
+        "resultPartial": "{success} created, {failed} failed",
+        "resultFailed": "All users failed to create",
+        "rowError": "Error",
+        "emptyRows": "Add at least one user to continue.",
+        "selectDepartment": "Select department",
+        "selectDepartments": "Select departments",
+        "noDepartment": "No department (Admin)"
       }
     },
     "email": {
@@ -429,6 +456,8 @@
     "settingSaveFailed": "Failed to save settings.",
     "emailTestFailed": "Failed to send test email.",
     "approvalNotFound": "Approval not found or already processed.",
+    "approvalNotActive": "Approval is no longer active.",
+    "selfApproval": "You cannot approve your own document.",
     "rejectionTooShort": "Rejection reason must be at least 10 characters.",
     "readTaskNotFound": "Read task not found or already confirmed.",
     "onlyManagersCanConfirm": "Only managers can confirm document reading.",
@@ -488,7 +517,7 @@
       "subtitle": "Documents go through a two-step approval process before publishing.",
       "twoPerson": "Two-person approval (Preparer ≠ Approver):",
       "samePerson": "Same-person approval (Preparer = Approver):",
-      "samePersonNote": "When the preparer and approver are the same person, the preparer step is skipped automatically.",
+      "samePersonNote": "When the preparer and approver are the same person, only a single approval step is required.",
       "rejection": "Rejection flow:",
       "newRevisionRequired": "New Revision Required",
       "rejectionNote": "Rejected documents are locked. A new revision must be created to continue."
@@ -499,7 +528,7 @@
       "draft": "The revision is created as a draft. It can be edited and saved multiple times before submitting.",
       "pendingApproval": "The document has been submitted for approval. The assigned preparer receives a notification to review.",
       "preparerApproved": "The preparer has approved the document. The approver is notified for final review.",
-      "approved": "The document has been fully approved. The approver can now publish it or request a revision.",
+      "approved": "The document has been fully approved and is automatically published.",
       "published": "The document is distributed to all users in the distribution list. Read tasks are created for managers.",
       "preparerRejected": "The preparer has rejected the document. The revision is locked and a new revision must be created.",
       "approverRejected": "The approver has rejected the document. The revision is locked and a new revision must be created.",
@@ -521,7 +550,7 @@
       "title": "What Happens After Publishing?",
       "notifications": "All users in the distribution list receive an email notification about the new document.",
       "readTasks": "Managers in the distribution list get a read task. They must open the document and confirm they have read it.",
-      "tracking": "The document owner can track read status in real time — who has read and who hasn't.",
+      "tracking": "The document owner can track read status in real time - who has read and who hasn't.",
       "reminders": "Automatic reminder emails are sent to managers who haven't confirmed reading within the configured period.",
       "escalation": "If a manager still hasn't confirmed after the reminder period, the task is escalated to upper management."
     },
@@ -529,8 +558,8 @@
       "title": "Tips",
       "tip1": "Use meaningful document codes that follow your organization's naming convention.",
       "tip2": "Add a description to help users understand the document's purpose before opening it.",
-      "tip3": "Select both departments and individual users in the distribution list when needed — duplicates are handled automatically.",
-      "tip4": "After approval, review the document one more time before publishing, as publishing triggers distribution immediately.",
+      "tip3": "Select both departments and individual users in the distribution list when needed - duplicates are handled automatically.",
+      "tip4": "Documents are automatically published after final approval, so review everything carefully before the approver approves.",
       "tip5": "Only managers need to confirm reading. Regular users can view published documents without confirmation.",
       "tip6": "When the preparer and approver are the same person, the approval process is streamlined to a single step."
     }

@@ -27,7 +27,7 @@
 - Drizzle TypeScript: camelCase column names (`documentCode`, `isDeleted`, `createdAt`)
 - PostgreSQL actual columns: snake_case (`document_code`, `is_deleted`, `created_at`)
 - Table names: plural snake_case (`document_revisions`, `distribution_lists`)
-- Exception: `user` table (singular — required by Better Auth adapter)
+- Exception: `user` table (singular - required by Better Auth adapter)
 
 **i18n Keys:**
 - Dot-nested flat structure: `documents.status.draft`, `approvals.actions.approve`
@@ -38,13 +38,13 @@
 
 **Formatting:**
 - ESLint with Next.js core-web-vitals + TypeScript rules (`eslint.config.mjs`)
-- No Biome/Prettier detected — ESLint handles style
+- No Biome/Prettier detected - ESLint handles style
 - Run: `bun run lint`
 
 **TypeScript:**
 - Strict mode enabled (`tsconfig.json`)
-- No `any` types (rule: `.claude/rules/code-style.md`) — 37 instances found in non-critical paths (manifest, i18n internals, Drizzle relations)
-- Path alias: `@/` maps to `src/` — used everywhere instead of relative imports
+- No `any` types (rule: `.claude/rules/code-style.md`) - 37 instances found in non-critical paths (manifest, i18n internals, Drizzle relations)
+- Path alias: `@/` maps to `src/` - used everywhere instead of relative imports
 - Zod v4 for runtime validation: `import { z } from "zod/v4"`
 
 ## Import Organization
@@ -101,7 +101,7 @@ export async function createSomething(formData: FormData) {
 
 **Server Actions:**
 - Always `try/catch` the entire body
-- Never throw to client — return `ActionError` object
+- Never throw to client - return `ActionError` object
 - Use `classifyError(error)` from `src/lib/errors.ts` for the catch block
 - Zod errors caught explicitly before `classifyError`
 - Return shape: `{ success: false, error: string, errorCode: string }`
@@ -112,7 +112,7 @@ export async function createSomething(formData: FormData) {
 - Pattern: `NextResponse.json({ error, errorCode }, { status })`
 
 **Notification/Email Failures:**
-- Wrapped in separate `try/catch` — never fail the main operation
+- Wrapped in separate `try/catch` - never fail the main operation
 - Use `Promise.allSettled()` for parallel notifications (not `Promise.all`)
 - Log errors but continue: `console.error("[Action] Failed to notify:", error)`
 
@@ -139,7 +139,7 @@ export async function createSomething(formData: FormData) {
 - 57 client components detected vs majority server components
 
 **Data Fetching:**
-- Server Components call Server Actions or Drizzle directly — no `fetch()` for initial data
+- Server Components call Server Actions or Drizzle directly - no `fetch()` for initial data
 - No SWR, React Query, or client-side data fetching for initial page loads
 
 **Forms:**
@@ -151,12 +151,12 @@ export async function createSomething(formData: FormData) {
 - Column definitions in `*-columns.tsx` files, table in `*-table.tsx`
 
 **Toasts:**
-- `sonner` library — `toast.success()`, `toast.error()`
+- `sonner` library - `toast.success()`, `toast.error()`
 
 ## Database Conventions
 
 **Queries:**
-- Always use Drizzle query builder — never raw SQL (except for table aliases in complex joins)
+- Always use Drizzle query builder - never raw SQL (except for table aliases in complex joins)
 - For relational queries: use `db.query.{table}.findFirst({ with: {} })` pattern
 - For joins: use `db.select().from().innerJoin().leftJoin()` pattern
 
@@ -166,7 +166,7 @@ export async function createSomething(formData: FormData) {
 - Pattern: save file first, then DB transaction
 
 **Soft Delete:**
-- Set `isDeleted = true`, `deletedAt = new Date()` — never hard DELETE
+- Set `isDeleted = true`, `deletedAt = new Date()` - never hard DELETE
 - Always include `eq(table.isDeleted, false)` in queries
 
 **Activity Logging:**
@@ -174,7 +174,7 @@ export async function createSomething(formData: FormData) {
 - Fields: `documentId`, `revisionId`, `userId`, `action`, `details` (JSON object)
 
 **IDs:**
-- All primary keys are `nanoid()` text strings — not auto-increment integers
+- All primary keys are `nanoid()` text strings - not auto-increment integers
 - Pattern: `.$defaultFn(() => nanoid())`
 
 **Timestamps:**
@@ -190,7 +190,7 @@ export async function createSomething(formData: FormData) {
 - Server Actions exported individually from action files
 
 **Barrel Files:**
-- `src/lib/db/schema/index.ts` — schema barrel
+- `src/lib/db/schema/index.ts` - schema barrel
 - Individual lib directories export via `index.ts`
 
 ## File Upload Convention

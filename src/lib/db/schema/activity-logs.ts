@@ -16,6 +16,7 @@ export const activityActionEnum = [
   "REVISED",
   "PUBLISHED",
   "CANCELLED",
+  "DELETED",
 ] as const;
 
 export const activityLogs = pgTable(

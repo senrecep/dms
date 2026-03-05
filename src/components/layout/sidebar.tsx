@@ -28,11 +28,14 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth/client";
 
-const mainNavItems = [
+const dmsNavItems = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { key: "documents", href: "/documents", icon: FileText },
   { key: "approvals", href: "/approvals", icon: CheckSquare },
   { key: "readTasks", href: "/read-tasks", icon: BookCheck },
+];
+
+const otherNavItems = [
   { key: "guide", href: "/guide", icon: BookOpenText },
   { key: "departments", href: "/departments", icon: Building2 },
 ];
@@ -56,16 +59,37 @@ export function AppSidebar() {
             <FileText className="size-4" />
           </div>
           <span className="text-sm font-semibold group-data-[collapsible=icon]:hidden">
-            DMS
+            QMS
           </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>DMS</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {dmsNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={t(item.key)}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{t(item.key)}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
           <SidebarGroupLabel>{t("navigation")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
+              {otherNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild

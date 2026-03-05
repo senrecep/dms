@@ -40,28 +40,28 @@
 - Purpose: Special endpoints not suited to Server Actions
 - Location: `src/app/api/`
 - Contains:
-  - `auth/[...all]/route.ts` — Better Auth catch-all handler
-  - `sse/route.ts` — SSE stream for real-time events
-  - `files/[...path]/route.ts` — Authenticated file serving with range support
-  - `documents/upload/route.ts` — Multipart file upload (FormData via HTTP)
-  - `cron/route.ts` — Scheduled job trigger (Bearer token auth)
+  - `auth/[...all]/route.ts` - Better Auth catch-all handler
+  - `sse/route.ts` - SSE stream for real-time events
+  - `files/[...path]/route.ts` - Authenticated file serving with range support
+  - `documents/upload/route.ts` - Multipart file upload (FormData via HTTP)
+  - `cron/route.ts` - Scheduled job trigger (Bearer token auth)
 - Depends on: `src/lib/auth`, `src/lib/sse`, `src/lib/storage`, `src/lib/queue`
 
 **Library / Infrastructure:**
 - Purpose: Shared infrastructure, clients, and utilities
 - Location: `src/lib/`
 - Contains:
-  - `db/` — Drizzle client + schema + seed
-  - `auth/` — Better Auth configuration and session helper
-  - `email/` — Email sending (Resend/SMTP), templates, config
-  - `queue/` — BullMQ queue, worker, job processors, types
-  - `jobs/` — Scheduled cron job business logic
-  - `redis/` — Redis client singleton + pub/sub
-  - `sse/` — SSE connection management + Redis pub/sub bridge
-  - `storage/` — Local filesystem file operations
-  - `env.ts` — Zod-validated environment variables
-  - `errors.ts` — Shared error classification for actions and routes
-  - `utils.ts` — Shared utility functions
+  - `db/` - Drizzle client + schema + seed
+  - `auth/` - Better Auth configuration and session helper
+  - `email/` - Email sending (Resend/SMTP), templates, config
+  - `queue/` - BullMQ queue, worker, job processors, types
+  - `jobs/` - Scheduled cron job business logic
+  - `redis/` - Redis client singleton + pub/sub
+  - `sse/` - SSE connection management + Redis pub/sub bridge
+  - `storage/` - Local filesystem file operations
+  - `env.ts` - Zod-validated environment variables
+  - `errors.ts` - Shared error classification for actions and routes
+  - `utils.ts` - Shared utility functions
 
 **Worker Process:**
 - Purpose: Background job processing (runs as separate container/process)
@@ -121,7 +121,7 @@
 
 **ActionResult:**
 - Purpose: Typed return shape for all Server Actions
-- Definition: `src/lib/errors.ts` — `ActionSuccess<T>` | `ActionError`
+- Definition: `src/lib/errors.ts` - `ActionSuccess<T>` | `ActionError`
 - Pattern: `{ success: true, ...data }` or `{ success: false, error, errorCode }`
 
 **DocumentRevision:**
@@ -136,7 +136,7 @@
 
 **Queue Enqueue Helpers:**
 - Purpose: Type-safe wrappers around BullMQ queue
-- Examples: `src/lib/queue/index.ts` — `enqueueEmail()`, `enqueueBulkEmail()`, `enqueueNotification()`, `enqueueBulkNotifications()`
+- Examples: `src/lib/queue/index.ts` - `enqueueEmail()`, `enqueueBulkEmail()`, `enqueueNotification()`, `enqueueBulkNotifications()`
 
 ## Entry Points
 

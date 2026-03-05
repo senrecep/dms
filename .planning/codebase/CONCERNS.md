@@ -11,7 +11,7 @@
 - Fix approach: Consolidate into a single shared `createDocumentCore()` utility in `src/lib/` that both the Server Action and API route call. Delete one duplicate.
 
 **Massive Server Action File:**
-- Issue: `src/actions/documents.ts` is 1172 lines — contains queries, mutations, approval flow logic, distribution logic, export logic, and data loaders all in one file.
+- Issue: `src/actions/documents.ts` is 1172 lines - contains queries, mutations, approval flow logic, distribution logic, export logic, and data loaders all in one file.
 - Files: `src/actions/documents.ts`
 - Impact: Hard to navigate, test, and maintain. PRs touching this file will have high conflict probability.
 - Fix approach: Split into `src/actions/documents-queries.ts`, `src/actions/documents-mutations.ts`, `src/actions/documents-approval.ts`, and `src/actions/documents-export.ts`.
@@ -40,7 +40,7 @@
 - Symptoms: When a document is published, read confirmations are only created for MANAGER-role users in the distribution list. Regular USER-role users in distribution never get read tasks.
 - Files: `src/actions/documents.ts` (lines 614, 624)
 - Trigger: Publishing a document with USER-role recipients in distribution lists or departments.
-- Workaround: Assign MANAGER role to users who need read confirmations. May be intentional business rule — needs clarification.
+- Workaround: Assign MANAGER role to users who need read confirmations. May be intentional business rule - needs clarification.
 
 ## Security Considerations
 
@@ -94,13 +94,13 @@
 - Files: `src/lib/sse/index.ts`
 - Why fragile: In-memory `Map<string, Set<Connection>>` for active SSE connections. In multi-instance deployments, connections are not shared across instances. Redis pub/sub handles cross-instance delivery but the connection registry is per-process.
 - Safe modification: Test all SSE event types after any change. Do not refactor without adding reconnection and delivery guarantee tests.
-- Test coverage: Zero — no tests for SSE connection lifecycle.
+- Test coverage: Zero - no tests for SSE connection lifecycle.
 
 **Approval State Machine:**
 - Files: `src/actions/documents.ts` (`createApprovalFlow`, `publishDocument`), `src/actions/approvals.ts`
 - Why fragile: The two-step vs single-step approval branching (preparer=approver check) is implemented in multiple places without a centralized state machine. Status transitions (`DRAFT` → `PENDING_APPROVAL` → `PREPARER_APPROVED` → `APPROVED` → `PUBLISHED`) are scattered across actions.
 - Safe modification: Always trace all status transition paths before modifying. Add tests that cover the full DRAFT→PUBLISHED and DRAFT→REJECTED paths before refactoring.
-- Test coverage: Zero — no tests for state transitions.
+- Test coverage: Zero - no tests for state transitions.
 
 **Email Config Cache Race Condition:**
 - Files: `src/lib/email/config.ts`
@@ -112,8 +112,8 @@
 
 **Local Filesystem Storage:**
 - Current capacity: Limited by server disk space. `UPLOAD_DIR` defaults to `./uploads` inside the container.
-- Limit: Single-instance only — files on container filesystem are not shared across replicas.
-- Scaling path: Migrate `src/lib/storage/` to an S3-compatible storage (AWS S3, MinIO, Cloudflare R2). Storage interface is already abstracted — replace implementation without changing callers.
+- Limit: Single-instance only - files on container filesystem are not shared across replicas.
+- Scaling path: Migrate `src/lib/storage/` to an S3-compatible storage (AWS S3, MinIO, Cloudflare R2). Storage interface is already abstracted - replace implementation without changing callers.
 
 **In-Process SSE Connections:**
 - Current capacity: Limited by Node.js/Bun open connection limits per process.
@@ -122,7 +122,7 @@
 
 **BullMQ Worker Concurrency:**
 - Current capacity: 5 concurrent jobs (`src/lib/queue/worker.ts`).
-- Limit: Single worker process — scales vertically only.
+- Limit: Single worker process - scales vertically only.
 - Scaling path: Run multiple worker containers (already supported since worker is a separate Docker stage).
 
 ## Dependencies at Risk
@@ -142,7 +142,7 @@
 **No Test Suite:**
 - Problem: Zero tests exist despite documented testing conventions in `.claude/rules/testing.md`.
 - Blocks: Confident refactoring, CI/CD pipeline, regression prevention.
-- Priority: High — the approval workflow and document state machine are business-critical and entirely untested.
+- Priority: High - the approval workflow and document state machine are business-critical and entirely untested.
 
 **No Rate Limiting:**
 - Problem: Auth and upload endpoints have no rate limiting.
@@ -152,7 +152,7 @@
 **No Structured Logging / Error Tracking:**
 - Problem: All logging is `console.log/error` with no aggregation, search, or alerting.
 - Blocks: Production observability. Errors in the worker process or cron jobs are invisible unless logs are actively monitored.
-- Priority: Medium — add Sentry or equivalent for error tracking. Add structured JSON logging for production.
+- Priority: Medium - add Sentry or equivalent for error tracking. Add structured JSON logging for production.
 
 **No CI/CD Pipeline:**
 - Problem: No GitHub Actions or equivalent CI configuration detected.
@@ -164,7 +164,7 @@
 **Approval State Machine:**
 - What's not tested: Two-step vs single-step approval branching, all status transitions, rejection flow, escalation logic
 - Files: `src/actions/documents.ts`, `src/actions/approvals.ts`, `src/lib/jobs/approval-escalation.ts`
-- Risk: Silent regressions in approval workflow — the most business-critical feature
+- Risk: Silent regressions in approval workflow - the most business-critical feature
 - Priority: High
 
 **Server Action Authorization:**
@@ -188,7 +188,7 @@
 **Cron Job Logic:**
 - What's not tested: Reminder cutoff date calculations, escalation threshold logic, deduplication (reminderSentAt check)
 - Files: `src/lib/jobs/approval-reminder.ts`, `src/lib/jobs/approval-escalation.ts`, `src/lib/jobs/read-reminder.ts`
-- Risk: Missed reminders or spam — both harmful to business operations
+- Risk: Missed reminders or spam - both harmful to business operations
 - Priority: Medium
 
 ---

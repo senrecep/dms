@@ -47,7 +47,6 @@ export function GuideContent() {
     { key: "draft", color: "bg-gray-100 text-gray-700 border-gray-200" },
     { key: "pendingApproval", color: "bg-amber-50 text-amber-700 border-amber-200" },
     { key: "preparerApproved", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-    { key: "approved", color: "bg-green-50 text-green-700 border-green-200" },
     { key: "published", color: "bg-primary/10 text-primary border-primary/20" },
     { key: "preparerRejected", color: "bg-red-50 text-red-700 border-red-200" },
     { key: "approverRejected", color: "bg-red-50 text-red-700 border-red-200" },
@@ -121,12 +120,12 @@ export function GuideContent() {
             <div>
               <p className="text-sm font-medium mb-3">{t("approval.twoPerson")}</p>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                {["draft", "pendingApproval", "preparerApproved", "approved", "published"].map((key, idx) => (
+                {["draft", "pendingApproval", "preparerApproved", "published"].map((key, idx) => (
                   <div key={key} className="flex items-center gap-2">
                     <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
                       {statusLabels(key)}
                     </Badge>
-                    {idx < 4 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
+                    {idx < 3 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
                   </div>
                 ))}
               </div>
@@ -136,12 +135,12 @@ export function GuideContent() {
             <div>
               <p className="text-sm font-medium mb-3">{t("approval.samePerson")}</p>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                {["draft", "pendingApproval", "approved", "published"].map((key, idx) => (
+                {["draft", "pendingApproval", "published"].map((key, idx) => (
                   <div key={key} className="flex items-center gap-2">
                     <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
                       {statusLabels(key)}
                     </Badge>
-                    {idx < 3 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
+                    {idx < 2 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
                   </div>
                 ))}
               </div>

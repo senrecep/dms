@@ -12,6 +12,8 @@ import type { ApprovalRow } from "@/components/approvals/approval-columns";
 
 const ERROR_CODE_MAP: Record<string, string> = {
   APPROVAL_NOT_FOUND: "approvalNotFound",
+  APPROVAL_NOT_ACTIVE: "approvalNotActive",
+  SELF_APPROVAL: "selfApproval",
   REJECTION_TOO_SHORT: "rejectionTooShort",
   UNAUTHORIZED: "unauthorized",
   FORBIDDEN: "forbidden",

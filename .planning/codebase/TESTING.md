@@ -5,7 +5,7 @@
 ## Test Framework
 
 **Runner:**
-- Not configured — no test runner detected in `package.json`, no `jest.config.*`, `vitest.config.*`, or `playwright.config.*` found
+- Not configured - no test runner detected in `package.json`, no `jest.config.*`, `vitest.config.*`, or `playwright.config.*` found
 - No test files (`*.test.*`, `*.spec.*`) found anywhere in the codebase
 
 **Assertion Library:**
@@ -17,7 +17,7 @@
 # Scripts available: dev, build, start, lint, db:generate, db:migrate, db:push, db:studio, db:seed, worker, worker:dev
 ```
 
-## Test Infrastructure — Intended (from `.claude/rules/testing.md`)
+## Test Infrastructure - Intended (from `.claude/rules/testing.md`)
 
 The project has documented testing conventions even though tests have not been written yet. When implementing tests, follow these rules:
 
@@ -56,24 +56,24 @@ tests/
 
 ## What Should Be Tested (Priority Order)
 
-**High Priority — Core Business Logic:**
-- `src/actions/documents.ts` — Document CRUD, approval flow branching (preparer=approver vs different), publish logic, revision logic
-- `src/actions/approvals.ts` — Approval accept/reject state transitions
-- `src/lib/errors.ts` — Error classification (PostgreSQL codes, FS errors, auth errors)
-- `src/lib/storage/index.ts` — File save, path sanitization, hash computation
+**High Priority - Core Business Logic:**
+- `src/actions/documents.ts` - Document CRUD, approval flow branching (preparer=approver vs different), publish logic, revision logic
+- `src/actions/approvals.ts` - Approval accept/reject state transitions
+- `src/lib/errors.ts` - Error classification (PostgreSQL codes, FS errors, auth errors)
+- `src/lib/storage/index.ts` - File save, path sanitization, hash computation
 
-**High Priority — Security-Critical:**
-- `src/lib/storage/path.ts` — Path traversal prevention (sanitizeFileName)
+**High Priority - Security-Critical:**
+- `src/lib/storage/path.ts` - Path traversal prevention (sanitizeFileName)
 - Session validation in Server Actions (unauthorized access)
 - Role-based access checks (ADMIN/MANAGER/USER)
 
-**Medium Priority — Infrastructure:**
-- `src/lib/email/config.ts` — Email config cache behavior
-- `src/lib/queue/` — Job enqueueing
-- `src/lib/jobs/approval-reminder.ts` — Reminder cutoff date logic
-- `src/lib/jobs/approval-escalation.ts` — Escalation logic
+**Medium Priority - Infrastructure:**
+- `src/lib/email/config.ts` - Email config cache behavior
+- `src/lib/queue/` - Job enqueueing
+- `src/lib/jobs/approval-reminder.ts` - Reminder cutoff date logic
+- `src/lib/jobs/approval-escalation.ts` - Escalation logic
 
-**Low Priority — UI:**
+**Low Priority - UI:**
 - Component rendering (shadcn-based components are stable)
 - i18n key coverage
 
@@ -111,9 +111,9 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 ```
 
 **What NOT to Mock:**
-- `src/lib/errors.ts` — Pure functions, test directly
-- `src/lib/utils.ts` — Pure functions, test directly
-- Zod schemas — Test with real Zod
+- `src/lib/errors.ts` - Pure functions, test directly
+- `src/lib/utils.ts` - Pure functions, test directly
+- Zod schemas - Test with real Zod
 
 ## Setting Up Testing (Recommended)
 

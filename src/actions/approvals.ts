@@ -153,10 +153,9 @@ export async function approveDocument(approvalId: string, comment?: string): Pro
       return { success: false, error: "Approval is no longer active", errorCode: "APPROVAL_NOT_ACTIVE" };
     }
 
-    // Prevent self-approval: the document creator cannot approve their own document
-    if (approval.revision.createdBy.id === session.user.id) {
-      return { success: false, error: "You cannot approve your own document", errorCode: "SELF_APPROVAL" };
-    }
+    // Self-approval is allowed: role-based access control ensures only designated
+    // approvers (preparer/approver) can approve. If a user is assigned as approver
+    // for their own document, the system respects that assignment.
 
     const revision = approval.revision;
     const documentId = revision.documentId;

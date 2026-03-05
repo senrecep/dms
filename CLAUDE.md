@@ -53,7 +53,7 @@ src/
 ```
 
 ## Critical Rules
-1. **Soft Delete**: Never `DELETE` — use `isDeleted=true` + `deletedAt`
+1. **Soft Delete**: Never `DELETE` - use `isDeleted=true` + `deletedAt`
 2. **Audit Trail**: Every mutation logs to `activity_logs` table
 3. **i18n**: All user-facing strings via `useTranslations()`, never hardcoded
 4. **Auth**: All routes require session, role-check at Server Action level

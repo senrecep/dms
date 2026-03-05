@@ -174,7 +174,8 @@
       "read": "Okundu",
       "revised": "Revize Edildi",
       "published": "Yayınlandı",
-      "cancelled": "İptal Edildi"
+      "cancelled": "İptal Edildi",
+      "deleted": "Silindi"
     },
     "upload": {
       "title": "Belge Yükle",
@@ -200,7 +201,8 @@
       "revise": "Revizyon İste",
       "cancel": "Belgeyi İptal Et",
       "publish": "Yayınla",
-      "markAsRead": "Okundu Olarak İşaretle"
+      "markAsRead": "Okundu Olarak İşaretle",
+      "delete": "Belgeyi Sil"
     },
     "toast": {
       "cancelled": "Belge iptal edildi",
@@ -209,8 +211,11 @@
       "publishFailed": "Belge yayınlanamadı",
       "revisionCreated": "Revizyon {revNo} oluşturuldu",
       "revisionFailed": "Revizyon oluşturulamadı",
-      "fileRequired": "Lütfen bir dosya seçin"
-    }
+      "fileRequired": "Lütfen bir dosya seçin",
+      "deleted": "Belge silindi",
+      "deleteFailed": "Belge silinemedi"
+    },
+    "confirmDelete": "Bu belgeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "approvals": {
     "list": {
@@ -375,6 +380,28 @@
         },
         "recentActivity": "Son Aktiviteler",
         "noActivity": "Henüz aktivite yok."
+      },
+      "bulkAdd": "Toplu Kullanıcı Ekle",
+      "bulk": {
+        "title": "Toplu Kullanıcı Ekleme",
+        "subtitle": "Birden fazla kullanıcıyı aynı anda ekleyin. Her kullanıcıya şifre belirleme e-postası gönderilecektir.",
+        "addRow": "Satır Ekle",
+        "removeRow": "Kaldır",
+        "name": "Ad",
+        "email": "E-posta",
+        "role": "Rol",
+        "department": "Departman",
+        "departments": "Departmanlar",
+        "submit": "Tüm Kullanıcıları Oluştur",
+        "processing": "Kullanıcılar oluşturuluyor...",
+        "resultSuccess": "{count} kullanıcı başarıyla oluşturuldu",
+        "resultPartial": "{success} oluşturuldu, {failed} başarısız",
+        "resultFailed": "Tüm kullanıcılar oluşturulamadı",
+        "rowError": "Hata",
+        "emptyRows": "Devam etmek için en az bir kullanıcı ekleyin.",
+        "selectDepartment": "Departman seçin",
+        "selectDepartments": "Departmanlar seçin",
+        "noDepartment": "Departman yok (Admin)"
       }
     },
     "email": {
@@ -429,6 +456,8 @@
     "settingSaveFailed": "Ayarlar kaydedilemedi.",
     "emailTestFailed": "Test e-postası gönderilemedi.",
     "approvalNotFound": "Onay bulunamadı veya zaten işlenmiş.",
+    "approvalNotActive": "Onay artık aktif değil.",
+    "selfApproval": "Kendi belgenizi onaylayamazsınız.",
     "rejectionTooShort": "Red nedeni en az 10 karakter olmalıdır.",
     "readTaskNotFound": "Okuma görevi bulunamadı veya zaten onaylanmış.",
     "onlyManagersCanConfirm": "Sadece yöneticiler belge okumayı onaylayabilir.",
@@ -488,7 +517,7 @@
       "subtitle": "Belgeler yayınlanmadan önce iki aşamalı onay sürecinden geçer.",
       "twoPerson": "İki kişili onay (Hazırlayan ≠ Onaylayıcı):",
       "samePerson": "Aynı kişi onayı (Hazırlayan = Onaylayıcı):",
-      "samePersonNote": "Hazırlayan ve onaylayıcı aynı kişi olduğunda, hazırlayan adımı otomatik olarak atlanır.",
+      "samePersonNote": "Hazırlayan ve onaylayıcı aynı kişi olduğunda, yalnızca tek bir onay adımı gerekir.",
       "rejection": "Red akışı:",
       "newRevisionRequired": "Yeni Revizyon Gerekli",
       "rejectionNote": "Reddedilen belgeler kilitlenir. Devam etmek için yeni bir revizyon oluşturulmalıdır."
@@ -499,7 +528,7 @@
       "draft": "Revizyon taslak olarak oluşturulur. Göndermeden önce birden fazla kez düzenlenip kaydedilebilir.",
       "pendingApproval": "Belge onaya gönderilmiştir. Atanan hazırlayan inceleme için bildirim alır.",
       "preparerApproved": "Hazırlayan belgeyi onaylamıştır. Son inceleme için onaylayıcıya bildirim gönderilir.",
-      "approved": "Belge tam olarak onaylanmıştır. Onaylayıcı artık yayınlayabilir veya revizyon talep edebilir.",
+      "approved": "Belge tam olarak onaylanmıştır ve otomatik olarak yayınlanır.",
       "published": "Belge, dağıtım listesindeki tüm kullanıcılara dağıtılır. Yöneticiler için okuma görevleri oluşturulur.",
       "preparerRejected": "Hazırlayan belgeyi reddetmiştir. Revizyon kilitlenir ve yeni bir revizyon oluşturulmalıdır.",
       "approverRejected": "Onaylayıcı belgeyi reddetmiştir. Revizyon kilitlenir ve yeni bir revizyon oluşturulmalıdır.",
@@ -521,7 +550,7 @@
       "title": "Yayınladıktan Sonra Ne Olur?",
       "notifications": "Dağıtım listesindeki tüm kullanıcılara yeni belge hakkında e-posta bildirimi gönderilir.",
       "readTasks": "Dağıtım listesindeki yöneticilere okuma görevi atanır. Belgeyi açıp okuduğunu onaylamalıdır.",
-      "tracking": "Belge sahibi okuma durumunu anlık olarak takip edebilir — kimin okuduğunu, kimin okumadığını görebilir.",
+      "tracking": "Belge sahibi okuma durumunu anlık olarak takip edebilir - kimin okuduğunu, kimin okumadığını görebilir.",
       "reminders": "Belirlenen süre içinde okuma onayı vermeyen yöneticilere otomatik hatırlatma e-postaları gönderilir.",
       "escalation": "Hatırlatma süresinden sonra hâlâ onaylamayan yöneticiler için görev üst yönetime yükseltilir."
     },
@@ -529,8 +558,8 @@
       "title": "İpuçları",
       "tip1": "Kuruluşunuzun adlandırma kuralına uygun anlamlı belge kodları kullanın.",
       "tip2": "Kullanıcıların belgeyi açmadan önce amacını anlamasına yardımcı olacak bir açıklama ekleyin.",
-      "tip3": "Gerektiğinde dağıtım listesinde hem departmanları hem bireysel kullanıcıları seçin — mükerrer kayıtlar otomatik engellenir.",
-      "tip4": "Onaydan sonra yayınlamadan önce belgeyi bir kez daha gözden geçirin, çünkü yayınlama dağıtımı anında başlatır.",
+      "tip3": "Gerektiğinde dağıtım listesinde hem departmanları hem bireysel kullanıcıları seçin - mükerrer kayıtlar otomatik engellenir.",
+      "tip4": "Belgeler son onaydan sonra otomatik olarak yayınlanır, bu nedenle onaylayıcı onaylamadan önce her şeyi dikkatli gözden geçirin.",
       "tip5": "Yalnızca yöneticilerin okuma onayı vermesi gerekir. Normal kullanıcılar yayınlanan belgeleri onay gerektirmeden görüntüleyebilir.",
       "tip6": "Hazırlayan ve onaylayıcı aynı kişi olduğunda, onay süreci tek adıma sadeleştirilir."
     }
