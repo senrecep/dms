@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getProfile } from "@/actions/profile";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Profile",
+  description: "View and update your profile information.",
+  robots: { index: false, follow: false },
+};
 
 export default async function ProfilePage() {
   const t = await getTranslations("profile");

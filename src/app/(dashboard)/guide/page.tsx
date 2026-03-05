@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { GuideContent } from "@/components/guide/guide-content";
+
+export const metadata: Metadata = {
+  title: "User Guide",
+  description: "Quality management system user guide and documentation.",
+  robots: { index: false, follow: false },
+};
 
 export default async function GuidePage() {
   const t = await getTranslations("guide");

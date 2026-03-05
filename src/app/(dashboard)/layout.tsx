@@ -38,7 +38,7 @@ export default async function DashboardLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <NotificationProvider>
         <SidebarProvider>
-          <AppSidebar />
+          <AppSidebar userRole={session.user.role as string} />
           <SidebarInset>
             <Header locale={locale} />
             <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>

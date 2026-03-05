@@ -46,6 +46,8 @@ export const CHANNELS = {
   notifications: (userId: string) => `notifications:${userId}`,
   documents: (documentId: string) => `documents:${documentId}`,
   approvals: "approvals",
+  car: `qms:car`,
+  carUser: (userId: string) => `qms:car:${userId}`,
 } as const;
 
 type MessageHandler = (message: string, channel: string) => void;

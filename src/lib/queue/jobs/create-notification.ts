@@ -7,7 +7,7 @@ import { sendToUser } from "@/lib/sse";
 export async function processCreateNotification(
   job: Job<CreateNotificationPayload>,
 ) {
-  const { userId, type, titleKey, messageParams, relatedDocumentId, relatedRevisionId } =
+  const { userId, type, titleKey, messageParams, relatedDocumentId, relatedRevisionId, relatedCarId } =
     job.data;
 
   const params = messageParams ?? {};
@@ -20,6 +20,7 @@ export async function processCreateNotification(
       message: JSON.stringify(params),
       relatedDocumentId,
       relatedRevisionId,
+      relatedCarId,
     })
     .returning();
 
@@ -32,6 +33,7 @@ export async function processCreateNotification(
       message: JSON.stringify(params),
       relatedDocumentId,
       relatedRevisionId,
+      relatedCarId,
     },
   });
 

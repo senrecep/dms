@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { users } from "./users";
 import { documents } from "./documents";
 import { documentRevisions } from "./document-revisions";
+import { correctiveActionRequests } from "./corrective-action-requests";
 
 export const notificationTypeEnum = [
   "APPROVAL_REQUEST",
@@ -17,6 +18,16 @@ export const notificationTypeEnum = [
   "DOCUMENT_DISTRIBUTED",
   "REMINDER",
   "ESCALATION",
+  "CAR_CREATED",
+  "CAR_STATUS_CHANGED",
+  "CAR_ACTION_ASSIGNED",
+  "CAR_ACTION_COMPLETED",
+  "CAR_CLOSURE_REQUESTED",
+  "CAR_CLOSED",
+  "CAR_REJECTED",
+  "CAR_REMINDER",
+  "CAR_OVERDUE",
+  "CAR_ESCALATION",
 ] as const;
 
 export const notifications = pgTable(
@@ -37,6 +48,9 @@ export const notifications = pgTable(
     relatedRevisionId: text("related_revision_id").references(
       () => documentRevisions.id,
     ),
+    relatedCarId: text("related_car_id").references(
+      () => correctiveActionRequests.id,
+    ),
     isRead: boolean("is_read").notNull().default(false),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -51,6 +65,9 @@ export const notifications = pgTable(
     ),
     index("notifications_related_revision_id_idx").on(
       table.relatedRevisionId,
+    ),
+    index("notifications_related_car_id_idx").on(
+      table.relatedCarId,
     ),
     index("notifications_user_read_created_idx").on(
       table.userId,

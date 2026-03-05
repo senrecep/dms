@@ -16,6 +16,12 @@ import {
   session,
   account,
   verification,
+  carSources,
+  carSystems,
+  carProcesses,
+  carCustomers,
+  carProducts,
+  carOperations,
 } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -204,10 +210,103 @@ async function seed() {
   ]);
   console.log("  13 system settings created.\n");
 
+  // ── CAR Lookup Tables ───────────────────────────────────────────
+  await seedCarLookups();
+
   console.log("╔══════════════════════════════════════╗");
   console.log("║    Seed completed successfully!      ║");
   console.log("╚══════════════════════════════════════╝\n");
   console.log(`  Admin: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}\n`);
+}
+
+async function seedCarLookups() {
+  console.log("Seeding CAR lookup tables...");
+
+  // Sources (Bildirim Kaynakları)
+  const sourceData = [
+    "İç Tetkik",
+    "İç Uygunsuzluk",
+    "Müşteri Şikayeti",
+    "Dış Tetkik",
+    "Proses Hatası",
+    "Tedarikçi Uygunsuzluğu",
+    "Diğer",
+  ];
+
+  for (let i = 0; i < sourceData.length; i++) {
+    const existing = await db
+      .select({ id: carSources.id })
+      .from(carSources)
+      .where(eq(carSources.name, sourceData[i]))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(carSources).values({
+        name: sourceData[i],
+        sortOrder: i + 1,
+      });
+      console.log(`  Created source: ${sourceData[i]}`);
+    } else {
+      console.log(`  Source already exists: ${sourceData[i]}`);
+    }
+  }
+
+  // Systems (Sistemler)
+  const systemData = [
+    "Kalite Yönetim Sistemi",
+    "Çevre Yönetim Sistemi",
+    "İSG Yönetim Sistemi",
+    "Entegre Yönetim Sistemi",
+  ];
+
+  for (let i = 0; i < systemData.length; i++) {
+    const existing = await db
+      .select({ id: carSystems.id })
+      .from(carSystems)
+      .where(eq(carSystems.name, systemData[i]))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(carSystems).values({
+        name: systemData[i],
+        sortOrder: i + 1,
+      });
+      console.log(`  Created system: ${systemData[i]}`);
+    } else {
+      console.log(`  System already exists: ${systemData[i]}`);
+    }
+  }
+
+  // Processes (Süreçler)
+  const processData = [
+    "Üretim Planlama",
+    "Satınalma",
+    "Depolama ve Sevkiyat",
+    "Kalite Kontrol",
+    "ArGe",
+    "İnsan Kaynakları",
+    "Bakım",
+  ];
+
+  for (let i = 0; i < processData.length; i++) {
+    const existing = await db
+      .select({ id: carProcesses.id })
+      .from(carProcesses)
+      .where(eq(carProcesses.name, processData[i]))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(carProcesses).values({
+        name: processData[i],
+        sortOrder: i + 1,
+      });
+      console.log(`  Created process: ${processData[i]}`);
+    } else {
+      console.log(`  Process already exists: ${processData[i]}`);
+    }
+  }
+
+  console.log("CAR lookup tables seeded successfully!\n");
 }
 
 seed()

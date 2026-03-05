@@ -103,6 +103,58 @@ export async function saveEmailSettings(settings: Record<string, string>): Promi
   }
 }
 
+export async function getCompanySettings() {
+  const keys = ["company_name", "company_logo_url", "pdf_language"];
+
+  const rows = await db
+    .select({ key: systemSettings.key, value: systemSettings.value })
+    .from(systemSettings)
+    .where(inArray(systemSettings.key, keys));
+
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return {
+    companyName: map.company_name ?? "",
+    companyLogoUrl: map.company_logo_url ?? "",
+    pdfLanguage: (map.pdf_language as "tr" | "en") ?? "tr",
+  };
+}
+
+export async function saveCompanySettings(settings: {
+  company_name?: string;
+  company_logo_url?: string;
+  pdf_language?: string;
+}): Promise<ActionResult> {
+  try {
+    const session = await requireAdmin();
+
+    const allowedKeys = ["company_name", "company_logo_url", "pdf_language"];
+
+    for (const [key, value] of Object.entries(settings)) {
+      if (!allowedKeys.includes(key) || value === undefined) continue;
+
+      const updated = await db
+        .update(systemSettings)
+        .set({ value, updatedById: session.user.id })
+        .where(eq(systemSettings.key, key))
+        .returning();
+
+      if (updated.length === 0) {
+        await db.insert(systemSettings).values({
+          key,
+          value,
+          description: `Company setting: ${key}`,
+          updatedById: session.user.id,
+        });
+      }
+    }
+
+    revalidatePath("/settings");
+    return { success: true };
+  } catch (error) {
+    return classifyError(error);
+  }
+}
+
 export async function sendTestEmail(toEmail: string): Promise<ActionResult> {
   try {
     await requireAdmin();

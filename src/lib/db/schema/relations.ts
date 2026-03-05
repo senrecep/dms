@@ -11,6 +11,15 @@ import { readConfirmations } from "./read-confirmations";
 import { notifications } from "./notifications";
 import { activityLogs } from "./activity-logs";
 import { systemSettings } from "./system-settings";
+import { correctiveActionRequests } from "./corrective-action-requests";
+import { carRootCauseAnalyses } from "./car-root-cause";
+import { carImmediateActions } from "./car-immediate-actions";
+import { carCorrectiveActions } from "./car-corrective-actions";
+import { carActionTeam } from "./car-action-team";
+import { carAttachments } from "./car-attachments";
+import { carNotificationUsers } from "./car-notification-users";
+import { carActivityLogs } from "./car-activity-logs";
+import { userPermissions } from "./user-permissions";
 
 // Users relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -24,6 +33,19 @@ export const usersRelations = relations(users, ({ many }) => ({
   activityLogs: many(activityLogs),
   updatedSettings: many(systemSettings),
   distributionUsers: many(distributionUsers),
+  requestedCars: many(correctiveActionRequests, { relationName: "carRequester" }),
+  assignedCars: many(correctiveActionRequests, { relationName: "carAssignee" }),
+  closedCars: many(correctiveActionRequests, { relationName: "carClosedBy" }),
+  carRootCauseAnalyses: many(carRootCauseAnalyses, { relationName: "carRootCauseCreatedBy" }),
+  carImmediateActions: many(carImmediateActions, { relationName: "carImmediateActionCreatedBy" }),
+  ownedCorrectiveActions: many(carCorrectiveActions, { relationName: "carCorrectiveActionOwner" }),
+  createdCorrectiveActions: many(carCorrectiveActions, { relationName: "carCorrectiveActionCreatedBy" }),
+  carActionTeamMemberships: many(carActionTeam, { relationName: "carActionTeamUser" }),
+  carAttachments: many(carAttachments, { relationName: "carAttachmentUploadedBy" }),
+  carNotifications: many(carNotificationUsers, { relationName: "carNotificationUser" }),
+  carActivityLogs: many(carActivityLogs, { relationName: "carActivityLogUser" }),
+  userPermissions: many(userPermissions, { relationName: "userPermissions" }),
+  grantedPermissions: many(userPermissions, { relationName: "grantedPermissions" }),
 }));
 
 // Departments relations
@@ -32,6 +54,8 @@ export const departmentsRelations = relations(departments, ({ many }) => ({
   revisions: many(documentRevisions, { relationName: "department" }),
   preparerRevisions: many(documentRevisions, { relationName: "preparerDepartment" }),
   distributionLists: many(distributionLists),
+  carRequesterDepartments: many(correctiveActionRequests, { relationName: "carRequesterDepartment" }),
+  carResponsibleDepartments: many(correctiveActionRequests, { relationName: "carResponsibleDepartment" }),
 }));
 
 // Department Members relations (junction table)
@@ -59,6 +83,7 @@ export const documentsRelations = relations(documents, ({ one, many }) => ({
   revisions: many(documentRevisions, { relationName: "documentRevisions" }),
   notifications: many(notifications),
   activityLogs: many(activityLogs),
+  correctiveActionRequests: many(correctiveActionRequests),
 }));
 
 // Document Revisions relations (enhanced with all mutable data)

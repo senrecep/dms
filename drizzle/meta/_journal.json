@@ -15,6 +15,20 @@
       "when": 1772377668110,
       "tag": "0001_special_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772725156474,
+      "tag": "0002_true_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772727014094,
+      "tag": "0003_normal_cargill",
+      "breakpoints": true
     }
   ]
 }

@@ -33,3 +33,29 @@ export const documentTypeEnum = pgEnum("document_type", [
   "INSTRUCTION",
   "FORM",
 ]);
+
+export const carStatusEnum = pgEnum("car_status", [
+  "OPEN",
+  "ROOT_CAUSE_ANALYSIS",
+  "IMMEDIATE_ACTION",
+  "PLANNED_ACTION",
+  "ACTION_RESULTS",
+  "PENDING_CLOSURE",
+  "CLOSED",
+  "CANCELLED",
+]);
+
+export const carActionStatusEnum = pgEnum("car_action_status", [
+  "OPEN",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+]);
+
+export const carAttachmentSectionEnum = pgEnum("car_attachment_section", [
+  "REQUEST",
+  "ROOT_CAUSE",
+  "IMMEDIATE_ACTION",
+  "CORRECTIVE_ACTION",
+  "CLOSURE",
+]);

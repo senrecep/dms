@@ -127,6 +127,61 @@ export const emailStrings: Record<
     testEmail: {
       body: string;
     };
+    carCreated: {
+      preview: string;
+      heading: string;
+      body: string;
+      targetDateLabel: string;
+      button: string;
+    };
+    carStatusChanged: {
+      preview: string;
+      heading: string;
+      body: string;
+      oldStatusLabel: string;
+      newStatusLabel: string;
+      button: string;
+    };
+    carActionAssigned: {
+      preview: string;
+      heading: string;
+      body: string;
+      button: string;
+    };
+    carClosureRequested: {
+      preview: string;
+      heading: string;
+      body: string;
+      button: string;
+    };
+    carClosed: {
+      preview: string;
+      heading: string;
+      body: string;
+      closingNoteLabel: string;
+      button: string;
+    };
+    carRejected: {
+      preview: string;
+      heading: string;
+      body: string;
+      rejectionCommentLabel: string;
+      button: string;
+    };
+    carReminder: {
+      preview: string;
+      heading: string;
+      body: string;
+      warning: string;
+      button: string;
+    };
+    carOverdue: {
+      preview: string;
+      heading: string;
+      body: string;
+      warning: string;
+      button: string;
+    };
   }
 > = {
   tr: {
@@ -151,6 +206,14 @@ export const emailStrings: Record<
       escalation: "Eskalasyon: {title}",
       welcome: "QMS - Parolanızı Belirleyin",
       testEmail: "QMS - Test Email",
+      carCreated: "Yeni DFİ Ataması: {carCode}",
+      carStatusChanged: "DFİ Durum Değişikliği: {carCode}",
+      carActionAssigned: "DFİ Aksiyon Görevi: {carCode}",
+      carClosureRequested: "DFİ Kapanış Onayı: {carCode}",
+      carClosed: "DFİ Kapatıldı: {carCode}",
+      carRejected: "DFİ Kapanışı Reddedildi: {carCode}",
+      carReminder: "DFİ Hatırlatması: {carCode}",
+      carOverdue: "DFİ Süresi Geçti: {carCode}",
     },
     approvalRequest: {
       preview: "Onay Talebi: {title}",
@@ -249,6 +312,61 @@ export const emailStrings: Record<
     testEmail: {
       body: "Bu bir test emailidir. Email ayarlarınız doğru şekilde yapılandırılmıştır.",
     },
+    carCreated: {
+      preview: "Yeni DFİ Ataması: {carCode}",
+      heading: "Yeni DFİ Ataması",
+      body: "{requesterName} tarafından oluşturulan {carCode} kodlu DFİ size atanmıştır. Hedef tarih: {targetDate}.",
+      targetDateLabel: "Hedef Tarih",
+      button: "DFİ'yi Görüntüle",
+    },
+    carStatusChanged: {
+      preview: "DFİ Durum Değişikliği: {carCode}",
+      heading: "DFİ Durumu Değişti",
+      body: "{carCode} kodlu DFİ'nin durumu {changedByName} tarafından değiştirildi.",
+      oldStatusLabel: "Eski Durum",
+      newStatusLabel: "Yeni Durum",
+      button: "DFİ'yi Görüntüle",
+    },
+    carActionAssigned: {
+      preview: "DFİ Aksiyon Görevi: {carCode}",
+      heading: "DFİ Aksiyon Görevi Atandı",
+      body: "{carCode} kodlu DFİ'de size bir aksiyon görevi atanmıştır.",
+      button: "Aksiyonu Görüntüle",
+    },
+    carClosureRequested: {
+      preview: "DFİ Kapanış Onayı: {carCode}",
+      heading: "DFİ Kapanış Onayı Talep Edildi",
+      body: "{assigneeName} tarafından tamamlanan {carCode} kodlu DFİ kapanış onayınızı beklemektedir.",
+      button: "DFİ'yi İncele",
+    },
+    carClosed: {
+      preview: "DFİ Kapatıldı: {carCode}",
+      heading: "DFİ Kapatıldı",
+      body: "{carCode} kodlu DFİ {closedByName} tarafından başarıyla kapatılmıştır.",
+      closingNoteLabel: "Kapanış Notu",
+      button: "DFİ'yi Görüntüle",
+    },
+    carRejected: {
+      preview: "DFİ Kapanışı Reddedildi: {carCode}",
+      heading: "DFİ Kapanışı Reddedildi",
+      body: "{carCode} kodlu DFİ'nin kapanış talebi {rejectedByName} tarafından reddedilmiştir.",
+      rejectionCommentLabel: "Red Gerekçesi",
+      button: "DFİ'yi Düzenle",
+    },
+    carReminder: {
+      preview: "DFİ Hatırlatması: {carCode}",
+      heading: "DFİ Termin Hatırlatması",
+      body: "{carCode} kodlu DFİ'nin terminine {daysUntilDeadline} gün kalmıştır. Hedef tarih: {targetDate}.",
+      warning: "Lütfen aksiyonları zamanında tamamlayınız.",
+      button: "DFİ'yi Görüntüle",
+    },
+    carOverdue: {
+      preview: "DFİ Süresi Geçti: {carCode}",
+      heading: "DFİ Süresi Doldu",
+      body: "{carCode} kodlu DFİ'nin termini {daysOverdue} gün önce geçmiştir. Hedef tarih: {targetDate}.",
+      warning: "Bu DFİ gecikmiştir. Lütfen en kısa sürede tamamlayınız.",
+      button: "DFİ'yi Görüntüle",
+    },
   },
   en: {
     common: {
@@ -272,6 +390,14 @@ export const emailStrings: Record<
       escalation: "Escalation: {title}",
       welcome: "QMS - Set Your Password",
       testEmail: "QMS - Test Email",
+      carCreated: "New CAR Assignment: {carCode}",
+      carStatusChanged: "CAR Status Changed: {carCode}",
+      carActionAssigned: "CAR Action Assigned: {carCode}",
+      carClosureRequested: "CAR Closure Approval: {carCode}",
+      carClosed: "CAR Closed: {carCode}",
+      carRejected: "CAR Closure Rejected: {carCode}",
+      carReminder: "CAR Reminder: {carCode}",
+      carOverdue: "CAR Overdue: {carCode}",
     },
     approvalRequest: {
       preview: "Approval Request: {title}",
@@ -371,6 +497,61 @@ export const emailStrings: Record<
     },
     testEmail: {
       body: "This is a test email. Your email settings have been configured correctly.",
+    },
+    carCreated: {
+      preview: "New CAR Assignment: {carCode}",
+      heading: "New CAR Assignment",
+      body: "A new Corrective Action Request {carCode} created by {requesterName} has been assigned to you. Target date: {targetDate}.",
+      targetDateLabel: "Target Date",
+      button: "View CAR",
+    },
+    carStatusChanged: {
+      preview: "CAR Status Changed: {carCode}",
+      heading: "CAR Status Changed",
+      body: "The status of CAR {carCode} has been changed by {changedByName}.",
+      oldStatusLabel: "Previous Status",
+      newStatusLabel: "New Status",
+      button: "View CAR",
+    },
+    carActionAssigned: {
+      preview: "CAR Action Assigned: {carCode}",
+      heading: "CAR Action Assigned",
+      body: "An action task has been assigned to you in CAR {carCode}.",
+      button: "View Action",
+    },
+    carClosureRequested: {
+      preview: "CAR Closure Approval: {carCode}",
+      heading: "CAR Closure Approval Requested",
+      body: "CAR {carCode} completed by {assigneeName} is awaiting your closure approval.",
+      button: "Review CAR",
+    },
+    carClosed: {
+      preview: "CAR Closed: {carCode}",
+      heading: "CAR Closed",
+      body: "CAR {carCode} has been successfully closed by {closedByName}.",
+      closingNoteLabel: "Closing Note",
+      button: "View CAR",
+    },
+    carRejected: {
+      preview: "CAR Closure Rejected: {carCode}",
+      heading: "CAR Closure Rejected",
+      body: "The closure request for CAR {carCode} has been rejected by {rejectedByName}.",
+      rejectionCommentLabel: "Rejection Reason",
+      button: "Edit CAR",
+    },
+    carReminder: {
+      preview: "CAR Reminder: {carCode}",
+      heading: "CAR Deadline Reminder",
+      body: "There are {daysUntilDeadline} days remaining until the deadline for CAR {carCode}. Target date: {targetDate}.",
+      warning: "Please complete all actions on time.",
+      button: "View CAR",
+    },
+    carOverdue: {
+      preview: "CAR Overdue: {carCode}",
+      heading: "CAR Overdue",
+      body: "The deadline for CAR {carCode} has passed {daysOverdue} days ago. Target date: {targetDate}.",
+      warning: "This CAR is overdue. Please complete it as soon as possible.",
+      button: "View CAR",
     },
   },
 };

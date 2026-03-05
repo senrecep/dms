@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Notifications",
+  description: "View and manage your notifications and alerts.",
+  robots: { index: false, follow: false },
+};
 import { db } from "@/lib/db";
 import { notifications } from "@/lib/db/schema";
 import { eq, desc, and, count } from "drizzle-orm";

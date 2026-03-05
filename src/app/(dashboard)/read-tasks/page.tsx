@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getPendingReadTasks, getCompletedReadTasks } from "@/actions/read-confirmations";
 import { ReadTaskList } from "@/components/read-tasks/read-task-list";
+
+export const metadata: Metadata = {
+  title: "Read Tasks",
+  description: "Track and confirm document reading assignments.",
+  robots: { index: false, follow: false },
+};
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function ReadTasksPage() {

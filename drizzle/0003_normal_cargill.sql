@@ -1,0 +1,3 @@
+ALTER TABLE "notifications" ADD COLUMN "related_car_id" text;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_related_car_id_corrective_action_requests_id_fk" FOREIGN KEY ("related_car_id") REFERENCES "public"."corrective_action_requests"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "notifications_related_car_id_idx" ON "notifications" USING btree ("related_car_id");

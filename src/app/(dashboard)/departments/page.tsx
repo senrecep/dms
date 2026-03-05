@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Departments",
+  description: "Manage organizational departments and team members.",
+  robots: { index: false, follow: false },
+};
 import { db } from "@/lib/db";
 import { departments, departmentMembers, users } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";

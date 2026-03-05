@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getDepartments, getApprovers, getAllActiveUsers } from "@/actions/documents";
 import { UploadForm } from "@/components/documents/upload-form";
 import { auth } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  title: "Upload Document",
+  description: "Upload a new controlled document to the quality management system.",
+  robots: { index: false, follow: false },
+};
 import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";

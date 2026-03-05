@@ -13,7 +13,15 @@ export type EmailTemplateName =
   | "document-distributed"
   | "read-reminder"
   | "escalation-notice"
-  | "welcome";
+  | "welcome"
+  | "car-created"
+  | "car-status-changed"
+  | "car-action-assigned"
+  | "car-closure-requested"
+  | "car-closed"
+  | "car-rejected"
+  | "car-reminder"
+  | "car-overdue";
 
 // --- Job Payloads ---
 
@@ -40,6 +48,7 @@ export type CreateNotificationPayload = {
   messageParams?: Record<string, string | number>;
   relatedDocumentId?: string;
   relatedRevisionId?: string;
+  relatedCarId?: string;
 };
 
 export type CreateBulkNotificationsPayload = {
@@ -50,6 +59,7 @@ export type CreateBulkNotificationsPayload = {
     messageParams?: Record<string, string | number>;
     relatedDocumentId?: string;
     relatedRevisionId?: string;
+    relatedCarId?: string;
   }>;
 };
 

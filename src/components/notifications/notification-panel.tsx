@@ -47,9 +47,11 @@ function getNotificationDisplay(
 ) {
   try {
     const params = JSON.parse(notification.message);
+    // Strip "notifications." prefix from old DB data
+    const key = notification.title.replace(/^notifications\./, "");
     return {
-      title: t(`titles.${notification.title}` as Parameters<typeof t>[0], params),
-      message: t(`messages.${notification.title}` as Parameters<typeof t>[0], params),
+      title: t(`titles.${key}` as Parameters<typeof t>[0], params),
+      message: t(`messages.${key}` as Parameters<typeof t>[0], params),
     };
   } catch {
     return { title: notification.title, message: notification.message };

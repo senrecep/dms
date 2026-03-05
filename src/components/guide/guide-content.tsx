@@ -11,7 +11,6 @@ import {
   Users,
   Upload,
   ArrowRight,
-  ArrowDown,
   Mail,
   BookOpenCheck,
   BarChart3,
@@ -125,8 +124,7 @@ export function GuideContent() {
                     <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
                       {statusLabels(key)}
                     </Badge>
-                    {idx < 3 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
-                    {idx < 3 && <ArrowDown className="size-4 text-muted-foreground sm:hidden" />}
+                    {idx < 3 && <ArrowRight className="size-4 text-muted-foreground" />}
                   </div>
                 ))}
               </div>
@@ -141,8 +139,7 @@ export function GuideContent() {
                     <Badge variant="outline" className={`${lifecycleSteps.find(s => s.key === key)?.color} px-3 py-1.5 text-xs font-medium`}>
                       {statusLabels(key)}
                     </Badge>
-                    {idx < 2 && <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />}
-                    {idx < 2 && <ArrowDown className="size-4 text-muted-foreground sm:hidden" />}
+                    {idx < 2 && <ArrowRight className="size-4 text-muted-foreground" />}
                   </div>
                 ))}
               </div>
@@ -156,14 +153,12 @@ export function GuideContent() {
                 <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1.5 text-xs font-medium">
                   {statusLabels("pendingApproval")}
                 </Badge>
-                <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />
-                <ArrowDown className="size-4 text-muted-foreground sm:hidden" />
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-3 py-1.5 text-xs font-medium">
+                <ArrowRight className="size-4 text-muted-foreground" />
+                                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-3 py-1.5 text-xs font-medium">
                   {statusLabels("preparerRejected")} / {statusLabels("approverRejected")}
                 </Badge>
-                <ArrowRight className="size-4 text-muted-foreground hidden sm:block" />
-                <ArrowDown className="size-4 text-muted-foreground sm:hidden" />
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1.5 text-xs font-medium">
+                <ArrowRight className="size-4 text-muted-foreground" />
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1.5 text-xs font-medium">
                   {t("approval.newRevisionRequired")}
                 </Badge>
               </div>

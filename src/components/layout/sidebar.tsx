@@ -12,6 +12,10 @@ import {
   Building2,
   Settings,
   Users,
+  ClipboardCheck,
+  ListTodo,
+  BarChart3,
+  HelpCircle,
 } from "lucide-react";
 
 import {
@@ -26,7 +30,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { authClient } from "@/lib/auth/client";
 
 const dmsNavItems = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -36,17 +39,22 @@ const dmsNavItems = [
   { key: "guide", href: "/guide", icon: BookOpenText },
 ];
 
+const carNavItems = [
+  { key: "carDashboard", href: "/car/dashboard", icon: BarChart3 },
+  { key: "carList", href: "/car/list", icon: ClipboardCheck },
+  { key: "carMyTasks", href: "/car/my-tasks", icon: ListTodo },
+  { key: "carGuide", href: "/car/guide", icon: HelpCircle },
+];
+
 const adminNavItems = [
   { key: "departments", href: "/departments", icon: Building2 },
   { key: "users", href: "/users", icon: Users },
   { key: "settings", href: "/settings", icon: Settings },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ userRole }: { userRole: string }) {
   const pathname = usePathname();
   const t = useTranslations("nav");
-  const { data: session } = authClient.useSession();
-  const userRole = (session?.user as { role?: string } | undefined)?.role;
 
   return (
     <Sidebar collapsible="icon">
@@ -62,14 +70,35 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>DMS</SidebarGroupLabel>
+          <SidebarGroupLabel>Document Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {dmsNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.href}
+                    isActive={pathname === item.href || pathname.startsWith(item.href + "/")}
+                    tooltip={t(item.key)}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{t(item.key)}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>{t("correctiveAction")}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {carNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href || pathname.startsWith(item.href + "/")}
                     tooltip={t(item.key)}
                   >
                     <Link href={item.href}>

@@ -46,11 +46,17 @@ const ERROR_CODE_MAP: Record<string, string> = {
   UNEXPECTED_ERROR: "unexpectedError",
 };
 
+const COMPANY_MANAGED_KEYS = ["company_name", "company_logo_url", "pdf_language"];
+
 export function SettingsForm({ settings }: { settings: Setting[] }) {
   const t = useTranslations("settings.general");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const router = useRouter();
+
+  const filteredSettings = settings.filter(
+    (s) => !COMPANY_MANAGED_KEYS.includes(s.key),
+  );
 
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries(settings.map((s) => [s.key, s.value]))
@@ -83,7 +89,7 @@ export function SettingsForm({ settings }: { settings: Setting[] }) {
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {settings.map((setting) => (
+        {filteredSettings.map((setting) => (
           <div key={setting.key} className="space-y-2">
             <Label htmlFor={setting.key}>
               {SETTING_LABELS[setting.key] ?? setting.key}

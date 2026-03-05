@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getPendingApprovals, getCompletedApprovals } from "@/actions/approvals";
 import { ApprovalsClient } from "@/components/approvals/approvals-client";
+
+export const metadata: Metadata = {
+  title: "Approvals",
+  description: "Review and manage pending document approval requests.",
+  robots: { index: false, follow: false },
+};
 
 export default async function ApprovalsPage() {
   const t = await getTranslations("approvals");

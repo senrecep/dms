@@ -33,7 +33,7 @@ function actionToKey(action: string) {
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Overview of your documents, approvals, and recent activity.",
+  description: "Quality management overview - documents, approvals, corrective actions, and recent activity.",
   robots: { index: false, follow: false },
 };
 

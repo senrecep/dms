@@ -4,8 +4,8 @@ import { DocumentTable } from "@/components/documents/document-table";
 import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
-  title: "Documents",
-  description: "Browse, search, and manage all documents in the system.",
+  title: "Document Management",
+  description: "Browse, search, and manage controlled documents - upload, approve, distribute, and track revisions.",
   robots: { index: false, follow: false },
 };
 

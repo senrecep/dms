@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Users",
+  description: "Manage system users, roles, and permissions.",
+  robots: { index: false, follow: false },
+};
 import { db } from "@/lib/db";
 import { users, departments, departmentMembers } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";

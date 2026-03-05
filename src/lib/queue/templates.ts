@@ -13,6 +13,14 @@ import { DocumentDistributedEmail } from "@/lib/email/templates/document-distrib
 import { ReadReminderEmail } from "@/lib/email/templates/read-reminder";
 import { EscalationNoticeEmail } from "@/lib/email/templates/escalation-notice";
 import { WelcomeEmail } from "@/lib/email/templates/welcome";
+import { CarCreatedEmail } from "@/lib/email/templates/car-created";
+import { CarStatusChangedEmail } from "@/lib/email/templates/car-status-changed";
+import { CarActionAssignedEmail } from "@/lib/email/templates/car-action-assigned";
+import { CarClosureRequestedEmail } from "@/lib/email/templates/car-closure-requested";
+import { CarClosedEmail } from "@/lib/email/templates/car-closed";
+import { CarRejectedEmail } from "@/lib/email/templates/car-rejected";
+import { CarReminderEmail } from "@/lib/email/templates/car-reminder";
+import { CarOverdueEmail } from "@/lib/email/templates/car-overdue";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyProps = any;
@@ -35,6 +43,14 @@ const templateRegistry: Record<
   "read-reminder": (props) => ReadReminderEmail(props),
   "escalation-notice": (props) => EscalationNoticeEmail(props),
   welcome: (props) => WelcomeEmail(props),
+  "car-created": (props) => CarCreatedEmail(props),
+  "car-status-changed": (props) => CarStatusChangedEmail(props),
+  "car-action-assigned": (props) => CarActionAssignedEmail(props),
+  "car-closure-requested": (props) => CarClosureRequestedEmail(props),
+  "car-closed": (props) => CarClosedEmail(props),
+  "car-rejected": (props) => CarRejectedEmail(props),
+  "car-reminder": (props) => CarReminderEmail(props),
+  "car-overdue": (props) => CarOverdueEmail(props),
 };
 
 export function resolveTemplate(
