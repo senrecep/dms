@@ -167,14 +167,14 @@ export function BulkCreateUserDialog() {
           {t("bulkAdd")}
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-[85vh] flex flex-col">
+      <SheetContent side="bottom" className="h-[85dvh] flex flex-col px-4 md:px-6">
         <SheetHeader>
           <SheetTitle>{t("bulk.title")}</SheetTitle>
           <SheetDescription>{t("bulk.subtitle")}</SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 mt-4">
-          <div className="space-y-3 pr-4">
+        <ScrollArea className="min-h-0 flex-1 mt-4">
+          <div className="space-y-3 px-1 pb-2">
             {rows.map((row, idx) => (
               <div
                 key={row.id}
@@ -328,7 +328,7 @@ export function BulkCreateUserDialog() {
           </div>
         </ScrollArea>
 
-        <div className="flex items-center justify-between pt-4 border-t mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t mt-4">
           <Button
             type="button"
             variant="outline"
